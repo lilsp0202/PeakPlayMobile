@@ -1,0 +1,241 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  username      String    @unique
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(ATHLETE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  student  Student?
+  coach    Coach?
+  skills   Skills?
+}
+
+model Student {
+  id           String      @id @default(cuid())
+  userId       String      @unique
+  studentName  String
+  username     String
+  email        String
+  age          Int
+  height       Float // in cm
+  weight       Float // in kg
+  academy      String
+  sport        SportType   @default(CRICKET)
+  role         PlayerRole
+  coachId      String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coach             Coach?             @relation(fields: [coachId], references: [id])
+  skills            Skills?
+  matchPerformances MatchPerformance[]
+}
+
+model Coach {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  name      String
+  username  String
+  email     String
+  academy   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  students Student[]
+}
+
+model Skills {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  studentId     String   @unique
+  studentName   String
+  studentEmail  String
+  age           Int
+  
+  // Physical Skills (SkillSnap v1)
+  pushupScore   Int?     // count
+  pullupScore   Int?     // count
+  sprintTime    Float?   // seconds for 100m sprint
+  run5kTime     Float?   // minutes for 5K run
+  
+  // Mental Skills (SkillSnap v2)
+  moodScore     Int?     // score out of 10
+  sleepScore    Int?     // score out of 10
+  
+  // Nutrition Skills (SkillSnap v2)
+  totalCalories Int?     // kcal per day
+  protein       Float?   // grams per day
+  carbohydrates Float?   // grams per day
+  fats          Float?   // grams per day
+  
+  // Metadata
+  category      SkillCategory @default(PHYSICAL)
+  lastUpdated   DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Match {
+  id               String             @id @default(cuid())
+  matchName        String             // e.g., "vs Mumbai Academy", "League Match #5"
+  opponent         String             // opposing team/academy
+  venue            String?            // match location
+  matchDate        DateTime
+  sport            SportType
+  matchType        MatchType          @default(PRACTICE)
+  result           MatchResult?       // WIN, LOSS, DRAW, ABANDONED
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  
+  performances     MatchPerformance[]
+}
+
+model MatchPerformance {
+  id                String     @id @default(cuid())
+  studentId         String
+  matchId           String
+  
+  // Basic performance metrics
+  played            Boolean    @default(true)
+  position          String?    // batting position, bowling order, etc.
+  
+  // Sport-specific stats stored as JSON
+  // For Cricket: {runs: 45, balls: 32, fours: 6, sixes: 1, strikeRate: 140.6, ...}
+  // For Football: {goals: 2, assists: 1, yellowCards: 0, redCards: 0, ...}
+  // For Basketball: {points: 18, rebounds: 7, assists: 5, steals: 2, ...}
+  stats             String     // JSON string for flexible sport-specific stats
+  
+  // Performance rating (1-10)
+  rating            Float?
+  
+  // Coach notes
+  notes             String?
+  
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  
+  student           Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  match             Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  
+  @@unique([studentId, matchId])
+}
+
+enum UserRole {
+  ATHLETE
+  COACH
+}
+
+enum SportType {
+  CRICKET
+  FOOTBALL
+  BASKETBALL
+  TENNIS
+  BADMINTON
+  VOLLEYBALL
+}
+
+enum PlayerRole {
+  // Cricket
+  BATSMAN
+  BOWLER
+  ALL_ROUNDER
+  KEEPER
+  
+  // Football
+  GOALKEEPER
+  DEFENDER
+  MIDFIELDER
+  FORWARD
+  
+  // Basketball
+  POINT_GUARD
+  SHOOTING_GUARD
+  SMALL_FORWARD
+  POWER_FORWARD
+  CENTER
+  
+  // General
+  PLAYER
+}
+
+enum MatchType {
+  PRACTICE
+  FRIENDLY
+  LEAGUE
+  TOURNAMENT
+  CHAMPIONSHIP
+}
+
+enum MatchResult {
+  WIN
+  LOSS
+  DRAW
+  ABANDONED
+}
+
+enum SkillCategory {
+  PHYSICAL
+  TECHNIQUE
+  MENTAL
+  NUTRITION
+  TACTICAL
+}
