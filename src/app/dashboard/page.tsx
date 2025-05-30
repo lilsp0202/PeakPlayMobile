@@ -312,8 +312,9 @@ export default function Dashboard() {
                   
                   {/* Athlete Dashboard Content */}
                   <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
-                    {/* Overall Progress Card */}
-                    <div className="lg:col-span-1">
+                    {/* Left Column - Progress & Profile */}
+                    <div className="lg:col-span-1 space-y-6">
+                      {/* Overall Progress Card */}
                       <div className="group bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-indigo-200">
                         <div className="p-6">
                           <ProgressRing 
@@ -321,6 +322,41 @@ export default function Dashboard() {
                             size={120} 
                             strokeWidth={8} 
                           />
+                        </div>
+                      </div>
+
+                      {/* Profile Information Card */}
+                      <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100">
+                        <div className="p-6">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Athlete Profile</h3>
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Name</p>
+                              <p className="text-sm font-medium text-gray-900">{profileData.studentName}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Academy</p>
+                              <p className="text-sm font-medium text-gray-900">{profileData.academy}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Role</p>
+                              <p className="text-sm font-medium text-gray-900">{profileData.role?.replace('_', ' ')}</p>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Age</p>
+                                <p className="text-sm font-medium text-gray-900">{profileData.age} yrs</p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Height</p>
+                                <p className="text-sm font-medium text-gray-900">{profileData.height} cm</p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Weight</p>
+                                <p className="text-sm font-medium text-gray-900">{profileData.weight} kg</p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
