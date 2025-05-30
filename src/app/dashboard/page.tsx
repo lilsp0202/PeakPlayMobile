@@ -326,34 +326,89 @@ export default function Dashboard() {
                       </div>
 
                       {/* Profile Information Card */}
-                      <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100">
+                      <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100 hover:shadow-xl transition-all duration-300">
                         <div className="p-6">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Athlete Profile</h3>
-                          <div className="space-y-3">
-                            <div>
-                              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Name</p>
-                              <p className="text-sm font-medium text-gray-900">{profileData.studentName}</p>
+                          {/* Header with Avatar */}
+                          <div className="flex items-center space-x-3 mb-5">
+                            <div className="h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                              {profileData.studentName?.charAt(0)?.toUpperCase()}
                             </div>
                             <div>
-                              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Academy</p>
-                              <p className="text-sm font-medium text-gray-900">{profileData.academy}</p>
+                              <h3 className="text-lg font-semibold text-gray-900">Athlete Profile</h3>
+                              <p className="text-sm text-gray-500">Personal Information</p>
                             </div>
-                            <div>
-                              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Role</p>
-                              <p className="text-sm font-medium text-gray-900">{profileData.role?.replace('_', ' ')}</p>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              <div>
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Age</p>
-                                <p className="text-sm font-medium text-gray-900">{profileData.age} yrs</p>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="h-8 w-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                                <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
                               </div>
-                              <div>
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Height</p>
-                                <p className="text-sm font-medium text-gray-900">{profileData.height} cm</p>
+                              <div className="flex-1">
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Name</p>
+                                <p className="text-sm font-semibold text-gray-900">{profileData.studentName}</p>
                               </div>
-                              <div>
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Weight</p>
-                                <p className="text-sm font-medium text-gray-900">{profileData.weight} kg</p>
+                            </div>
+                            
+                            <div className="flex items-center space-x-3">
+                              <div className="h-8 w-8 bg-green-50 rounded-lg flex items-center justify-center">
+                                <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8h1m-1-4h1m4 4h1m-1-4h1"/>
+                                </svg>
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Academy</p>
+                                <p className="text-sm font-semibold text-gray-900">{profileData.academy}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-3">
+                              <div className="h-8 w-8 bg-purple-50 rounded-lg flex items-center justify-center">
+                                <svg className="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                </svg>
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Role</p>
+                                <p className="text-sm font-semibold text-gray-900">{profileData.role?.replace('_', ' ')}</p>
+                              </div>
+                            </div>
+                            
+                            {/* Divider */}
+                            <div className="border-t border-gray-100 pt-4">
+                              <div className="grid grid-cols-3 gap-4">
+                                <div className="text-center">
+                                  <div className="h-8 w-8 bg-orange-50 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                    <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                  </div>
+                                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Age</p>
+                                  <p className="text-sm font-bold text-gray-900">{profileData.age}</p>
+                                  <p className="text-xs text-gray-400">years</p>
+                                </div>
+                                <div className="text-center">
+                                  <div className="h-8 w-8 bg-cyan-50 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                    <svg className="h-4 w-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                                    </svg>
+                                  </div>
+                                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Height</p>
+                                  <p className="text-sm font-bold text-gray-900">{profileData.height}</p>
+                                  <p className="text-xs text-gray-400">cm</p>
+                                </div>
+                                <div className="text-center">
+                                  <div className="h-8 w-8 bg-pink-50 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                    <svg className="h-4 w-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-1m-3 1l-3-1"/>
+                                    </svg>
+                                  </div>
+                                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Weight</p>
+                                  <p className="text-sm font-bold text-gray-900">{profileData.weight}</p>
+                                  <p className="text-xs text-gray-400">kg</p>
+                                </div>
                               </div>
                             </div>
                           </div>
