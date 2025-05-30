@@ -328,16 +328,8 @@ export default function Dashboard() {
                       {/* Profile Information Card */}
                       <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100 hover:shadow-xl transition-all duration-300">
                         <div className="p-6">
-                          {/* Header with Avatar */}
-                          <div className="flex items-center space-x-3 mb-5">
-                            <div className="h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                              {profileData.studentName?.charAt(0)?.toUpperCase()}
-                            </div>
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900">Athlete Profile</h3>
-                              <p className="text-sm text-gray-500">Personal Information</p>
-                            </div>
-                          </div>
+                          {/* Simple Header */}
+                          <h3 className="text-lg font-semibold text-gray-900 mb-5">Athlete Profile</h3>
                           
                           <div className="space-y-4">
                             <div className="flex items-center space-x-3">
