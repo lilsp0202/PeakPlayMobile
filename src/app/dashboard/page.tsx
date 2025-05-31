@@ -410,7 +410,7 @@ export default function Dashboard() {
 
                     {/* SkillSnap */}
                     <div className="lg:col-span-4">
-                      <SkillSnap isCoachView={false} />
+                      <SkillSnap isCoachView={profileData.role === 'COACH'} />
                     </div>
                      
                      {/* Recent Match Scores Component */}

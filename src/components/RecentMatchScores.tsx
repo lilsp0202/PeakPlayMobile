@@ -9,6 +9,8 @@ import {
   Target,
   TrendingUp,
   Clock,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 interface MatchStats {
@@ -205,6 +207,10 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: Re
   const [matches, setMatches] = useState<MatchPerformance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Number of matches to show in preview
+  const PREVIEW_COUNT = 2;
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -233,6 +239,10 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: Re
 
     fetchMatches();
   }, [studentId, isCoachView]);
+
+  const handleToggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
 
   if (loading) {
     return (
@@ -285,6 +295,10 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: Re
     );
   }
 
+  // Determine matches to display
+  const displayedMatches = isExpanded ? matches : matches.slice(0, PREVIEW_COUNT);
+  const hasMoreMatches = matches.length > PREVIEW_COUNT;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -295,7 +309,12 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: Re
           </div>
           <div>
             <h2 className="text-xl font-bold text-gray-900">Recent Match Scores</h2>
-            <p className="text-gray-600">Latest {matches.length} match performances</p>
+            <p className="text-gray-600">
+              {isExpanded 
+                ? `Showing all ${matches.length} match performances` 
+                : `Latest ${Math.min(matches.length, PREVIEW_COUNT)} of ${matches.length} matches`
+              }
+            </p>
           </div>
         </div>
         
@@ -307,10 +326,65 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: Re
       
       {/* Match Cards */}
       <div className="grid gap-6">
-        {matches.slice(0, 5).map((performance) => (
+        {displayedMatches.map((performance) => (
           <MatchCard key={performance.id} performance={performance} />
         ))}
       </div>
+
+      {/* Expand/Collapse Button */}
+      {hasMoreMatches && (
+        <div className="flex justify-center">
+          <button
+            onClick={handleToggleExpanded}
+            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-5 w-5" />
+                <span>Show Less</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-5 w-5" />
+                <span>View All {matches.length} Matches</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Summary when expanded */}
+      {isExpanded && matches.length > PREVIEW_COUNT && (
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-200">
+          <div className="flex items-center space-x-2 mb-2">
+            <Trophy className="h-5 w-5 text-indigo-600" />
+            <h3 className="font-semibold text-indigo-900">Performance Summary</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {matches.filter(m => m.match.result === 'WIN').length}
+              </div>
+              <div className="text-sm text-gray-600">Wins</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">
+                {matches.filter(m => m.match.result === 'LOSS').length}
+              </div>
+              <div className="text-sm text-gray-600">Losses</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-indigo-600">
+                {matches.filter(m => m.rating).length > 0 
+                  ? (matches.filter(m => m.rating).reduce((sum, m) => sum + (m.rating || 0), 0) / matches.filter(m => m.rating).length).toFixed(1)
+                  : 'N/A'
+                }
+              </div>
+              <div className="text-sm text-gray-600">Avg Rating</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

@@ -93,6 +93,8 @@ export async function POST(request: Request) {
     }
 
     const requestBody = await request.json();
+    console.log("Skills API - Received request body:", JSON.stringify(requestBody, null, 2));
+    
     const { 
       // Physical skills
       pushupScore, 
@@ -107,6 +109,35 @@ export async function POST(request: Request) {
       protein,
       carbohydrates,
       fats,
+      // Technical skills - Batting
+      battingGrip,
+      battingStance,
+      battingBalance,
+      cockingOfWrist,
+      backLift,
+      topHandDominance,
+      highElbow,
+      runningBetweenWickets,
+      calling,
+      // Technical skills - Bowling
+      bowlingGrip,
+      runUp,
+      backFootLanding,
+      frontFootLanding,
+      hipDrive,
+      backFootDrag,
+      nonBowlingArm,
+      release,
+      followThrough,
+      // Technical skills - Fielding
+      positioningOfBall,
+      pickUp,
+      aim,
+      throw: throwSkill,
+      softHands,
+      receiving,
+      highCatch,
+      flatCatch,
       // Metadata
       studentId,
       category 
@@ -115,21 +146,71 @@ export async function POST(request: Request) {
     let targetStudentId = studentId;
     let targetStudent;
     
+    console.log("Skills API - Session user:", session.user);
+    console.log("Skills API - Student ID from request:", studentId);
+    
+    // Validate required parameters
+    if (session.user.role === "COACH" && !studentId) {
+      console.log("Skills API - Coach request missing studentId");
+      return NextResponse.json(
+        { message: "Student ID is required for coach requests" },
+        { status: 400 }
+      );
+    }
+    
     // If coach is updating student data
     if (session.user.role === "COACH" && studentId) {
-      targetStudent = await prisma.student.findUnique({
-        where: { id: studentId },
-        include: { coach: true },
-      });
+      console.log("Skills API - Coach updating student data");
       
-      if (!targetStudent || targetStudent.coachId !== 
-          (await prisma.coach.findUnique({ where: { userId: session.user.id } }))?.id) {
+      try {
+        targetStudent = await prisma.student.findUnique({
+          where: { id: studentId },
+          include: { coach: true },
+        });
+        
+        console.log("Skills API - Target student found:", targetStudent);
+        
+        if (!targetStudent) {
+          console.log("Skills API - Student not found");
+          return NextResponse.json(
+            { message: "Student not found" },
+            { status: 404 }
+          );
+        }
+        
+        const coach = await prisma.coach.findUnique({ 
+          where: { userId: session.user.id } 
+        });
+        
+        console.log("Skills API - Coach found:", coach);
+        
+        if (!coach) {
+          console.log("Skills API - Coach profile not found");
+          return NextResponse.json(
+            { message: "Coach profile not found" },
+            { status: 404 }
+          );
+        }
+        
+        if (targetStudent.coachId !== coach.id) {
+          console.log("Skills API - Coach not authorized for this student. Student coachId:", targetStudent.coachId, "Coach ID:", coach.id);
+          return NextResponse.json(
+            { message: "Not authorized to update this student's skills" },
+            { status: 403 }
+          );
+        }
+        
+        console.log("Skills API - Coach authorization successful");
+        
+      } catch (authError) {
+        console.error("Skills API - Error during coach authorization:", authError);
         return NextResponse.json(
-          { message: "Not authorized to update this student's skills" },
-          { status: 403 }
+          { message: "Error during authorization" },
+          { status: 500 }
         );
       }
     } else if (session.user.role === "ATHLETE") {
+      console.log("Skills API - Athlete updating own data");
       // For athletes, update their own skills
       targetStudent = await prisma.student.findUnique({
         where: { userId: session.user.id },
@@ -144,6 +225,7 @@ export async function POST(request: Request) {
       
       targetStudentId = targetStudent.id;
     } else {
+      console.log("Skills API - Forbidden access. User role:", session.user.role, "Student ID:", studentId);
       return NextResponse.json(
         { message: "Forbidden" },
         { status: 403 }
@@ -151,77 +233,106 @@ export async function POST(request: Request) {
     }
     
     // Prepare update data - only include fields that are actually provided
-    const updateData: any = { lastUpdated: new Date() };
-    const createData: any = {
-      userId: targetStudent.userId,
-      studentId: targetStudentId,
-      studentName: targetStudent.studentName,
-      studentEmail: targetStudent.email,
-      age: targetStudent.age,
-      category: category || "PHYSICAL",
-    };
-
+    const updateData: any = {};
+    
     // Physical skills
-    if (pushupScore !== undefined) {
-      updateData.pushupScore = pushupScore;
-      createData.pushupScore = pushupScore;
-    }
-    if (pullupScore !== undefined) {
-      updateData.pullupScore = pullupScore;
-      createData.pullupScore = pullupScore;
-    }
-    if (sprintTime !== undefined) {
-      updateData.sprintTime = sprintTime;
-      createData.sprintTime = sprintTime;
-    }
-    if (run5kTime !== undefined) {
-      updateData.run5kTime = run5kTime;
-      createData.run5kTime = run5kTime;
-    }
+    if (pushupScore !== undefined) updateData.pushupScore = pushupScore;
+    if (pullupScore !== undefined) updateData.pullupScore = pullupScore;
+    if (sprintTime !== undefined) updateData.sprintTime = sprintTime;
+    if (run5kTime !== undefined) updateData.run5kTime = run5kTime;
 
     // Mental skills
-    if (moodScore !== undefined) {
-      updateData.moodScore = moodScore;
-      createData.moodScore = moodScore;
-    }
-    if (sleepScore !== undefined) {
-      updateData.sleepScore = sleepScore;
-      createData.sleepScore = sleepScore;
-    }
+    if (moodScore !== undefined) updateData.moodScore = moodScore;
+    if (sleepScore !== undefined) updateData.sleepScore = sleepScore;
 
     // Nutrition skills
-    if (totalCalories !== undefined) {
-      updateData.totalCalories = totalCalories;
-      createData.totalCalories = totalCalories;
-    }
-    if (protein !== undefined) {
-      updateData.protein = protein;
-      createData.protein = protein;
-    }
-    if (carbohydrates !== undefined) {
-      updateData.carbohydrates = carbohydrates;
-      createData.carbohydrates = carbohydrates;
-    }
-    if (fats !== undefined) {
-      updateData.fats = fats;
-      createData.fats = fats;
-    }
+    if (totalCalories !== undefined) updateData.totalCalories = totalCalories;
+    if (protein !== undefined) updateData.protein = protein;
+    if (carbohydrates !== undefined) updateData.carbohydrates = carbohydrates;
+    if (fats !== undefined) updateData.fats = fats;
+
+    // Technical skills - Batting
+    if (battingGrip !== undefined) updateData.battingGrip = battingGrip;
+    if (battingStance !== undefined) updateData.battingStance = battingStance;
+    if (battingBalance !== undefined) updateData.battingBalance = battingBalance;
+    if (cockingOfWrist !== undefined) updateData.cockingOfWrist = cockingOfWrist;
+    if (backLift !== undefined) updateData.backLift = backLift;
+    if (topHandDominance !== undefined) updateData.topHandDominance = topHandDominance;
+    if (highElbow !== undefined) updateData.highElbow = highElbow;
+    if (runningBetweenWickets !== undefined) updateData.runningBetweenWickets = runningBetweenWickets;
+    if (calling !== undefined) updateData.calling = calling;
+
+    // Technical skills - Bowling
+    if (bowlingGrip !== undefined) updateData.bowlingGrip = bowlingGrip;
+    if (runUp !== undefined) updateData.runUp = runUp;
+    if (backFootLanding !== undefined) updateData.backFootLanding = backFootLanding;
+    if (frontFootLanding !== undefined) updateData.frontFootLanding = frontFootLanding;
+    if (hipDrive !== undefined) updateData.hipDrive = hipDrive;
+    if (backFootDrag !== undefined) updateData.backFootDrag = backFootDrag;
+    if (nonBowlingArm !== undefined) updateData.nonBowlingArm = nonBowlingArm;
+    if (release !== undefined) updateData.release = release;
+    if (followThrough !== undefined) updateData.followThrough = followThrough;
+
+    // Technical skills - Fielding
+    if (positioningOfBall !== undefined) updateData.positioningOfBall = positioningOfBall;
+    if (pickUp !== undefined) updateData.pickUp = pickUp;
+    if (aim !== undefined) updateData.aim = aim;
+    if (throwSkill !== undefined) updateData.throw = throwSkill;
+    if (softHands !== undefined) updateData.softHands = softHands;
+    if (receiving !== undefined) updateData.receiving = receiving;
+    if (highCatch !== undefined) updateData.highCatch = highCatch;
+    if (flatCatch !== undefined) updateData.flatCatch = flatCatch;
+    
+    console.log("Skills API - Update data prepared:", JSON.stringify(updateData, null, 2));
+    console.log("Skills API - Target student ID:", targetStudentId);
     
     // Upsert skills data
-    const skills = await prisma.skills.upsert({
-      where: { studentId: targetStudentId },
-      update: updateData,
-      create: createData,
-    });
+    try {
+      const skills = await prisma.skills.upsert({
+        where: { studentId: targetStudentId },
+        update: updateData,
+        create: {
+          studentId: targetStudentId,
+          userId: targetStudent.userId,
+          studentName: targetStudent.studentName,
+          studentEmail: targetStudent.email,
+          age: targetStudent.age,
+          ...updateData
+        },
+        include: {
+          student: {
+            select: {
+              studentName: true,
+              age: true,
+              academy: true,
+              height: true,
+              weight: true,
+            },
+          },
+        },
+      });
 
-    return NextResponse.json(
-      { message: "Skills updated successfully", skills },
-      { status: 200 }
-    );
+      console.log("Skills API - Skills updated successfully:", JSON.stringify(skills, null, 2));
+
+      return NextResponse.json(
+        { message: "Skills updated successfully", skills },
+        { status: 200 }
+      );
+    } catch (dbError) {
+      console.error("Skills API - Database error during upsert:", dbError);
+      return NextResponse.json(
+        { message: "Database error while updating skills", error: dbError.message },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Error updating skills:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { 
+        message: "Internal server error", 
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     );
   }

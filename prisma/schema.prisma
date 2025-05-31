@@ -116,6 +116,38 @@ model Skills {
   carbohydrates Float?   // grams per day
   fats          Float?   // grams per day
   
+  // Technical skills - Batting
+  battingGrip              Int?
+  battingStance            Int?
+  battingBalance           Int?
+  cockingOfWrist           Int?
+  backLift                 Int?
+  topHandDominance         Int?
+  highElbow                Int?
+  runningBetweenWickets    Int?
+  calling                  Int?
+  
+  // Technical skills - Bowling
+  bowlingGrip              Int?
+  runUp                    Int?
+  backFootLanding          Int?
+  frontFootLanding         Int?
+  hipDrive                 Int?
+  backFootDrag             Int?
+  nonBowlingArm            Int?
+  release                  Int?
+  followThrough            Int?
+  
+  // Technical skills - Fielding
+  positioningOfBall        Int?
+  pickUp                   Int?
+  aim                      Int?
+  throw                    Int?
+  softHands                Int?
+  receiving                Int?
+  highCatch                Int?
+  flatCatch                Int?
+  
   // Metadata
   category      SkillCategory @default(PHYSICAL)
   lastUpdated   DateTime      @default(now())
