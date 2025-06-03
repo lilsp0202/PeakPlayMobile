@@ -270,18 +270,80 @@ async function main() {
     console.log(`✅ Created match: ${matchData.matchName} with performances`);
   }
 
+  // Create sample feedback from coach to students
+  console.log('\n📝 Creating sample coach feedback...');
+  
+  const feedbackData = [
+    {
+      title: "Great Batting Technique Improvement",
+      content: "I've noticed significant improvement in your batting stance and timing during yesterday's practice. Your foot positioning has become much more consistent, and you're getting better at reading the ball early. Keep focusing on your follow-through and try to maintain this level of concentration during matches. Well done!",
+      category: "TECHNICAL",
+      priority: "MEDIUM"
+    },
+    {
+      title: "Focus on Mental Preparation",
+      content: "Your physical skills are developing well, but I think we need to work on your mental game. Try implementing the visualization techniques we discussed. Spend 10 minutes before each practice session visualizing successful shots and good fielding positions. This will help build your confidence.",
+      category: "MENTAL",
+      priority: "HIGH"
+    },
+    {
+      title: "Nutrition Plan Recommendations",
+      content: "Based on your recent performance data, I recommend adjusting your pre-training nutrition. Try having a banana and some nuts 30 minutes before practice instead of the energy drink. This will give you sustained energy without the crash. Also, make sure you're drinking enough water throughout the day.",
+      category: "NUTRITIONAL",
+      priority: "LOW"
+    },
+    {
+      title: "Bowling Action Analysis",
+      content: "Your bowling action has improved significantly over the past month. Your run-up is more consistent and your release point is getting better. However, I noticed you're telegraphing your slower ball - try to maintain the same action for all deliveries. We'll work on this in our next one-on-one session.",
+      category: "TECHNICAL",
+      priority: "MEDIUM"
+    },
+    {
+      title: "Match Performance Review",
+      content: "Excellent performance in yesterday's match! Your fielding was sharp and you took some crucial catches. Your batting showed great maturity - particularly the way you built your innings. For next match, focus on rotating the strike more in the middle overs.",
+      category: "GENERAL",
+      priority: "LOW"
+    }
+  ];
+
+  // Create feedback for each student
+  for (let i = 0; i < createdStudents.length; i++) {
+    const student = createdStudents[i];
+    // Give each student 2-3 random feedback items
+    const studentFeedback = feedbackData.slice(i % 3, (i % 3) + 2);
+    
+    for (const feedback of studentFeedback) {
+      await prisma.feedback.create({
+        data: {
+          studentId: student.id,
+          coachId: coach1Profile.id,
+          title: feedback.title,
+          content: feedback.content,
+          category: feedback.category,
+          priority: feedback.priority,
+          isRead: Math.random() > 0.5, // Random read status
+        },
+      });
+    }
+  }
+
+  const totalFeedback = await prisma.feedback.count();
+  console.log(`✅ Created ${totalFeedback} feedback items`);
+
   console.log('\n🎉 Database seeding completed successfully!');
   console.log('\n📊 Test Data Summary:');
   console.log(`👨‍🏫 Coaches: 1 (coach1@transform.com / password123)`);
   console.log(`👨‍🎓 Students: ${createdStudents.length} (age range: 15-18)`);
   console.log(`📈 Skills records: ${createdStudents.length} (all technical skills included)`);
   console.log(`🏏 Matches: ${matches.length} with performance data`);
+  console.log(`💬 Feedback: ${totalFeedback} coach feedback items`);
   console.log('\n🚀 You can now test:');
   console.log('   • Coach dashboard with student management');
   console.log('   • Technical skills editing and saving');
   console.log('   • Age group averages and comparisons');
   console.log('   • Match performance tracking');
   console.log('   • Complete SkillSnap functionality');
+  console.log('   • Coach feedback system with preview and expansion');
 }
 
 main()

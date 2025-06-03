@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import SkillSnap from "../../components/SkillSnap";
 import { ProgressRing, calculateOverallProgress } from "../../components/SkillSnap";
 import RecentMatchScores from "../../components/RecentMatchScores";
+import CoachFeedback from "../../components/CoachFeedback";
+import CreateFeedbackModal from "../../components/CreateFeedbackModal";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -18,6 +20,8 @@ export default function Dashboard() {
   const [assignedStudents, setAssignedStudents] = useState<any[]>([]);
   const [isAssigning, setIsAssigning] = useState(false);
   const [selectedStudentForSkills, setSelectedStudentForSkills] = useState<string | null>(null);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [selectedStudentForFeedback, setSelectedStudentForFeedback] = useState<any>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -128,6 +132,21 @@ export default function Dashboard() {
       console.error("Error assigning students:", error);
     }
     setIsAssigning(false);
+  };
+
+  const handleOpenFeedbackModal = (student: any) => {
+    setSelectedStudentForFeedback(student);
+    setFeedbackModalOpen(true);
+  };
+
+  const handleCloseFeedbackModal = () => {
+    setFeedbackModalOpen(false);
+    setSelectedStudentForFeedback(null);
+  };
+
+  const handleFeedbackCreated = () => {
+    // Optionally refresh any data or show a success message
+    console.log('Feedback created successfully');
   };
 
   if (status === "loading" || loading) {
@@ -406,6 +425,9 @@ export default function Dashboard() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Coach Feedback Section */}
+                      <CoachFeedback />
                     </div>
 
                     {/* SkillSnap */}
@@ -563,6 +585,12 @@ export default function Dashboard() {
                                       {student.height}cm, {student.weight}kg
                                     </div>
                                     <button
+                                      onClick={() => handleOpenFeedbackModal(student)}
+                                      className="text-green-600 hover:text-green-900 text-sm font-medium"
+                                    >
+                                      Give Feedback
+                                    </button>
+                                    <button
                                       onClick={() => setSelectedStudentForSkills(
                                         selectedStudentForSkills === student.id ? null : student.id
                                       )}
@@ -601,6 +629,16 @@ export default function Dashboard() {
           )}
         </div>
       </main>
+
+      {/* Feedback Creation Modal */}
+      {selectedStudentForFeedback && (
+        <CreateFeedbackModal
+          isOpen={feedbackModalOpen}
+          onClose={handleCloseFeedbackModal}
+          student={selectedStudentForFeedback}
+          onFeedbackCreated={handleFeedbackCreated}
+        />
+      )}
     </div>
   );
 }
