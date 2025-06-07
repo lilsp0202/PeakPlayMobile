@@ -69,6 +69,7 @@ model Student {
   receivedFeedback  Feedback[]
   matchPerformances MatchPerformance[]
   skills            Skills?
+  badges            StudentBadge[]
   coach             Coach?             @relation(fields: [coachId], references: [id])
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -190,4 +191,70 @@ model Feedback {
   updatedAt DateTime @updatedAt
   coach     Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
   student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+// Badge System Models
+model BadgeCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  icon        String
+  color       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  badges      Badge[]
+}
+
+model Badge {
+  id                String        @id @default(cuid())
+  name              String
+  description       String
+  motivationalText  String
+  level             String        @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM
+  categoryId        String
+  icon              String
+  sport             String        @default("CRICKET")
+  isActive          Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  category          BadgeCategory @relation(fields: [categoryId], references: [id])
+  rules             BadgeRule[]
+  studentBadges     StudentBadge[]
+  
+  @@unique([name, level, sport])
+}
+
+model BadgeRule {
+  id              String   @id @default(cuid())
+  badgeId         String
+  ruleType        String   // PERFORMANCE, WELLNESS, CONSISTENCY, COACH_RATING, STREAK, IMPROVEMENT
+  fieldName       String   // Field to check (e.g., "battingGrip", "sleepScore", "pushupScore")
+  operator        String   // GT, GTE, LT, LTE, EQ, NEQ, BETWEEN, STREAK_DAYS
+  value           String   // Target value (could be number, JSON for complex rules)
+  weight          Float    @default(1.0) // For weighted scoring
+  isRequired      Boolean  @default(true) // Must be met vs contributes to score
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  badge           Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+}
+
+model StudentBadge {
+  id          String    @id @default(cuid())
+  studentId   String
+  badgeId     String
+  awardedAt   DateTime  @default(now())
+  awardedBy   String?   // Coach ID who triggered the badge (if manual)
+  score       Float?    // Score achieved when earning the badge
+  progress    Float     @default(100) // Progress percentage (100 = completed)
+  isRevoked   Boolean   @default(false)
+  revokedAt   DateTime?
+  revokedBy   String?
+  revokeReason String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  badge       Badge     @relation(fields: [badgeId], references: [id])
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@unique([studentId, badgeId])
 }

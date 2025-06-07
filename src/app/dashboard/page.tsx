@@ -8,6 +8,13 @@ import { ProgressRing, calculateOverallProgress } from "../../components/SkillSn
 import RecentMatchScores from "../../components/RecentMatchScores";
 import CoachFeedback from "../../components/CoachFeedback";
 import CreateFeedbackModal from "../../components/CreateFeedbackModal";
+import BadgeDisplay from "../../components/BadgeDisplay";
+import BadgeManager from "../../components/BadgeManager";
+import BadgeForm from "@/components/BadgeForm";
+
+// Dynamic import for SkillSnap to avoid SSR issues
+import dynamic from 'next/dynamic';
+const SkillSnapDynamic = dynamic(() => import('@/components/SkillSnap'), { ssr: false });
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -22,6 +29,11 @@ export default function Dashboard() {
   const [selectedStudentForSkills, setSelectedStudentForSkills] = useState<string | null>(null);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [selectedStudentForFeedback, setSelectedStudentForFeedback] = useState<any>(null);
+  const [showBadgeManager, setShowBadgeManager] = useState(false);
+  const [badgeStats, setBadgeStats] = useState<any>(null);
+  const [selectedStudentForBadges, setSelectedStudentForBadges] = useState<string | null>(null);
+  const [showBadgeForm, setShowBadgeForm] = useState(false);
+  const [editingBadge, setEditingBadge] = useState<any>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -148,6 +160,98 @@ export default function Dashboard() {
     // Optionally refresh any data or show a success message
     console.log('Feedback created successfully');
   };
+
+  // Badge-related functions
+  const fetchBadgeStats = async () => {
+    if (session?.user.role === "COACH") {
+      try {
+        const response = await fetch('/api/badges/admin');
+        if (response.ok) {
+          const data = await response.json();
+          setBadgeStats(data);
+        }
+      } catch (error) {
+        console.error('Error fetching badge stats:', error);
+      }
+    }
+  };
+
+  const handleEvaluateBadges = async (studentId?: string) => {
+    try {
+      const evalUrl = studentId ? `/api/badges/evaluate?studentId=${studentId}` : '/api/badges/evaluate';
+      console.log('Dashboard - Evaluating badges:', { evalUrl, studentId });
+      
+      const response = await fetch(evalUrl, { method: 'POST' });
+      console.log('Dashboard - Response status:', response.status);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Dashboard - Badges evaluated successfully:', result);
+        await fetchBadgeStats();
+        
+        // Show user feedback
+        if (result.newBadges && result.newBadges.length > 0) {
+          alert(`Great! ${result.newBadges.length} new badge(s) awarded!`);
+        } else {
+          alert('Badge evaluation completed. No new badges awarded.');
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('Dashboard - Badge evaluation failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        alert(`Badge evaluation failed: ${response.status} ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Dashboard - Error evaluating badges:', error);
+      alert('Error evaluating badges: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  const handleCreateBadge = () => {
+    setShowBadgeForm(true);
+  };
+
+  const handleEditBadge = (badge: any) => {
+    setEditingBadge(badge);
+    setShowBadgeForm(true);
+  };
+
+  const handleDeleteBadge = async (badgeId: string) => {
+    if (!confirm('Are you sure you want to delete this badge?')) return;
+    
+    try {
+      const response = await fetch(`/api/badges/${badgeId}`, { 
+        method: 'DELETE' 
+      });
+      if (response.ok) {
+        console.log('Badge deleted successfully');
+        await fetchBadgeStats();
+      }
+    } catch (error) {
+      console.error('Error deleting badge:', error);
+    }
+  };
+
+  const handleBadgeFormClose = () => {
+    setShowBadgeForm(false);
+    setEditingBadge(null);
+  };
+
+  const handleBadgeCreated = () => {
+    setShowBadgeForm(false);
+    setEditingBadge(null);
+    fetchBadgeStats();
+  };
+
+  // Fetch badge stats when coach profile is loaded
+  useEffect(() => {
+    if (session?.user.role === "COACH" && profileData) {
+      fetchBadgeStats();
+    }
+  }, [session, profileData]);
 
   if (status === "loading" || loading) {
     return (
@@ -434,11 +538,37 @@ export default function Dashboard() {
                     <div className="lg:col-span-4">
                       <SkillSnap isCoachView={profileData.role === 'COACH'} />
                     </div>
-                     
-                     {/* Recent Match Scores Component */}
-                     <div className="lg:col-span-5">
-                       <RecentMatchScores isCoachView={false} />
-                     </div>
+                  </div>
+                  
+                  {/* Badges Section for Athletes */}
+                  <div className="mb-8">
+                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100">
+                      <div className="p-6">
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center space-x-3">
+                            <div className="h-8 w-8 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                              </svg>
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-bold text-gray-900">Your Achievements & Badges</h3>
+                              <p className="text-sm text-gray-600">Track your progress with our performance badge system</p>
+                            </div>
+                          </div>
+                        </div>
+                        <BadgeDisplay 
+                          studentId={profileData.id}
+                          showProgress={true}
+                          layout="grid"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Recent Match Scores Component */}
+                  <div className="lg:col-span-5">
+                    <RecentMatchScores isCoachView={false} />
                   </div>
                 </div>
               ) : (
@@ -566,6 +696,132 @@ export default function Dashboard() {
                     </div>
                   )}
 
+                  {/* Badge Management Section for Coaches */}
+                  <div className="mb-8">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-8 w-8 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                          <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                            Badge Management
+                          </h3>
+                          <p className="text-gray-600">Manage achievements and evaluate student progress</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => setShowBadgeManager(!showBadgeManager)}
+                          className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                        >
+                          {showBadgeManager ? 'Hide Manager' : 'Manage Badges'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100">
+                      <div className="p-6">
+                        {/* Badge Statistics */}
+                        {badgeStats && (
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                              <div className="flex items-center space-x-3">
+                                <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                  <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600">Total Badges</p>
+                                  <p className="text-lg font-bold text-gray-900">{badgeStats.totalBadges || 0}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
+                              <div className="flex items-center space-x-3">
+                                <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center">
+                                  <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600">Awarded</p>
+                                  <p className="text-lg font-bold text-gray-900">{badgeStats.totalAwarded || 0}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
+                              <div className="flex items-center space-x-3">
+                                <div className="h-8 w-8 bg-purple-600 rounded-full flex items-center justify-center">
+                                  <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600">Categories</p>
+                                  <p className="text-lg font-bold text-gray-900">{badgeStats.totalCategories || 0}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border border-orange-200">
+                              <div className="flex items-center space-x-3">
+                                <div className="h-8 w-8 bg-orange-600 rounded-full flex items-center justify-center">
+                                  <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600">Students</p>
+                                  <p className="text-lg font-bold text-gray-900">{assignedStudents.length}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap gap-3 mb-6">
+                          <button
+                            onClick={handleCreateBadge}
+                            className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                          >
+                            Create New Badge
+                          </button>
+                          <button
+                            onClick={() => handleEvaluateBadges()}
+                            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                          >
+                            Evaluate All Students
+                          </button>
+                          {selectedStudentForSkills && (
+                            <button
+                              onClick={() => handleEvaluateBadges(selectedStudentForSkills)}
+                              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                            >
+                              Evaluate Selected Student
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Badge Manager Component */}
+                        {showBadgeManager && (
+                          <div className="border-t border-gray-200 pt-6">
+                            <BadgeManager 
+                              onEditBadge={handleEditBadge}
+                              onDeleteBadge={handleDeleteBadge}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Assigned Students Section */}
                   <div className="mb-8">
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Your Athletes</h3>
@@ -598,6 +854,14 @@ export default function Dashboard() {
                                     >
                                       {selectedStudentForSkills === student.id ? 'Hide Skills' : 'View Skills'}
                                     </button>
+                                    <button
+                                      onClick={() => setSelectedStudentForBadges(
+                                        selectedStudentForBadges === student.id ? null : student.id
+                                      )}
+                                      className="text-yellow-600 hover:text-yellow-900 text-sm font-medium"
+                                    >
+                                      {selectedStudentForBadges === student.id ? 'Hide Badges' : 'View Badges'}
+                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -617,10 +881,65 @@ export default function Dashboard() {
                   {/* SkillSnap Component for Coaches */}
                   {selectedStudentForSkills && (
                     <div className="mb-8">
-                      <SkillSnap 
+                      <SkillSnapDynamic 
                         studentId={selectedStudentForSkills}
                         isCoachView={true} 
                       />
+                    </div>
+                  )}
+
+                  {/* Badge Display for Selected Student */}
+                  {selectedStudentForBadges && (
+                    <div className="mb-8">
+                      <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100">
+                        <div className="p-6">
+                          <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center space-x-3">
+                              <div className="h-8 w-8 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                                <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                </svg>
+                              </div>
+                              <div>
+                                <h3 className="text-xl font-bold text-gray-900">Student Achievements</h3>
+                                <p className="text-sm text-gray-600">View badges and progress for selected student</p>
+                              </div>
+                            </div>
+                          </div>
+                          <BadgeDisplay 
+                            studentId={selectedStudentForBadges}
+                            showProgress={true}
+                            layout="grid"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Coach Controls */}
+                  {session.user.role === 'COACH' && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                      <button
+                        onClick={handleCreateBadge}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Create Badge
+                      </button>
+                      <button
+                        onClick={() => setShowBadgeManager(!showBadgeManager)}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                      >
+                        {showBadgeManager ? 'Hide' : 'Manage'} Badges
+                      </button>
+                      <button
+                        onClick={() => handleEvaluateBadges()}
+                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+                      >
+                        Evaluate All Badges
+                      </button>
                     </div>
                   )}
                 </div>
@@ -637,6 +956,16 @@ export default function Dashboard() {
           onClose={handleCloseFeedbackModal}
           student={selectedStudentForFeedback}
           onFeedbackCreated={handleFeedbackCreated}
+        />
+      )}
+
+      {/* Badge Form Modal */}
+      {showBadgeForm && (
+        <BadgeForm
+          isOpen={showBadgeForm}
+          onClose={handleBadgeFormClose}
+          onBadgeCreated={handleBadgeCreated}
+          editingBadge={editingBadge}
         />
       )}
     </div>

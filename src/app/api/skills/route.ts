@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
+import { BadgeEngine } from "@/lib/badgeEngine";
 
 export async function GET(request: Request) {
   try {
@@ -95,13 +96,13 @@ export async function POST(request: Request) {
     const requestBody = await request.json();
     console.log("Skills API - Received request body:", JSON.stringify(requestBody, null, 2));
     
-    const { 
+    const {
       // Physical skills
-      pushupScore, 
-      pullupScore, 
-      sprintTime, 
+      pushupScore,
+      pullupScore,
+      sprintTime,
       run5kTime,
-      // Mental skills  
+      // Mental skills
       moodScore,
       sleepScore,
       // Nutrition skills
@@ -177,6 +178,8 @@ export async function POST(request: Request) {
             { status: 404 }
           );
         }
+
+        targetStudentId = targetStudent.id;
         
         const coach = await prisma.coach.findUnique({ 
           where: { userId: session.user.id } 
@@ -231,6 +234,15 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
+
+    // Ensure we have a target student and ID before proceeding
+    if (!targetStudent || !targetStudentId) {
+      console.log("Skills API - Missing target student or ID");
+      return NextResponse.json(
+        { message: "Unable to determine target student" },
+        { status: 400 }
+      );
+    }
     
     // Prepare update data - only include fields that are actually provided
     const updateData: any = {};
@@ -277,7 +289,7 @@ export async function POST(request: Request) {
     if (positioningOfBall !== undefined) updateData.positioningOfBall = positioningOfBall;
     if (pickUp !== undefined) updateData.pickUp = pickUp;
     if (aim !== undefined) updateData.aim = aim;
-    if (throwSkill !== undefined) updateData.throw = throwSkill;
+    if (throwSkill !== undefined) updateData['throw'] = throwSkill;
     if (softHands !== undefined) updateData.softHands = softHands;
     if (receiving !== undefined) updateData.receiving = receiving;
     if (highCatch !== undefined) updateData.highCatch = highCatch;
@@ -313,6 +325,19 @@ export async function POST(request: Request) {
       });
 
       console.log("Skills API - Skills updated successfully:", JSON.stringify(skills, null, 2));
+
+      // Trigger badge evaluation after successful skills update
+      try {
+        console.log("Skills API - Triggering badge evaluation for student:", targetStudentId);
+        const badgeResult = await BadgeEngine.evaluateStudentBadges({ studentId: targetStudentId });
+        
+        if (badgeResult.newBadges.length > 0) {
+          console.log("Skills API - New badges awarded:", badgeResult.newBadges);
+        }
+      } catch (badgeError) {
+        console.error("Skills API - Badge evaluation error:", badgeError);
+        // Don't fail the skills update if badge evaluation fails
+      }
 
       return NextResponse.json(
         { message: "Skills updated successfully", skills },
