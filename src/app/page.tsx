@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PeakPlayLogo } from "../components/Navigation";
 
 export default function Home() {
   return (
@@ -9,32 +10,7 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             {/* Enhanced Logo */}
-            <div className="flex items-center group">
-              <div className="relative">
-                <div className="h-12 w-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                  <svg
-                    className="h-7 w-7 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2.5}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-                <div className="absolute -inset-1 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 rounded-xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 blur-sm"></div>
-              </div>
-              <div className="ml-4">
-                <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  PeakPlay
-                </span>
-                <p className="text-xs text-gray-500 font-medium">Athletic Excellence</p>
-              </div>
-            </div>
+            <PeakPlayLogo size="default" />
 
             {/* Enhanced Navigation */}
             <div className="flex items-center space-x-3">

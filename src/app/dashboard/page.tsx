@@ -11,6 +11,7 @@ import CreateFeedbackModal from "../../components/CreateFeedbackModal";
 import BadgeDisplay from "../../components/BadgeDisplay";
 import BadgeManager from "../../components/BadgeManager";
 import BadgeForm from "@/components/BadgeForm";
+import { PeakPlayLogo } from "../../components/Navigation";
 
 // Dynamic import for SkillSnap to avoid SSR issues
 import dynamic from 'next/dynamic';
@@ -279,31 +280,7 @@ export default function Dashboard() {
           <div className="flex justify-between items-center py-4">
             {/* Enhanced Logo & Title */}
             <div className="flex items-center space-x-4">
-              <div className="flex items-center group">
-                <div className="relative">
-                  <div className="h-11 w-11 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                    <svg
-                      className="h-6 w-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2.5}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="absolute -inset-0.5 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 rounded-xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 blur-sm"></div>
-                </div>
-                <div className="ml-3">
-                  <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-                    PeakPlay
-                  </span>
-                </div>
-              </div>
+              <PeakPlayLogo size="default" />
               
               <div className="hidden md:block h-8 w-px bg-gray-300"></div>
               
@@ -443,7 +420,6 @@ export default function Dashboard() {
                           <ProgressRing 
                             progress={calculateOverallProgress(skillData)} 
                             size={120} 
-                            strokeWidth={8} 
                           />
                         </div>
                       </div>
@@ -458,36 +434,37 @@ export default function Dashboard() {
                             <div className="flex items-center space-x-3">
                               <div className="h-8 w-8 bg-blue-50 rounded-lg flex items-center justify-center">
                                 <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8h1m-1-4h1m4 4h1m-1-4h1"/>
                                 </svg>
                               </div>
                               <div className="flex-1">
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Name</p>
-                                <p className="text-sm font-semibold text-gray-900">{profileData.studentName}</p>
+                                <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Name</p>
+                                <p className="text-sm font-bold text-gray-900">{profileData.name}</p>
+                                <p className="text-xs text-gray-600">@{profileData.username}</p>
                               </div>
                             </div>
                             
                             <div className="flex items-center space-x-3">
                               <div className="h-8 w-8 bg-green-50 rounded-lg flex items-center justify-center">
                                 <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8h1m-1-4h1m4 4h1m-1-4h1"/>
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                 </svg>
                               </div>
                               <div className="flex-1">
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Academy</p>
-                                <p className="text-sm font-semibold text-gray-900">{profileData.academy}</p>
+                                <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Academy</p>
+                                <p className="text-sm font-bold text-gray-900">{profileData.academy}</p>
                               </div>
                             </div>
                             
                             <div className="flex items-center space-x-3">
                               <div className="h-8 w-8 bg-purple-50 rounded-lg flex items-center justify-center">
                                 <svg className="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
                               </div>
                               <div className="flex-1">
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Role</p>
-                                <p className="text-sm font-semibold text-gray-900">{profileData.role?.replace('_', ' ')}</p>
+                                <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Role</p>
+                                <p className="text-sm font-bold text-gray-900">{profileData.role.replace('_', ' ')}</p>
                               </div>
                             </div>
                             
@@ -500,19 +477,19 @@ export default function Dashboard() {
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                     </svg>
                                   </div>
-                                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Age</p>
+                                  <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Age</p>
                                   <p className="text-sm font-bold text-gray-900">{profileData.age}</p>
-                                  <p className="text-xs text-gray-400">years</p>
+                                  <p className="text-xs text-gray-600">years</p>
                                 </div>
                                 <div className="text-center">
-                                  <div className="h-8 w-8 bg-cyan-50 rounded-lg flex items-center justify-center mx-auto mb-2">
-                                    <svg className="h-4 w-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                                  <div className="h-8 w-8 bg-yellow-50 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                    <svg className="h-4 w-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h4a1 1 0 011 1v2m3 0V1a1 1 0 011-1h2a1 1 0 011 1v3m0 0l-8 8m0 0l-8-8m8 8v8a2 2 0 01-2 2H9a2 2 0 01-2-2v-8m8 0H7"/>
                                     </svg>
                                   </div>
-                                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Height</p>
+                                  <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Height</p>
                                   <p className="text-sm font-bold text-gray-900">{profileData.height}</p>
-                                  <p className="text-xs text-gray-400">cm</p>
+                                  <p className="text-xs text-gray-600">cm</p>
                                 </div>
                                 <div className="text-center">
                                   <div className="h-8 w-8 bg-pink-50 rounded-lg flex items-center justify-center mx-auto mb-2">
@@ -520,9 +497,9 @@ export default function Dashboard() {
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-1m-3 1l-3-1"/>
                                     </svg>
                                   </div>
-                                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Weight</p>
+                                  <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Weight</p>
                                   <p className="text-sm font-bold text-gray-900">{profileData.weight}</p>
-                                  <p className="text-xs text-gray-400">kg</p>
+                                  <p className="text-xs text-gray-600">kg</p>
                                 </div>
                               </div>
                             </div>
@@ -532,6 +509,30 @@ export default function Dashboard() {
 
                       {/* Coach Feedback Section */}
                       <CoachFeedback />
+                      
+                      {/* Enhanced Coaching Marketplace Section for Athletes */}
+                      <div className="mb-8">
+                        <div className="bg-white border border-gray-200 rounded-lg p-4">
+                          <div className="text-center">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">🌟 Specialized Coaching Marketplace</h3>
+                            <p className="text-sm text-gray-800 mb-4">Connect with expert coaches for personalized training</p>
+                            <div className="flex items-center justify-center space-x-3">
+                              <button
+                                onClick={() => router.push('/marketplace')}
+                                className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+                              >
+                                Explore
+                              </button>
+                              <button
+                                onClick={() => router.push('/bookings')}
+                                className="px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
+                              >
+                                View Bookings
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* SkillSnap */}
@@ -585,7 +586,7 @@ export default function Dashboard() {
                         <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                           Coach Command Center
                         </h2>
-                        <p className="text-gray-600">Manage and analyze your athletes' performance</p>
+                        <p className="text-gray-800">Manage and analyze your athletes' performance</p>
                       </div>
                     </div>
                   </div>
@@ -603,8 +604,8 @@ export default function Dashboard() {
                           </div>
                           <div className="ml-5 w-0 flex-1">
                             <dl>
-                              <dt className="text-sm font-medium text-gray-500 truncate">Coach Profile</dt>
-                              <dd className="text-lg font-bold text-gray-900">{profileData.name}</dd>
+                              <dt className="text-sm font-medium text-gray-700 truncate">Coach Profile</dt>
+                              <dd className="mt-1 text-sm text-gray-900">{profileData.name}</dd>
                             </dl>
                           </div>
                         </div>
@@ -623,8 +624,8 @@ export default function Dashboard() {
                           </div>
                           <div className="ml-5 w-0 flex-1">
                             <dl>
-                              <dt className="text-sm font-medium text-gray-500 truncate">Academy</dt>
-                              <dd className="text-lg font-bold text-gray-900">{profileData.academy}</dd>
+                              <dt className="text-sm font-medium text-gray-700 truncate">Academy</dt>
+                              <dd className="mt-1 text-sm text-gray-900">{profileData.academy}</dd>
                             </dl>
                           </div>
                         </div>
@@ -667,7 +668,7 @@ export default function Dashboard() {
                                       </div>
                                       <div>
                                         <p className="text-base font-semibold text-gray-900">{student.studentName}</p>
-                                        <p className="text-sm text-gray-500">@{student.username} • {student.role.replace('_', ' ')} • Age {student.age}</p>
+                                        <p className="text-sm text-gray-800">@{student.username} • {student.role.replace('_', ' ')} • Age {student.age}</p>
                                       </div>
                                     </div>
                                   </div>
@@ -696,6 +697,92 @@ export default function Dashboard() {
                     </div>
                   )}
 
+                  {/* Assigned Students Section */}
+                  <div className="mb-8">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Your Athletes</h3>
+                    <div className="bg-white shadow overflow-hidden sm:rounded-md">
+                      {assignedStudents.length > 0 ? (
+                        <ul className="divide-y divide-gray-200">
+                          {assignedStudents.map((student) => (
+                            <li key={student.id}>
+                              <div className="px-4 py-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900">{student.studentName}</p>
+                                    <p className="text-sm text-gray-800">@{student.username} • {student.role.replace('_', ' ')} • Age {student.age}</p>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <div className="text-sm text-gray-800">
+                                      {student.height}cm, {student.weight}kg
+                                    </div>
+                                    <button
+                                      onClick={() => handleOpenFeedbackModal(student)}
+                                      className="text-green-600 hover:text-green-900 text-sm font-medium"
+                                    >
+                                      Give Feedback
+                                    </button>
+                                    <button
+                                      onClick={() => setSelectedStudentForSkills(
+                                        selectedStudentForSkills === student.id ? null : student.id
+                                      )}
+                                      className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+                                    >
+                                      {selectedStudentForSkills === student.id ? 'Hide Skills' : 'View Skills'}
+                                    </button>
+                                    <button
+                                      onClick={() => setSelectedStudentForBadges(
+                                        selectedStudentForBadges === student.id ? null : student.id
+                                      )}
+                                      className="text-yellow-600 hover:text-yellow-900 text-sm font-medium"
+                                    >
+                                      {selectedStudentForBadges === student.id ? 'Hide Badges' : 'View Badges'}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="px-4 py-5 sm:p-6">
+                          <p className="text-gray-800">
+                            No athletes assigned yet. Select students from your academy above to begin coaching them.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Enhanced Coaching Marketplace Section for Coaches */}
+                  <div className="mb-8">
+                    <div className="bg-white border border-gray-200 rounded-lg p-6 text-center">
+                      <div className="flex items-center justify-center space-x-3 mb-4">
+                        <div className="h-8 w-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                          <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                          </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Specialized Coaching Marketplace
+                        </h3>
+                      </div>
+                      <div className="flex items-center justify-center space-x-3">
+                        <button
+                          onClick={() => router.push('/marketplace')}
+                          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                          Explore
+                        </button>
+                        <button
+                          onClick={() => router.push('/bookings')}
+                          className="px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
+                        >
+                          View Bookings
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Badge Management Section for Coaches */}
                   <div className="mb-8">
                     <div className="flex items-center justify-between mb-6">
@@ -717,7 +804,7 @@ export default function Dashboard() {
                           onClick={() => setShowBadgeManager(!showBadgeManager)}
                           className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                         >
-                          {showBadgeManager ? 'Hide Manager' : 'Manage Badges'}
+                          {showBadgeManager ? 'Hide' : 'Manage'} Badges
                         </button>
                       </div>
                     </div>
@@ -788,6 +875,12 @@ export default function Dashboard() {
                         {/* Action Buttons */}
                         <div className="flex flex-wrap gap-3 mb-6">
                           <button
+                            onClick={() => router.push('/marketplace')}
+                            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                          >
+                            Coaching Marketplace
+                          </button>
+                          <button
                             onClick={handleCreateBadge}
                             className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                           >
@@ -819,62 +912,6 @@ export default function Dashboard() {
                           </div>
                         )}
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Assigned Students Section */}
-                  <div className="mb-8">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Your Athletes</h3>
-                    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                      {assignedStudents.length > 0 ? (
-                        <ul className="divide-y divide-gray-200">
-                          {assignedStudents.map((student) => (
-                            <li key={student.id}>
-                              <div className="px-4 py-4">
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <p className="text-sm font-medium text-gray-900">{student.studentName}</p>
-                                    <p className="text-sm text-gray-500">@{student.username} • {student.role.replace('_', ' ')} • Age {student.age}</p>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <div className="text-sm text-gray-500">
-                                      {student.height}cm, {student.weight}kg
-                                    </div>
-                                    <button
-                                      onClick={() => handleOpenFeedbackModal(student)}
-                                      className="text-green-600 hover:text-green-900 text-sm font-medium"
-                                    >
-                                      Give Feedback
-                                    </button>
-                                    <button
-                                      onClick={() => setSelectedStudentForSkills(
-                                        selectedStudentForSkills === student.id ? null : student.id
-                                      )}
-                                      className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
-                                    >
-                                      {selectedStudentForSkills === student.id ? 'Hide Skills' : 'View Skills'}
-                                    </button>
-                                    <button
-                                      onClick={() => setSelectedStudentForBadges(
-                                        selectedStudentForBadges === student.id ? null : student.id
-                                      )}
-                                      className="text-yellow-600 hover:text-yellow-900 text-sm font-medium"
-                                    >
-                                      {selectedStudentForBadges === student.id ? 'Hide Badges' : 'View Badges'}
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <div className="px-4 py-5 sm:p-6">
-                          <p className="text-gray-500">
-                            No athletes assigned yet. Select students from your academy above to begin coaching them.
-                          </p>
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -918,7 +955,16 @@ export default function Dashboard() {
 
                   {/* Coach Controls */}
                   {session.user.role === 'COACH' && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                      <button
+                        onClick={() => router.push('/marketplace')}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8h1m-1-4h1m4 4h1m-1-4h1"/>
+                        </svg>
+                        Coaching Marketplace
+                      </button>
                       <button
                         onClick={handleCreateBadge}
                         className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"

@@ -72,6 +72,9 @@ model Student {
   badges            StudentBadge[]
   coach             Coach?             @relation(fields: [coachId], references: [id])
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Marketplace relations
+  coachingBookings  CoachingBooking[]
+  coachReviews      CoachReview[]
 }
 
 model Coach {
@@ -257,4 +260,71 @@ model StudentBadge {
   student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
   
   @@unique([studentId, badgeId])
+}
+
+// Marketplace Models
+model SpecializedCoach {
+  id              String               @id @default(cuid())
+  name            String
+  email           String               @unique
+  bio             String
+  specialties     String               // JSON array of specialties
+  sport           String               @default("CRICKET")
+  location        String
+  avatar          String?
+  experience      Int                  // Years of experience
+  rating          Float                @default(0)
+  reviewCount     Int                  @default(0)
+  pricePerHour    Float
+  isAvailable     Boolean              @default(true)
+  videoCallRate   Float?
+  inPersonRate    Float?
+  asyncFeedbackRate Float?
+  certifications  String?              // JSON array of certifications
+  socialLinks     String?              // JSON object with social media links
+  timezone        String               @default("UTC")
+  availability    String?              // JSON object with availability schedule
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  bookings        CoachingBooking[]
+  reviews         CoachReview[]
+}
+
+model CoachingBooking {
+  id                String           @id @default(cuid())
+  athleteId         String           // Student ID
+  coachId           String
+  sessionType       String           // VIDEO_CALL, IN_PERSON, ASYNC_FEEDBACK
+  title             String
+  description       String?
+  scheduledAt       DateTime?        // For live sessions
+  duration          Int?             // Duration in minutes
+  status            String           @default("PENDING") // PENDING, CONFIRMED, COMPLETED, CANCELLED
+  price             Float
+  paymentStatus     String           @default("PENDING") // PENDING, PAID, REFUNDED
+  meetingLink       String?          // For video calls
+  location          String?          // For in-person sessions
+  performanceClips  String?          // JSON array of uploaded video URLs for async feedback
+  feedback          String?          // Coach's feedback
+  rating            Float?           // Athlete's rating for the session
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  athlete           Student          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  coach             SpecializedCoach @relation(fields: [coachId], references: [id], onDelete: Cascade)
+}
+
+model CoachReview {
+  id           String           @id @default(cuid())
+  athleteId    String
+  coachId      String
+  bookingId    String?          // Optional reference to specific booking
+  rating       Float            // 1-5 stars
+  title        String
+  comment      String
+  isAnonymous  Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  athlete      Student          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  coach        SpecializedCoach @relation(fields: [coachId], references: [id], onDelete: Cascade)
 }
