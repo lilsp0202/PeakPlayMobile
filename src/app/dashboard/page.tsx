@@ -198,20 +198,17 @@ export default function Dashboard() {
         }
       } else {
         const errorText = await response.text();
-        console.error('Dashboard - Badge evaluation failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText
-        });
-        alert(`Badge evaluation failed: ${response.status} ${response.statusText}`);
+        console.error('Dashboard - Badge evaluation failed:', errorText);
+        alert('Failed to evaluate badges. Please try again.');
       }
     } catch (error) {
       console.error('Dashboard - Error evaluating badges:', error);
-      alert('Error evaluating badges: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      alert('An error occurred while evaluating badges.');
     }
   };
 
   const handleCreateBadge = () => {
+    setEditingBadge(null);
     setShowBadgeForm(true);
   };
 
@@ -224,11 +221,11 @@ export default function Dashboard() {
     if (!confirm('Are you sure you want to delete this badge?')) return;
     
     try {
-      const response = await fetch(`/api/badges/${badgeId}`, { 
-        method: 'DELETE' 
+      const response = await fetch(`/api/badges/admin/${badgeId}`, {
+        method: 'DELETE'
       });
+      
       if (response.ok) {
-        console.log('Badge deleted successfully');
         await fetchBadgeStats();
       }
     } catch (error) {
@@ -247,101 +244,81 @@ export default function Dashboard() {
     fetchBadgeStats();
   };
 
-  // Fetch badge stats when coach profile is loaded
+  // Use useEffect for badge stats
   useEffect(() => {
-    if (session?.user.role === "COACH" && profileData) {
+    if (session?.user.role === "COACH") {
       fetchBadgeStats();
     }
-  }, [session, profileData]);
+  }, [session]);
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
 
-  if (!session) {
-    return null;
-  }
-
   const handleCompleteProfile = () => {
-    const onboardingPath = session.user.role === "ATHLETE" ? "/onboarding/athlete" : "/onboarding/coach";
+    const onboardingPath = session?.user.role === "ATHLETE" ? "/onboarding/athlete" : "/onboarding/coach";
     router.push(onboardingPath);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30">
-      {/* Enhanced Dashboard Header */}
-      <header className="relative bg-white/90 backdrop-blur-xl border-b border-gray-200/60 sticky top-0 z-50">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/5 via-purple-600/5 to-blue-600/5"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Modern Floating Header */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 border-b border-white/20 shadow-lg shadow-gray-500/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            {/* Enhanced Logo & Title */}
-            <div className="flex items-center space-x-4">
+            {/* Logo & Branding */}
+            <div className="flex items-center space-x-6">
               <PeakPlayLogo size="default" />
-              
-              <div className="hidden md:block h-8 w-px bg-gray-300"></div>
-              
+              <div className="hidden md:block h-8 w-0.5 bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div>
               <div className="hidden md:block">
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {session.user.role === "ATHLETE" ? "Athlete Hub" : "Coach Dashboard"}
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  {session?.user.role === "ATHLETE" ? "Performance Hub" : "Coach Center"}
                 </h1>
                 <p className="text-sm text-gray-600">
-                  Welcome back, <span className="font-medium text-indigo-600">{(session.user as any).username || session.user.name || session.user.email}</span>
+                  Welcome back, <span className="font-semibold text-indigo-600">{(session?.user as any)?.username || session?.user?.name || session?.user?.email}</span>
                 </p>
               </div>
             </div>
 
-            {/* Enhanced User Section */}
+            {/* Enhanced User Controls */}
             <div className="flex items-center space-x-4">
               {/* Role Badge */}
-              <div className="hidden sm:flex items-center space-x-3">
-                <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide uppercase ${
-                  session.user.role === "ATHLETE" 
-                    ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200" 
-                    : "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border border-purple-200"
+              <div className="hidden sm:flex">
+                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase shadow-lg ${
+                  session?.user.role === "ATHLETE" 
+                    ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white" 
+                    : "bg-gradient-to-r from-purple-500 to-indigo-600 text-white"
                 }`}>
-                  <svg className="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                    {session.user.role === "ATHLETE" ? (
-                      <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd"/>
-                    ) : (
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd"/>
-                    )}
-                  </svg>
-                  {session.user.role}
+                  <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
+                  {session?.user.role}
                 </span>
               </div>
 
-              {/* Notifications */}
-              <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM11 7.05V4a3 3 0 00-6 0v3.05"/>
-                </svg>
-                <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
-              </button>
-
-              {/* User Avatar */}
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <div className="h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg">
-                    {((session.user as any).username || session.user.name || session.user.email || "U").charAt(0).toUpperCase()}
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-400 border-2 border-white rounded-full"></div>
+              {/* User Avatar with Status */}
+              <div className="relative">
+                <div className="h-12 w-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                  {((session?.user as any)?.username || session?.user?.name || session?.user?.email || "U").charAt(0).toUpperCase()}
+                  <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
                 </div>
               </div>
 
-              {/* Sign Out Button */}
+              {/* Enhanced Sign Out */}
               <button
                 onClick={() => signOut()}
-                className="group relative px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-red-50 hover:to-red-100 text-gray-700 hover:text-red-600 font-medium text-sm rounded-lg border border-gray-200 hover:border-red-200 transition-all duration-300 hover:shadow-md"
+                className="group relative px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-medium text-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
                 <div className="flex items-center space-x-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                   </svg>
-                  <span>Sign Out</span>
+                  <span>Exit</span>
                 </div>
               </button>
             </div>
@@ -349,40 +326,38 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+      <main className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-0">
           {!profileData ? (
             // Profile not completed
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-6">
-              <div className="flex">
+            <div className="relative overflow-hidden bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-8 shadow-xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/30 to-transparent rounded-bl-full"></div>
+              <div className="relative flex items-start space-x-4">
                 <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-yellow-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">
-                    Complete Your Profile
-                  </h3>
-                  <div className="mt-2 text-sm text-yellow-700">
-                    <p>
-                      Complete your {session.user.role.toLowerCase()} profile to get started with PeakPlay.
-                    </p>
+                  <div className="h-12 w-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+                    <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                    </svg>
                   </div>
-                  <div className="mt-4">
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-amber-900">
+                    🚀 Complete Your Journey Setup
+                  </h3>
+                  <p className="mt-2 text-amber-800 leading-relaxed">
+                    You're just one step away from unlocking your full potential! Complete your {session?.user.role?.toLowerCase()} profile to access personalized training insights, progress tracking, and performance analytics.
+                  </p>
+                  <div className="mt-6">
                     <button
                       onClick={handleCompleteProfile}
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                      className="group relative px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                     >
-                      Complete Profile
+                      <div className="flex items-center space-x-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                        <span>Complete Profile Setup</span>
+                      </div>
                     </button>
                   </div>
                 </div>
@@ -390,186 +365,266 @@ export default function Dashboard() {
             </div>
           ) : (
             // Profile completed - show role-specific dashboard
-            <div className="space-y-6">
-              {session.user.role === "ATHLETE" ? (
-                // Athlete Dashboard
-                <div>
-                  <div className="mb-8">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className="h-10 w-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
+            <div className="space-y-8">
+              {session?.user.role === "ATHLETE" ? (
+                // 🎨 NEW MODERN ATHLETE DASHBOARD DESIGN
+                <div className="space-y-8">
+                  {/* Hero Section */}
+                  <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 rounded-3xl p-8 text-white shadow-2xl">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-16"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center space-x-4 mb-6">
+                        <div className="h-16 w-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                          <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <h1 className="text-4xl font-bold">Performance Hub</h1>
+                          <p className="text-indigo-100 text-lg">Track. Train. Transform.</p>
+                        </div>
                       </div>
-                      <div>
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                          Athlete Performance Hub
-                        </h2>
-                        <p className="text-gray-600">Track your progress across all performance dimensions</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-gray-100">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="h-8 w-8 bg-emerald-400 rounded-lg flex items-center justify-center">
+                              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                              </svg>
+                            </div>
+                            <h3 className="font-semibold">Athlete</h3>
+                          </div>
+                          <p className="text-2xl font-bold">{profileData.studentName}</p>
+                          <p className="text-indigo-200 text-sm">@{profileData.username}</p>
+                        </div>
+                        
+                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-gray-100">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="h-8 w-8 bg-blue-400 rounded-lg flex items-center justify-center">
+                              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8h1m-1-4h1m4 4h1m-1-4h1"/>
+                              </svg>
+                            </div>
+                            <h3 className="font-semibold">Academy</h3>
+                          </div>
+                          <p className="text-xl font-bold">{profileData.academy}</p>
+                          <p className="text-indigo-200 text-sm">{profileData.role.replace('_', ' ')}</p>
+                        </div>
+                        
+                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-gray-100">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="h-8 w-8 bg-yellow-400 rounded-lg flex items-center justify-center">
+                              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                              </svg>
+                            </div>
+                            <h3 className="font-semibold">Progress</h3>
+                          </div>
+                          <p className="text-2xl font-bold">{Math.round(calculateOverallProgress(skillData))}%</p>
+                          <p className="text-indigo-200 text-sm">Overall Performance</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Athlete Dashboard Content */}
-                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
-                    {/* Left Column - Progress & Profile */}
-                    <div className="lg:col-span-1 space-y-6">
-                      {/* Overall Progress Card */}
-                      <div className="group bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-indigo-200">
+
+                  {/* Quick Stats Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-12 w-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                          <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-3xl font-bold text-gray-900">{profileData.age}</p>
+                          <p className="text-gray-600 font-medium">Years Old</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                          <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h4a1 1 0 011 1v2m3 0V1a1 1 0 011-1h2a1 1 0 011 1v3"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-3xl font-bold text-gray-900">{profileData.height}</p>
+                          <p className="text-gray-600 font-medium">cm Height</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                          <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-1m-3 1l-3-1"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-3xl font-bold text-gray-900">{profileData.weight}</p>
+                          <p className="text-gray-600 font-medium">kg Weight</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-12 w-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                          <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-3xl font-bold text-gray-900">🏆</p>
+                          <p className="text-gray-600 font-medium">Achievements</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main Content Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column - Progress & Skills */}
+                    <div className="lg:col-span-2 space-y-8">
+                      {/* Performance Overview Card */}
+                      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 border-b border-gray-100">
+                          <div className="flex items-center space-x-4">
+                            <div className="h-12 w-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                              <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                              </svg>
+                            </div>
+                            <div>
+                              <h2 className="text-2xl font-bold text-gray-900">Performance Tracking</h2>
+                              <p className="text-gray-600">Monitor your progress across all skill dimensions</p>
+                            </div>
+                          </div>
+                        </div>
                         <div className="p-6">
+                          <SkillSnapDynamic />
+                        </div>
+                      </div>
+
+                      {/* Match Performance */}
+                      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-6 border-b border-gray-100">
+                          <div className="flex items-center space-x-4">
+                            <div className="h-12 w-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                              <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                              </svg>
+                            </div>
+                            <div>
+                              <h2 className="text-2xl font-bold text-gray-900">Match Performance</h2>
+                              <p className="text-gray-600">Track your recent game statistics and performance</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-6">
+                          <RecentMatchScores isCoachView={false} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column - Sidebar Content */}
+                    <div className="space-y-8">
+                      {/* Overall Progress Ring */}
+                      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-center">
+                        <h3 className="text-xl font-bold text-gray-900 mb-6">Overall Progress</h3>
+                        <div className="flex justify-center mb-6">
                           <ProgressRing 
                             progress={calculateOverallProgress(skillData)} 
-                            size={120} 
+                            size={140} 
                           />
                         </div>
-                      </div>
-
-                      {/* Profile Information Card */}
-                      <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100 hover:shadow-xl transition-all duration-300">
-                        <div className="p-6">
-                          {/* Simple Header */}
-                          <h3 className="text-lg font-semibold text-gray-900 mb-5">Athlete Profile</h3>
-                          
-                          <div className="space-y-4">
-                            <div className="flex items-center space-x-3">
-                              <div className="h-8 w-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                                <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8h1m-1-4h1m4 4h1m-1-4h1"/>
-                                </svg>
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Name</p>
-                                <p className="text-sm font-bold text-gray-900">{profileData.name}</p>
-                                <p className="text-xs text-gray-600">@{profileData.username}</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center space-x-3">
-                              <div className="h-8 w-8 bg-green-50 rounded-lg flex items-center justify-center">
-                                <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                </svg>
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Academy</p>
-                                <p className="text-sm font-bold text-gray-900">{profileData.academy}</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center space-x-3">
-                              <div className="h-8 w-8 bg-purple-50 rounded-lg flex items-center justify-center">
-                                <svg className="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Role</p>
-                                <p className="text-sm font-bold text-gray-900">{profileData.role.replace('_', ' ')}</p>
-                              </div>
-                            </div>
-                            
-                            {/* Divider */}
-                            <div className="border-t border-gray-100 pt-4">
-                              <div className="grid grid-cols-3 gap-4">
-                                <div className="text-center">
-                                  <div className="h-8 w-8 bg-orange-50 rounded-lg flex items-center justify-center mx-auto mb-2">
-                                    <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                  </div>
-                                  <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Age</p>
-                                  <p className="text-sm font-bold text-gray-900">{profileData.age}</p>
-                                  <p className="text-xs text-gray-600">years</p>
-                                </div>
-                                <div className="text-center">
-                                  <div className="h-8 w-8 bg-yellow-50 rounded-lg flex items-center justify-center mx-auto mb-2">
-                                    <svg className="h-4 w-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h4a1 1 0 011 1v2m3 0V1a1 1 0 011-1h2a1 1 0 011 1v3m0 0l-8 8m0 0l-8-8m8 8v8a2 2 0 01-2 2H9a2 2 0 01-2-2v-8m8 0H7"/>
-                                    </svg>
-                                  </div>
-                                  <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Height</p>
-                                  <p className="text-sm font-bold text-gray-900">{profileData.height}</p>
-                                  <p className="text-xs text-gray-600">cm</p>
-                                </div>
-                                <div className="text-center">
-                                  <div className="h-8 w-8 bg-pink-50 rounded-lg flex items-center justify-center mx-auto mb-2">
-                                    <svg className="h-4 w-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-1m-3 1l-3-1"/>
-                                    </svg>
-                                  </div>
-                                  <p className="text-xs font-medium text-gray-700 uppercase tracking-wider">Weight</p>
-                                  <p className="text-sm font-bold text-gray-900">{profileData.weight}</p>
-                                  <p className="text-xs text-gray-600">kg</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-4">
+                          <p className="text-2xl font-bold text-indigo-600 mb-1">
+                            {Math.round(calculateOverallProgress(skillData))}%
+                          </p>
+                          <p className="text-gray-600 text-sm">Performance Score</p>
                         </div>
                       </div>
 
-                      {/* Coach Feedback Section */}
-                      <CoachFeedback />
-                      
-                      {/* Enhanced Coaching Marketplace Section for Athletes */}
-                      <div className="mb-8">
-                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                          <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">🌟 Specialized Coaching Marketplace</h3>
-                            <p className="text-sm text-gray-800 mb-4">Connect with expert coaches for personalized training</p>
-                            <div className="flex items-center justify-center space-x-3">
-                              <button
-                                onClick={() => router.push('/marketplace')}
-                                className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-                              >
-                                Explore
-                              </button>
-                              <button
-                                onClick={() => router.push('/bookings')}
-                                className="px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
-                              >
-                                View Bookings
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* SkillSnap */}
-                    <div className="lg:col-span-4">
-                      <SkillSnap isCoachView={profileData.role === 'COACH'} />
-                    </div>
-                  </div>
-                  
-                  {/* Badges Section for Athletes */}
-                  <div className="mb-8">
-                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-gray-100">
-                      <div className="p-6">
-                        <div className="flex items-center justify-between mb-6">
+                      {/* Achievements */}
+                      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                        <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-6 border-b border-gray-100">
                           <div className="flex items-center space-x-3">
-                            <div className="h-8 w-8 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                            <div className="h-10 w-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
                               <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                               </svg>
                             </div>
                             <div>
-                              <h3 className="text-xl font-bold text-gray-900">Your Achievements & Badges</h3>
-                              <p className="text-sm text-gray-600">Track your progress with our performance badge system</p>
+                              <h3 className="text-lg font-bold text-gray-900">Achievements</h3>
+                              <p className="text-gray-600 text-sm">Your badges & milestones</p>
                             </div>
                           </div>
                         </div>
-                        <BadgeDisplay 
-                          studentId={profileData.id}
-                          showProgress={true}
-                          layout="grid"
-                        />
+                        <div className="p-6">
+                          <BadgeDisplay 
+                            studentId={profileData.id}
+                            showProgress={true}
+                            layout="grid"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Coach Feedback */}
+                      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
+                          <div className="flex items-center space-x-3">
+                            <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                              </svg>
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900">Coach Feedback</h3>
+                              <p className="text-gray-600 text-sm">Latest insights & tips</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-6">
+                          <CoachFeedback />
+                        </div>
+                      </div>
+
+                      {/* Coaching Marketplace */}
+                      <div className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-3xl p-6 text-white shadow-xl">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="h-10 w-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                            <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                            </svg>
+                          </div>
+                          <h3 className="text-lg font-bold">Specialized Coaching</h3>
+                        </div>
+                        <p className="text-teal-100 mb-6 text-sm leading-relaxed">
+                          Connect with expert coaches for personalized training sessions and skill development.
+                        </p>
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() => router.push('/marketplace')}
+                            className="flex-1 bg-white text-teal-600 font-semibold py-2 px-4 rounded-xl hover:bg-teal-50 transition-all duration-300 text-sm"
+                          >
+                            Explore
+                          </button>
+                          <button
+                            onClick={() => router.push('/bookings')}
+                            className="flex-1 bg-white/20 backdrop-blur-sm text-white font-semibold py-2 px-4 rounded-xl hover:bg-white/30 transition-all duration-300 text-sm border border-white/30"
+                          >
+                            Bookings
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Recent Match Scores Component */}
-                  <div className="lg:col-span-5">
-                    <RecentMatchScores isCoachView={false} />
                   </div>
                 </div>
               ) : (
@@ -753,36 +808,6 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Enhanced Coaching Marketplace Section for Coaches */}
-                  <div className="mb-8">
-                    <div className="bg-white border border-gray-200 rounded-lg p-6 text-center">
-                      <div className="flex items-center justify-center space-x-3 mb-4">
-                        <div className="h-8 w-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                          <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                          </svg>
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          Specialized Coaching Marketplace
-                        </h3>
-                      </div>
-                      <div className="flex items-center justify-center space-x-3">
-                        <button
-                          onClick={() => router.push('/marketplace')}
-                          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                          Explore
-                        </button>
-                        <button
-                          onClick={() => router.push('/bookings')}
-                          className="px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
-                        >
-                          View Bookings
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Badge Management Section for Coaches */}
                   <div className="mb-8">
                     <div className="flex items-center justify-between mb-6">
@@ -954,7 +979,7 @@ export default function Dashboard() {
                   )}
 
                   {/* Coach Controls */}
-                  {session.user.role === 'COACH' && (
+                  {session?.user.role === 'COACH' && (
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                       <button
                         onClick={() => router.push('/marketplace')}
@@ -970,7 +995,7 @@ export default function Dashboard() {
                         className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                         </svg>
                         Create Badge
                       </button>
