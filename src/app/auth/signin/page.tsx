@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff, Mail, Lock, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Sparkles } from "lucide-react";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -47,7 +47,7 @@ export default function SignIn() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-400 to-pink-600 rounded-full opacity-5 animate-pulse delay-500"></div>
       </div>
 
-      {/* Header with logo and back button */}
+      {/* Header with logo */}
       <div className="relative z-10 flex items-center justify-between p-6">
         <Link href="/dashboard" className="flex items-center group transition-all duration-300 hover:scale-105">
           <div className="relative">
@@ -74,14 +74,6 @@ export default function SignIn() {
             </span>
           </div>
         </Link>
-        
-        <button
-          onClick={() => router.back()}
-          className="flex items-center space-x-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200/50 hover:border-gray-300 group"
-        >
-          <ArrowLeft className="h-5 w-5 text-gray-600 group-hover:text-gray-800 transition-colors" />
-          <span className="text-gray-700 font-medium">Back</span>
-        </button>
       </div>
       
       <div className="relative z-10 flex items-center justify-center px-6 py-8">
