@@ -79,6 +79,13 @@ export async function GET(request: NextRequest) {
               specialties: true,
               rating: true
             }
+          },
+          athlete: {
+            select: {
+              id: true,
+              studentName: true,
+              email: true
+            }
           }
         },
         orderBy: { createdAt: 'desc' }
@@ -86,18 +93,20 @@ export async function GET(request: NextRequest) {
     }
 
     // Parse JSON fields
-    const formattedBookings = bookings.map(booking => ({
-      ...booking,
-      coach: {
-        ...booking.coach,
-        specialties: JSON.parse(booking.coach.specialties)
-      },
-      performanceClips: booking.performanceClips ? JSON.parse(booking.performanceClips) : [],
-      // Include athlete info for coach view
-      ...(user.role === 'COACH' && booking.athlete && {
-        athlete: booking.athlete
-      })
-    }));
+    const formattedBookings = bookings.map(booking => {
+      const base = {
+        ...booking,
+        coach: {
+          ...booking.coach,
+          specialties: JSON.parse(booking.coach.specialties)
+        },
+        performanceClips: booking.performanceClips ? JSON.parse(booking.performanceClips) : []
+      };
+      if (user.role === 'COACH' && booking.athlete) {
+        return { ...base, athlete: booking.athlete };
+      }
+      return base;
+    });
 
     return NextResponse.json(formattedBookings);
   } catch (error) {

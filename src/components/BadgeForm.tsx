@@ -24,7 +24,7 @@ const ICON_OPTIONS = [
   { value: 'gem', label: 'Gem', icon: Gem },
 ];
 
-const LEVEL_OPTIONS = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND'];
+const LEVEL_OPTIONS = ['ROOKIE', 'ATHLETE', 'CHAMPION'];
 const CATEGORY_OPTIONS = ['PHYSICAL', 'TECHNICAL', 'MENTAL', 'NUTRITION', 'GENERAL'];
 const SPORT_OPTIONS = ['CRICKET', 'FOOTBALL', 'BASKETBALL', 'TENNIS', 'ALL'];
 
@@ -83,7 +83,7 @@ export default function BadgeForm({ isOpen, onClose, onBadgeCreated, editingBadg
     name: '',
     description: '',
     motivationalText: '',
-    level: 'BRONZE',
+    level: 'ROOKIE',
     icon: 'trophy',
     category: 'GENERAL',
     sport: 'ALL',
@@ -98,7 +98,7 @@ export default function BadgeForm({ isOpen, onClose, onBadgeCreated, editingBadg
         name: editingBadge.name || '',
         description: editingBadge.description || '',
         motivationalText: editingBadge.motivationalText || '',
-        level: editingBadge.level || 'BRONZE',
+        level: editingBadge.level || 'ROOKIE',
         icon: editingBadge.icon || 'trophy',
         category: editingBadge.category || 'GENERAL',
         sport: editingBadge.sport || 'ALL',
@@ -109,7 +109,7 @@ export default function BadgeForm({ isOpen, onClose, onBadgeCreated, editingBadg
         name: '',
         description: '',
         motivationalText: '',
-        level: 'BRONZE',
+        level: 'ROOKIE',
         icon: 'trophy',
         category: 'GENERAL',
         sport: 'ALL',

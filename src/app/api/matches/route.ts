@@ -82,14 +82,32 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user || session.user.role !== "COACH") {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
+    let studentId = body.studentId;
+    let isCoach = session.user.role === "COACH";
+    let isAthlete = session.user.role === "ATHLETE";
+
+    // For athletes, determine their own studentId
+    if (isAthlete) {
+      const student = await prisma.student.findUnique({
+        where: { userId: session.user.id },
+      });
+      if (!student) {
+        return NextResponse.json({ error: "Student not found" }, { status: 404 });
+      }
+      studentId = student.id;
+    }
+
+    // For coaches, require studentId in body
+    if (isCoach && !studentId) {
+      return NextResponse.json({ error: "Student ID required" }, { status: 400 });
+    }
+
     const {
-      studentId,
       matchName,
       opponent,
       venue,

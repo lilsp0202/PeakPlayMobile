@@ -41,11 +41,18 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Add academy and username for both coach and athlete
+        let academy = undefined;
+        if (user.coach) academy = user.coach.academy;
+        if (user.student) academy = user.student.academy;
+
         return {
           id: user.id,
           email: user.email,
           name: user.name || user.username,
-          role: user.role,
+          role: user.role as 'ATHLETE' | 'COACH',
+          academy,
+          username: user.username,
         };
       }
     })
@@ -57,13 +64,17 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.academy = user.academy;
+        token.username = user.username;
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.sub as string;
-        session.user.role = token.role;
+        session.user.role = token.role as 'ATHLETE' | 'COACH';
+        session.user.academy = token.academy as string | undefined;
+        session.user.username = token.username as string | undefined;
       }
       return session;
     }

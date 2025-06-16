@@ -3,21 +3,22 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
 // PUT /api/badges/[id] - Update a badge
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id || session.user.role !== 'COACH') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const badgeId = params.id;
+    // Extract id from URL
+    const url = new URL(request.url);
+    const idMatch = url.pathname.match(/\/api\/badges\/(.+)$/);
+    const badgeId = idMatch ? idMatch[1] : undefined;
+    if (!badgeId) {
+      return NextResponse.json({ error: 'Badge ID not found in URL' }, { status: 400 });
+    }
+
     const body = await request.json();
     const { name, description, motivationalText, level, icon, category, sport, rules } = body;
 
@@ -84,9 +85,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       const badgeRules = rules.map(rule => ({
         badgeId: updatedBadge.id,
         ruleType: rule.ruleType || 'skill_threshold',
-        skillField: rule.skillField,
+        fieldName: rule.skillField,
         operator: rule.operator || 'gte',
-        targetValue: parseFloat(rule.targetValue) || 0,
+        value: String(rule.targetValue ?? ''),
         weight: rule.weight || 1.0
       }));
 
@@ -103,14 +104,29 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 }
 
 // DELETE /api/badges/[id] - Delete a badge
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id || session.user.role !== 'COACH') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const badgeId = params.id;
+    // Get coach information
+    const coach = await prisma.coach.findUnique({
+      where: { userId: session.user.id }
+    });
+
+    if (!coach) {
+      return NextResponse.json({ error: 'Coach profile not found' }, { status: 404 });
+    }
+
+    // Extract id from URL
+    const url = new URL(request.url);
+    const idMatch = url.pathname.match(/\/api\/badges\/(.+)$/);
+    const badgeId = idMatch ? idMatch[1] : undefined;
+    if (!badgeId) {
+      return NextResponse.json({ error: 'Badge ID not found in URL' }, { status: 400 });
+    }
 
     // Check if badge exists
     const existingBadge = await prisma.badge.findUnique({
@@ -119,6 +135,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     if (!existingBadge) {
       return NextResponse.json({ error: 'Badge not found' }, { status: 404 });
+    }
+
+    // Check if this badge was created by the current coach
+    if (!existingBadge.description.includes(`|||COACH_CREATED:${coach.id}`)) {
+      return NextResponse.json({ 
+        error: 'You can only delete badges that you created. System badges cannot be deleted.' 
+      }, { status: 403 });
     }
 
     // Check if badge has been awarded to any students
@@ -158,14 +181,20 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 }
 
 // GET /api/badges/[id] - Get a specific badge
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const badgeId = params.id;
+    // Extract id from URL
+    const url = new URL(request.url);
+    const idMatch = url.pathname.match(/\/api\/badges\/(.+)$/);
+    const badgeId = idMatch ? idMatch[1] : undefined;
+    if (!badgeId) {
+      return NextResponse.json({ error: 'Badge ID not found in URL' }, { status: 400 });
+    }
 
     const badge = await prisma.badge.findUnique({
       where: { id: badgeId },

@@ -84,7 +84,7 @@ Format each bullet point on a new line without numbering.`
     // Split the generated text into bullet points
     const bulletPoints = generatedText
       .split('\n')
-      .filter(point => point.trim())
+      .filter((point: string) => point.trim())
       .slice(0, 5); // Ensure max 5 points
 
     return NextResponse.json({ bulletPoints });

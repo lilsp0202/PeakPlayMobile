@@ -48,7 +48,6 @@ export default function Dashboard() {
   const [showAllStudents, setShowAllStudents] = useState(false);
   const [showAllAssigned, setShowAllAssigned] = useState(false);
   const [showSkillSnapModal, setShowSkillSnapModal] = useState(false);
-  const [badgeRefreshTrigger, setBadgeRefreshTrigger] = useState(0);
   const studentsToShow = showAllStudents ? availableStudents : availableStudents.slice(0, 3);
   const assignedToShow = showAllAssigned ? assignedStudents : assignedStudents.slice(0, 3);
 
@@ -162,15 +161,10 @@ export default function Dashboard() {
   const fetchBadgeStats = async () => {
     if (session?.user.role === "COACH") {
       try {
-        // Use the manage endpoint to get separated coach vs system badges
-        const response = await fetch('/api/badges?manage=true');
+        const response = await fetch('/api/badges/admin');
         if (response.ok) {
           const data = await response.json();
-          // Set badge stats with only coach-created badges count
-          setBadgeStats({
-            totalBadges: data.coachBadges?.length || 0,
-            systemBadges: data.systemBadges?.length || 0
-          });
+          setBadgeStats(data);
         }
       } catch (error) {
         console.error('Error fetching badge stats:', error);
@@ -222,13 +216,12 @@ export default function Dashboard() {
     if (!confirm('Are you sure you want to delete this badge?')) return;
     
     try {
-      const response = await fetch(`/api/badges/${badgeId}`, {
+      const response = await fetch(`/api/badges/admin/${badgeId}`, {
         method: 'DELETE'
       });
       
       if (response.ok) {
         await fetchBadgeStats();
-        setBadgeRefreshTrigger(prev => prev + 1); // Trigger BadgeManager refresh
       }
     } catch (error) {
       console.error('Error deleting badge:', error);
@@ -244,7 +237,6 @@ export default function Dashboard() {
     setShowBadgeForm(false);
     setEditingBadge(null);
     fetchBadgeStats();
-    setBadgeRefreshTrigger(prev => prev + 1);
   };
 
   // Use useEffect for badge stats
@@ -789,7 +781,6 @@ export default function Dashboard() {
                             <BadgeManager 
                               onEditBadge={handleEditBadge}
                               onDeleteBadge={handleDeleteBadge}
-                              refreshTrigger={badgeRefreshTrigger}
                             />
                           </div>
                         )}

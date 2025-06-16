@@ -7,6 +7,8 @@ declare module "next-auth" {
       email: string;
       name?: string;
       role: "ATHLETE" | "COACH";
+      academy?: string;
+      username?: string;
     };
   }
 
@@ -15,11 +17,15 @@ declare module "next-auth" {
     email: string;
     name?: string;
     role: "ATHLETE" | "COACH";
+    academy?: string;
+    username?: string;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     role: "ATHLETE" | "COACH";
+    academy?: string;
+    username?: string;
   }
 } 

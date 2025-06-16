@@ -346,7 +346,10 @@ export async function POST(request: Request) {
     } catch (dbError) {
       console.error("Skills API - Database error during upsert:", dbError);
       return NextResponse.json(
-        { message: "Database error while updating skills", error: dbError.message },
+        { 
+          message: "Database error while updating skills", 
+          error: dbError instanceof Error ? dbError.message : String(dbError) 
+        },
         { status: 500 }
       );
     }

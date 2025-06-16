@@ -23,7 +23,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Only coaches can manage badges' }, { status: 403 });
       }
 
-      const badges = await prisma.badge.findMany({
+      // Get coach information
+      const coach = await prisma.coach.findUnique({
+        where: { userId: session.user.id }
+      });
+
+      if (!coach) {
+        return NextResponse.json({ error: 'Coach profile not found' }, { status: 404 });
+      }
+
+      const allBadges = await prisma.badge.findMany({
         include: {
           category: true,
           rules: true,
@@ -43,7 +52,24 @@ export async function GET(request: NextRequest) {
         ]
       });
 
-      return NextResponse.json({ badges });
+      // Separate coach-created badges from system badges
+      const coachBadges = allBadges.filter(badge => 
+        badge.description.includes(`|||COACH_CREATED:${coach.id}`)
+      ).map(badge => ({
+        ...badge,
+        // Clean up the description by removing the coach marker
+        description: badge.description.split('|||COACH_CREATED:')[0]
+      }));
+
+      const systemBadges = allBadges.filter(badge => 
+        !badge.description.includes('|||COACH_CREATED:')
+      );
+
+      return NextResponse.json({ 
+        coachBadges, 
+        systemBadges,
+        badges: allBadges // Keep for backward compatibility
+      });
     }
 
     let targetStudentId = studentId;
@@ -83,6 +109,14 @@ export async function GET(request: NextRequest) {
     }
 
     let response;
+    
+    // Automatically evaluate badges before returning any badge data
+    try {
+      await BadgeEngine.evaluateStudentBadges({ studentId: targetStudentId });
+    } catch (evalError) {
+      console.warn('Badge auto-evaluation failed:', evalError);
+      // Continue with request even if evaluation fails
+    }
     
     switch (type) {
       case 'earned':
@@ -133,7 +167,7 @@ export async function POST(request: NextRequest) {
     // If action is provided, handle existing functionality
     if (action === 'evaluate') {
       // Trigger badge evaluation for a student
-      if (session.user.role !== 'COACH' && session.user.role !== 'ADMIN') {
+      if (session.user.role !== 'COACH') {
         return NextResponse.json({ error: 'Only coaches can trigger evaluations' }, { status: 403 });
       }
 
@@ -251,6 +285,16 @@ export async function POST(request: NextRequest) {
 
     console.log('Badges API - Creating badge...');
     
+    // Get the coach ID for tracking who created this badge
+    const coach = await prisma.coach.findUnique({
+      where: { userId: session.user.id }
+    });
+
+    if (!coach) {
+      console.log('Badges API - Coach not found');
+      return NextResponse.json({ error: 'Coach profile not found' }, { status: 404 });
+    }
+    
     // Create the badge
     const newBadge = await prisma.badge.create({
       data: {
@@ -260,7 +304,10 @@ export async function POST(request: NextRequest) {
         level,
         icon: icon || 'trophy',
         sport: sport || 'ALL',
-        categoryId: badgeCategory.id
+        categoryId: badgeCategory.id,
+        // Store coach ID in a way we can identify coach-created badges
+        // We'll use the description to add a marker for coach-created badges
+        description: `${description}|||COACH_CREATED:${coach.id}`
       },
       include: {
         category: true

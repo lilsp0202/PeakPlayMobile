@@ -358,16 +358,93 @@ const skillCategories: SkillCategory[] = [
   }
 ];
 
-// Helper function to calculate aggregate score for a skillset
-const calculateAggregateScore = (category: SkillCategory, skillData: SkillData | null): number => {
-  if (!skillData || category.skills.length === 0) return 0;
+// Helper function to calculate Physical skills aggregate score
+export const calculatePhysicalAggregateScore = (skillData: SkillData | null): number => {
+  if (!skillData) return 0;
+
+  const physicalSkills = [
+    { id: 'pushupScore', type: 'count' },
+    { id: 'pullupScore', type: 'count' },
+    { id: 'sprintTime', type: 'time' },
+    { id: 'run5kTime', type: 'time' }
+  ];
 
   let totalScore = 0;
   let skillCount = 0;
 
-  // Get personalized nutrition targets if this is nutrition category and we have body metrics
+  physicalSkills.forEach(skill => {
+    const value = skillData[skill.id as keyof SkillData] as number;
+    if (value !== undefined && value !== null) {
+      let normalizedScore = value;
+      
+      // Normalize to 0-10 scale based on skill type
+      if (skill.type === 'time') {
+        if (skill.id === 'sprintTime') {
+          // 100m sprint: 10-20 seconds range, lower is better, cap at 10
+          normalizedScore = Math.min(10, Math.max(0, 10 - ((value - 10) * 2)));
+        } else if (skill.id === 'run5kTime') {
+          // 5K run: 15-30 minutes range, lower is better, cap at 10
+          normalizedScore = Math.min(10, Math.max(0, 10 - ((value - 15) * 0.67)));
+        }
+      } else if (skill.type === 'count') {
+        // For count-based skills (pushups, pullups), normalize to 0-10 scale
+        if (skill.id === 'pushupScore') {
+          // Push-ups: 50 reps = 10 score, scale linearly with cap at 10
+          normalizedScore = Math.min(10, (value / 50) * 10);
+        } else if (skill.id === 'pullupScore') {
+          // Pull-ups: 20 reps = 10 score, scale linearly with cap at 10
+          normalizedScore = Math.min(10, (value / 20) * 10);
+        } else {
+          // Fallback for other count-based skills
+          normalizedScore = Math.min(10, value / 5);
+        }
+      }
+      
+      totalScore += normalizedScore;
+      skillCount++;
+    }
+  });
+
+  return skillCount > 0 ? Math.min(10, totalScore / skillCount) : 0;
+};
+
+// Helper function to calculate Mental skills aggregate score
+export const calculateMentalAggregateScore = (skillData: SkillData | null): number => {
+  if (!skillData) return 0;
+
+  const mentalSkills = ['moodScore', 'sleepScore'];
+  let totalScore = 0;
+  let skillCount = 0;
+
+  mentalSkills.forEach(skillId => {
+    const value = skillData[skillId as keyof SkillData] as number;
+    if (value !== undefined && value !== null) {
+      // Mental skills are already on 0-10 scale
+      totalScore += Math.min(10, value);
+      skillCount++;
+    }
+  });
+
+  return skillCount > 0 ? Math.min(10, totalScore / skillCount) : 0;
+};
+
+// Helper function to calculate Nutrition skills aggregate score
+export const calculateNutritionAggregateScore = (skillData: SkillData | null): number => {
+  if (!skillData) return 0;
+
+  const nutritionSkills = [
+    { id: 'totalCalories', type: 'calories' },
+    { id: 'protein', type: 'grams' },
+    { id: 'carbohydrates', type: 'grams' },
+    { id: 'fats', type: 'grams' }
+  ];
+
+  let totalScore = 0;
+  let skillCount = 0;
+
+  // Get personalized nutrition targets if we have body metrics
   let personalizedNutrition: any = null;
-  if (category.id === "NUTRITION" && skillData.student?.height && skillData.student?.weight) {
+  if (skillData?.student?.height && skillData?.student?.weight) {
     personalizedNutrition = calculatePersonalizedNutrition(
       skillData.student.weight,
       skillData.student.height,
@@ -375,79 +452,60 @@ const calculateAggregateScore = (category: SkillCategory, skillData: SkillData |
     );
   }
 
-  category.skills.forEach(skill => {
+  nutritionSkills.forEach(skill => {
     const value = skillData[skill.id as keyof SkillData] as number;
     if (value !== undefined && value !== null) {
       let normalizedScore = value;
       
-      // Normalize different types of scores to a 0-10 scale
-      if (skill.type === "time") {
-        // For time-based skills, lower is better, convert to score out of 10
-        // These are rough estimates - could be made more sophisticated
-        if (skill.id === "sprintTime") {
-          // 100m sprint: 10-20 seconds range, lower is better
-          normalizedScore = Math.max(0, 10 - ((value - 10) * 2));
-        } else if (skill.id === "run5kTime") {
-          // 5K run: 15-30 minutes range, lower is better  
-          normalizedScore = Math.max(0, 10 - ((value - 15) * 0.67));
+      // Use personalized targets for nutrition if available
+      if (personalizedNutrition) {
+        let target: number;
+        switch (skill.id) {
+          case 'totalCalories':
+            target = personalizedNutrition.calories;
+            break;
+          case 'protein':
+            target = personalizedNutrition.protein;
+            break;
+          case 'carbohydrates':
+            target = personalizedNutrition.carbohydrates;
+            break;
+          case 'fats':
+            target = personalizedNutrition.fats;
+            break;
+          default:
+            target = value; // fallback
         }
-      } else if (skill.type === "count") {
-        // For count-based skills (pushups, pullups), normalize to 0-10 scale
-        normalizedScore = Math.min(10, value / 5); // Rough normalization
-      } else if (skill.type === "score") {
-        // Already on 0-10 scale
-        normalizedScore = Math.min(10, value);
-      } else if (skill.type === "calories" || skill.type === "grams") {
-        // Use personalized targets for nutrition if available
-        if (personalizedNutrition && category.id === "NUTRITION") {
-          let target: number;
-          switch (skill.id) {
-            case "totalCalories":
-              target = personalizedNutrition.calories;
-              break;
-            case "protein":
-              target = personalizedNutrition.protein;
-              break;
-            case "carbohydrates":
-              target = personalizedNutrition.carbohydrates;
-              break;
-            case "fats":
-              target = personalizedNutrition.fats;
-              break;
-            default:
-              target = value; // fallback
-          }
-          
-          // Score based on how close to target (within 10% = perfect score)
-          const percentageDiff = Math.abs(value - target) / target;
-          if (percentageDiff <= 0.1) {
-            normalizedScore = 10; // Perfect score within 10%
-          } else if (percentageDiff <= 0.2) {
-            normalizedScore = 8; // Good score within 20%
-          } else if (percentageDiff <= 0.3) {
-            normalizedScore = 6; // Fair score within 30%
-          } else if (percentageDiff <= 0.5) {
-            normalizedScore = 4; // Poor score within 50%
-          } else {
-            normalizedScore = 2; // Very poor score beyond 50%
-          }
+        
+        // Score based on how close to target (within 10% = perfect score)
+        const percentageDiff = Math.abs(value - target) / target;
+        if (percentageDiff <= 0.1) {
+          normalizedScore = 10; // Perfect score within 10%
+        } else if (percentageDiff <= 0.2) {
+          normalizedScore = 8; // Good score within 20%
+        } else if (percentageDiff <= 0.3) {
+          normalizedScore = 6; // Fair score within 30%
+        } else if (percentageDiff <= 0.5) {
+          normalizedScore = 4; // Poor score within 50%
         } else {
-          // Fallback to old method if no personalized targets
-          if (skill.type === "calories") {
-            // Normalize calories to 0-10 scale (1500-3000 kcal range)
-            normalizedScore = Math.min(10, Math.max(0, (value - 1500) / 150));
-          } else if (skill.type === "grams") {
-            // Normalize nutrition values (rough estimates)
-            if (skill.id === "protein") {
-              // 50-150g protein range
-              normalizedScore = Math.min(10, Math.max(0, (value - 50) / 10));
-            } else if (skill.id === "carbohydrates") {
-              // 150-400g carbs range
-              normalizedScore = Math.min(10, Math.max(0, (value - 150) / 25));
-            } else if (skill.id === "fats") {
-              // 50-100g fats range
-              normalizedScore = Math.min(10, Math.max(0, (value - 50) / 5));
-            }
+          normalizedScore = 2; // Very poor score beyond 50%
+        }
+      } else {
+        // Fallback to old method if no personalized targets
+        if (skill.type === 'calories') {
+          // Normalize calories to 0-10 scale (1500-3000 kcal range), cap at 10
+          normalizedScore = Math.min(10, Math.max(0, (value - 1500) / 150));
+        } else if (skill.type === 'grams') {
+          // Normalize nutrition values (rough estimates), all capped at 10
+          if (skill.id === 'protein') {
+            // 50-150g protein range
+            normalizedScore = Math.min(10, Math.max(0, (value - 50) / 10));
+          } else if (skill.id === 'carbohydrates') {
+            // 150-400g carbs range
+            normalizedScore = Math.min(10, Math.max(0, (value - 150) / 25));
+          } else if (skill.id === 'fats') {
+            // 50-100g fats range
+            normalizedScore = Math.min(10, Math.max(0, (value - 50) / 5));
           }
         }
       }
@@ -457,26 +515,57 @@ const calculateAggregateScore = (category: SkillCategory, skillData: SkillData |
     }
   });
 
-  return skillCount > 0 ? totalScore / skillCount : 0;
+  return skillCount > 0 ? Math.min(10, totalScore / skillCount) : 0;
+};
+
+// Helper function to calculate Technical skills aggregate score (already exists as calculateTechnicalAggregateScore)
+
+// Helper function to calculate Tactical skills aggregate score
+export const calculateTacticalAggregateScore = (skillData: SkillData | null): number => {
+  // Since tactical skills haven't been developed yet, return 0
+  // This can be updated when tactical skills are implemented
+  return 0;
+};
+
+// Helper function to calculate aggregate score for a skillset
+const calculateAggregateScore = (category: SkillCategory, skillData: SkillData | null): number => {
+  // Use the specific aggregate calculation functions for more accurate scoring
+  switch (category.id) {
+    case 'PHYSICAL':
+      return calculatePhysicalAggregateScore(skillData);
+    case 'MENTAL':
+      return calculateMentalAggregateScore(skillData);
+    case 'NUTRITION':
+      return calculateNutritionAggregateScore(skillData);
+    case 'TECHNIQUE':
+      return calculateTechnicalAggregateScore(skillData);
+    case 'TACTICAL':
+      return calculateTacticalAggregateScore(skillData);
+    default:
+      return 0;
+  }
 };
 
 // Helper function to calculate overall progress percentage (exported)
 export const calculateOverallProgress = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
 
-  let totalScore = 0;
-  let categoryCount = 0;
+  // Calculate aggregate scores for all 5 skill categories
+  const physicalScore = calculatePhysicalAggregateScore(skillData);
+  const mentalScore = calculateMentalAggregateScore(skillData);
+  const nutritionScore = calculateNutritionAggregateScore(skillData);
+  const technicalScore = calculateTechnicalAggregateScore(skillData);
+  const tacticalScore = calculateTacticalAggregateScore(skillData);
 
-  skillCategories.forEach(category => {
-    if (category.skills.length > 0) {
-      const aggregateScore = calculateAggregateScore(category, skillData);
-      totalScore += aggregateScore;
-      categoryCount++;
-    }
-  });
+  // Calculate average of all 5 skills (exclude tactical from count if it's 0 since it's not developed yet)
+  const skillScores = [physicalScore, mentalScore, nutritionScore, technicalScore];
+  // Note: Tactical is excluded until it's implemented as requested by user
+  
+  const validScores = skillScores.filter(score => score > 0 || skillScores.indexOf(score) < 4); // Include all 4 developed skills
+  const averageScore = validScores.length > 0 ? skillScores.reduce((sum, score) => sum + score, 0) / 4 : 0;
 
   // Convert to percentage (0-100)
-  return categoryCount > 0 ? (totalScore / categoryCount) * 10 : 0;
+  return (averageScore / 10) * 100;
 };
 
 // Progress Ring Component
@@ -640,10 +729,16 @@ const SkillBar: React.FC<{
   showComparison?: boolean; // New prop to control comparison display
   personalizedTarget?: number; // For nutrition values
 }> = ({ skill, userScore, averageScore, isEditing, onScoreChange, showComparison = true, personalizedTarget }) => {
-  const maxValue = personalizedTarget 
-    ? Math.max(userScore || 0, personalizedTarget, 100)
-    : Math.max(userScore || 0, averageScore || 0, 100);
-  
+  // Fix: For 'score' type skills (e.g., moodScore, sleepScore), use 10 as max
+  let maxValue: number;
+  if (skill.type === "score") {
+    maxValue = 10;
+  } else if (personalizedTarget) {
+    maxValue = Math.max(userScore || 0, personalizedTarget, 100);
+  } else {
+    maxValue = Math.max(userScore || 0, averageScore || 0, 100);
+  }
+
   const userPercentage = userScore ? (userScore / maxValue) * 100 : 0;
   const avgPercentage = averageScore ? (averageScore / maxValue) * 100 : 0;
   const targetPercentage = personalizedTarget ? (personalizedTarget / maxValue) * 100 : 0;
@@ -1184,7 +1279,7 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
   );
 };
 
-const calculateTechnicalAggregateScore = (skillData: SkillData | null): number => {
+export const calculateTechnicalAggregateScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
 
   const technicalSkillIds = [
@@ -1204,13 +1299,13 @@ const calculateTechnicalAggregateScore = (skillData: SkillData | null): number =
   technicalSkillIds.forEach(skillId => {
     const value = skillData[skillId as keyof SkillData] as number;
     if (value !== undefined && value !== null) {
-      // All technical skills are now out of 10, so just use the value directly
-      totalScore += value;
+      // All technical skills are out of 10, cap at 10 for safety
+      totalScore += Math.min(10, Math.max(0, value));
       skillCount++;
     }
   });
 
-  return skillCount > 0 ? totalScore / skillCount : 0;
+  return skillCount > 0 ? Math.min(10, totalScore / skillCount) : 0;
 };
 
 export default function SkillSnap({
@@ -1495,7 +1590,7 @@ export default function SkillSnap({
                 {/* Special handling for TECHNIQUE category */}
                 {category.id === "TECHNIQUE" ? (
                   <div>
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-start justify-between mb-6">
                       <div className="flex items-center space-x-3">
                         <div className={`p-3 bg-${category.colorScheme.primary} rounded-lg shadow-lg`}>
                           <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -1507,10 +1602,9 @@ export default function SkillSnap({
                           <p className="text-gray-600">Master the fundamentals of cricket</p>
                         </div>
                       </div>
-                      
                       {/* Action buttons - Only show for coaches */}
                       {isCoachView && (
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2 ml-auto">
                           {isEditing === category.id ? (
                             <>
                               <button
@@ -1537,10 +1631,6 @@ export default function SkillSnap({
                           )}
                         </div>
                       )}
-                      
-                      {/* Debug info for Technical Skills */}
-                      <div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded ml-4">
-                      </div>
                     </div>
 
                     <TechnicalSkillsComponent

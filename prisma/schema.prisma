@@ -67,6 +67,7 @@ model Student {
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   receivedFeedback  Feedback[]
+  
   matchPerformances MatchPerformance[]
   skills            Skills?
   badges            StudentBadge[]
@@ -75,6 +76,7 @@ model Student {
   // Marketplace relations
   coachingBookings  CoachingBooking[]
   coachReviews      CoachReview[]
+  sessionTodoLinks  SessionTodoStudent[]
 }
 
 model Coach {
@@ -89,6 +91,7 @@ model Coach {
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   givenFeedback Feedback[]
   students      Student[]
+  sessionTodos  SessionTodo[]
 }
 
 model Skills {
@@ -327,4 +330,32 @@ model CoachReview {
   updatedAt    DateTime         @updatedAt
   athlete      Student          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
   coach        SpecializedCoach @relation(fields: [coachId], references: [id], onDelete: Cascade)
+}
+
+model SessionTodo {
+  id          String      @id @default(cuid())
+  coachId     String
+  coach       Coach       @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  title       String
+  sessionDate DateTime
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  items       SessionTodoItem[]
+  students    SessionTodoStudent[]
+}
+
+model SessionTodoItem {
+  id          String   @id @default(cuid())
+  todoId      String
+  content     String
+  isChecked   Boolean  @default(false)
+  todo        SessionTodo @relation(fields: [todoId], references: [id], onDelete: Cascade)
+}
+
+model SessionTodoStudent {
+  id        String   @id @default(cuid())
+  todoId    String
+  studentId String
+  todo      SessionTodo @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  student   Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }

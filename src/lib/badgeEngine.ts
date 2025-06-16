@@ -147,27 +147,27 @@ export class BadgeEngine {
       }
 
       console.log('BadgeEngine - Evaluation complete:', {
-        newBadgesAwarded: newBadges.length,
+        newBadges: newBadges.length,
         totalProgress: updatedProgress.length
       });
 
       return { newBadges, updatedProgress };
-
     } catch (error) {
-      console.error('Badge evaluation error:', error);
+      console.error('BadgeEngine - Error during evaluation:', error);
       throw error;
     }
   }
 
   private static async evaluateBadge(badge: any, student: any): Promise<{
-    earned: boolean;
-    progress: number;
-    score: number;
+    earned: boolean,
+    progress: number,
+    score: number
   }> {
-    const rules = badge.rules;
+    const { rules } = badge;
     const skills = student.skills;
-    
-    if (!rules || rules.length === 0) {
+
+    if (!skills) {
+      console.log('BadgeEngine - No skills data for student:', student.id);
       return { earned: false, progress: 0, score: 0 };
     }
 
@@ -176,28 +176,70 @@ export class BadgeEngine {
     let requiredRulesPassed = 0;
     let totalRequiredRules = 0;
 
+    console.log('BadgeEngine - Evaluating badge rules:', {
+      badgeName: badge.name,
+      ruleCount: rules.length
+    });
+
     for (const rule of rules) {
-      const ruleResult = await this.evaluateRule(rule, student);
+      const { fieldName, operator, value, weight, isRequired } = rule;
       
-      if (rule.isRequired) {
+      if (isRequired) {
         totalRequiredRules++;
-        if (ruleResult.passed) {
+      }
+      
+      maxScore += weight;
+
+      // Get the field value from skills
+      const fieldValue = skills[fieldName];
+      
+      console.log('BadgeEngine - Evaluating rule:', {
+        fieldName,
+        fieldValue,
+        operator,
+        targetValue: value,
+        weight,
+        isRequired
+      });
+
+      if (fieldValue === null || fieldValue === undefined || fieldValue === 0) {
+        console.log('BadgeEngine - Field value is null/undefined/zero (no input), skipping rule');
+        continue;
+      }
+
+      const ruleResult = this.evaluateRule(fieldValue, operator, value);
+      
+      console.log('BadgeEngine - Rule result:', {
+        fieldName,
+        passed: ruleResult,
+        fieldValue,
+        operator,
+        targetValue: value
+      });
+
+      if (ruleResult) {
+        totalScore += weight;
+        if (isRequired) {
           requiredRulesPassed++;
         }
       }
-
-      totalScore += ruleResult.score * rule.weight;
-      maxScore += rule.weight;
     }
 
-    // Check if all required rules passed
-    const allRequiredPassed = totalRequiredRules === 0 || requiredRulesPassed === totalRequiredRules;
-    
     // Calculate progress percentage
-    const progress = maxScore > 0 ? Math.min(100, (totalScore / maxScore) * 100) : 0;
+    const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
     
-    // Badge is earned if all required rules pass and progress >= 80%
-    const earned = allRequiredPassed && progress >= 80;
+    // Badge is earned if all required rules pass
+    const earned = totalRequiredRules > 0 ? requiredRulesPassed === totalRequiredRules : progress >= 100;
+
+    console.log('BadgeEngine - Final evaluation:', {
+      badgeName: badge.name,
+      totalScore,
+      maxScore,
+      requiredRulesPassed,
+      totalRequiredRules,
+      progress,
+      earned
+    });
 
     return {
       earned,
@@ -206,187 +248,37 @@ export class BadgeEngine {
     };
   }
 
-  private static async evaluateRule(rule: any, student: any): Promise<{
-    passed: boolean;
-    score: number;
-  }> {
-    const { ruleType, fieldName, operator, value } = rule;
-    
-    console.log('BadgeEngine - Evaluating rule:', {
-      ruleType,
-      fieldName,
-      operator,
-      value,
-      weight: rule.weight,
-      isRequired: rule.isRequired
-    });
-    
-    let fieldValue: any;
-    let targetValue: any;
+  private static evaluateRule(fieldValue: any, operator: string, targetValue: string): boolean {
+    const numericValue = parseFloat(fieldValue);
+    const numericTarget = parseFloat(targetValue);
 
-    try {
-      targetValue = this.parseValue(value);
-    } catch (error) {
-      console.error(`Failed to parse rule value: ${value}`, error);
-      return { passed: false, score: 0 };
-    }
-
-    switch (ruleType) {
-      case 'PERFORMANCE':
-        fieldValue = student.skills?.[fieldName];
-        console.log('BadgeEngine - PERFORMANCE rule:', {
-          fieldName,
-          fieldValue,
-          targetValue,
-          hasSkills: !!student.skills
-        });
-        break;
-        
-      case 'WELLNESS':
-        fieldValue = student.skills?.[fieldName];
-        console.log('BadgeEngine - WELLNESS rule:', {
-          fieldName,
-          fieldValue,
-          targetValue,
-          hasSkills: !!student.skills
-        });
-        break;
-        
-      case 'CONSISTENCY':
-        // For now, simulate consistency based on data presence
-        fieldValue = student.skills ? 1 : 0;
-        console.log('BadgeEngine - CONSISTENCY rule:', {
-          fieldValue,
-          targetValue,
-          hasSkills: !!student.skills
-        });
-        break;
-        
-      case 'STREAK':
-        // Simulate streak data - in real implementation, would calculate from daily logs
-        fieldValue = Math.floor(Math.random() * 30); // Random streak for demo
-        console.log('BadgeEngine - STREAK rule (simulated):', {
-          fieldValue,
-          targetValue
-        });
-        break;
-        
-      case 'IMPROVEMENT':
-        // Simulate improvement - in real implementation, would compare historical data
-        fieldValue = Math.floor(Math.random() * 50); // Random improvement for demo
-        console.log('BadgeEngine - IMPROVEMENT rule (simulated):', {
-          fieldValue,
-          targetValue
-        });
-        break;
-        
-      case 'COACH_RATING':
-        // Simulate coach rating - in real implementation, would get from feedback/ratings
-        fieldValue = Math.floor(Math.random() * 10) + 1; // Random rating 1-10 for demo
-        console.log('BadgeEngine - COACH_RATING rule (simulated):', {
-          fieldValue,
-          targetValue
-        });
-        break;
-        
-      default:
-        console.warn(`Unknown rule type: ${ruleType}`);
-        return { passed: false, score: 0 };
-    }
-
-    if (fieldValue === undefined || fieldValue === null) {
-      console.log('BadgeEngine - Rule failed: field value is null/undefined');
-      return { passed: false, score: 0 };
-    }
-
-    const comparison = this.compareValues(fieldValue, operator, targetValue);
-    
-    console.log('BadgeEngine - Rule comparison result:', {
+    console.log('BadgeEngine - Evaluating rule condition:', {
       fieldValue,
+      numericValue,
       operator,
       targetValue,
-      passed: comparison.passed,
-      score: comparison.partial
+      numericTarget
     });
-    
-    return { 
-      passed: comparison.passed, 
-      score: comparison.partial // partial is actually the score value
-    };
-  }
 
-  private static parseValue(value: string): any {
-    // Handle array values for BETWEEN operator
-    if (value.startsWith('[') && value.endsWith(']')) {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return parseFloat(value.slice(1, -1));
-      }
-    }
-    
-    // Try to parse as number
-    const numValue = parseFloat(value);
-    if (!isNaN(numValue)) {
-      return numValue;
-    }
-    
-    // Return as string
-    return value;
-  }
-
-  private static compareValues(fieldValue: any, operator: string, targetValue: any): {
-    passed: boolean;
-    partial: number;
-  } {
-    const numFieldValue = typeof fieldValue === 'number' ? fieldValue : parseFloat(fieldValue);
-    const normalizedOperator = operator.toUpperCase(); // Normalize to uppercase
-    
-    switch (normalizedOperator) {
-      case 'GTE':
-        const gteResult = numFieldValue >= targetValue;
-        return {
-          passed: gteResult,
-          partial: gteResult ? 1 : Math.max(0, numFieldValue / targetValue)
-        };
-        
+    switch (operator.toUpperCase()) {
       case 'GT':
-        const gtResult = numFieldValue > targetValue;
-        return {
-          passed: gtResult,
-          partial: gtResult ? 1 : Math.max(0, numFieldValue / targetValue)
-        };
-        
-      case 'LTE':
-        return { passed: numFieldValue <= targetValue, partial: 0 };
-        
+        return numericValue > numericTarget;
+      case 'GTE':
+        return numericValue >= numericTarget;
       case 'LT':
-        return { passed: numFieldValue < targetValue, partial: 0 };
-        
+        return numericValue < numericTarget;
+      case 'LTE':
+        return numericValue <= numericTarget;
       case 'EQ':
-        return { passed: numFieldValue === targetValue, partial: 0 };
-        
+        return numericValue === numericTarget;
+      case 'NEQ':
+        return numericValue !== numericTarget;
       case 'BETWEEN':
-        if (Array.isArray(targetValue) && targetValue.length === 2) {
-          const [min, max] = targetValue;
-          const withinRange = numFieldValue >= min && numFieldValue <= max;
-          return {
-            passed: withinRange,
-            partial: withinRange ? 1 : 0
-          };
-        }
-        return { passed: false, partial: 0 };
-        
-      case 'STREAK_DAYS':
-        const streakResult = numFieldValue >= targetValue;
-        return {
-          passed: streakResult,
-          partial: streakResult ? 1 : Math.max(0, numFieldValue / targetValue)
-        };
-        
+        const [min, max] = targetValue.split(',').map(v => parseFloat(v.trim()));
+        return numericValue >= min && numericValue <= max;
       default:
-        console.warn(`Unknown operator: ${operator} (normalized: ${normalizedOperator})`);
-        return { passed: false, partial: 0 };
+        console.warn('BadgeEngine - Unknown operator:', operator);
+        return false;
     }
   }
 
@@ -511,22 +403,57 @@ export class BadgeEngine {
     });
   }
 
-  static async bulkEvaluate(studentIds: string[]) {
-    const results = [];
+  // New method for automatic evaluation of all students
+  static async evaluateAllStudents(): Promise<{
+    studentsEvaluated: number,
+    totalNewBadges: number,
+    errors: string[]
+  }> {
+    console.log('BadgeEngine - Starting automatic evaluation of all students');
     
-    for (const studentId of studentIds) {
+    const students = await prisma.student.findMany({
+      include: { skills: true }
+    });
+
+    let studentsEvaluated = 0;
+    let totalNewBadges = 0;
+    const errors: string[] = [];
+
+    for (const student of students) {
       try {
-        const result = await this.evaluateStudentBadges({ studentId });
-        results.push({ studentId, ...result, success: true });
-      } catch (error) {
-        results.push({ 
-          studentId, 
-          success: false, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        if (!student.skills) {
+          console.log(`BadgeEngine - Skipping student ${student.studentName} - no skills data`);
+          continue;
+        }
+
+        const result = await this.evaluateStudentBadges({
+          studentId: student.id,
+          skills: student.skills
         });
+
+        studentsEvaluated++;
+        totalNewBadges += result.newBadges.length;
+
+        if (result.newBadges.length > 0) {
+          console.log(`BadgeEngine - Awarded ${result.newBadges.length} new badges to ${student.studentName}`);
+        }
+      } catch (error) {
+        const errorMsg = `Error evaluating student ${student.studentName}: ${error.message}`;
+        console.error('BadgeEngine -', errorMsg);
+        errors.push(errorMsg);
       }
     }
-    
-    return results;
+
+    console.log('BadgeEngine - Automatic evaluation complete:', {
+      studentsEvaluated,
+      totalNewBadges,
+      errors: errors.length
+    });
+
+    return {
+      studentsEvaluated,
+      totalNewBadges,
+      errors
+    };
   }
 } 
