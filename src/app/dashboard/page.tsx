@@ -49,8 +49,52 @@ export default function Dashboard() {
   const [showAllAssigned, setShowAllAssigned] = useState(false);
   const [showSkillSnapModal, setShowSkillSnapModal] = useState(false);
   const [badgeRefreshTrigger, setBadgeRefreshTrigger] = useState(0);
-  const studentsToShow = showAllStudents ? availableStudents : availableStudents.slice(0, 3);
-  const assignedToShow = showAllAssigned ? assignedStudents : assignedStudents.slice(0, 3);
+  const [availableStudentsRoleFilter, setAvailableStudentsRoleFilter] = useState<string>('ALL');
+  const [assignedStudentsRoleFilter, setAssignedStudentsRoleFilter] = useState<string>('ALL');
+
+  // Filter functions
+  const getFilteredAvailableStudents = () => {
+    if (availableStudentsRoleFilter === 'ALL') return availableStudents;
+    return availableStudents.filter(student => student.role === availableStudentsRoleFilter);
+  };
+
+  const getFilteredAssignedStudents = () => {
+    if (assignedStudentsRoleFilter === 'ALL') return assignedStudents;
+    return assignedStudents.filter(student => student.role === assignedStudentsRoleFilter);
+  };
+
+  // Select All functionality for available students
+  const handleSelectAllAvailable = () => {
+    const filteredStudents = getFilteredAvailableStudents();
+    const allFilteredIds = filteredStudents.map(s => s.id);
+    const isAllSelected = allFilteredIds.every(id => selectedStudents.includes(id));
+    
+    if (isAllSelected) {
+      // Deselect all filtered students
+      setSelectedStudents(prev => prev.filter(id => !allFilteredIds.includes(id)));
+    } else {
+      // Select all filtered students (add those not already selected)
+      const newIds = allFilteredIds.filter(id => !selectedStudents.includes(id));
+      setSelectedStudents(prev => [...prev, ...newIds]);
+    }
+  };
+
+  // Get role display name
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'BATSMAN': return 'Batsman';
+      case 'BOWLER': return 'Bowler';
+      case 'ALL_ROUNDER': return 'All Rounder';
+      case 'KEEPER': return 'Wicket Keeper';
+      default: return role;
+    }
+  };
+
+  const filteredAvailableStudents = getFilteredAvailableStudents();
+  const filteredAssignedStudents = getFilteredAssignedStudents();
+  const studentsToShow = showAllStudents ? filteredAvailableStudents : filteredAvailableStudents.slice(0, 3);
+  const assignedToShow = showAllAssigned ? filteredAssignedStudents : filteredAssignedStudents.slice(0, 3);
+  const isAllFilteredAvailableSelected = filteredAvailableStudents.length > 0 && filteredAvailableStudents.every(s => selectedStudents.includes(s.id));
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -227,11 +271,14 @@ export default function Dashboard() {
       });
       
       if (response.ok) {
+        setBadgeRefreshTrigger(prev => prev + 1);
         await fetchBadgeStats();
-        setBadgeRefreshTrigger(prev => prev + 1); // Trigger BadgeManager refresh
+      } else {
+        alert('Failed to delete badge');
       }
     } catch (error) {
       console.error('Error deleting badge:', error);
+      alert('An error occurred while deleting the badge');
     }
   };
 
@@ -607,37 +654,86 @@ export default function Dashboard() {
 
                   {/* Student Management Section */}
                   <section className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-                    <h2 className="text-2xl font-bold text-indigo-700 mb-2 flex items-center gap-2">
-                      <svg className="h-6 w-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4V7a4 4 0 10-8 0v3m12 4a4 4 0 01-8 0m8 0a4 4 0 01-8 0" /></svg>
-                      Student Management
-                    </h2>
-                    <p className="text-gray-500 mb-6">Select and assign students to your roster. Use the checkboxes to select multiple students.</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                      {studentsToShow.map(student => (
-                        <div key={student.id} className="bg-gradient-to-br from-indigo-50 to-white rounded-2xl shadow hover:shadow-xl transition-shadow p-5 flex flex-col gap-2 border border-gray-100 relative group">
-                          <input
-                            type="checkbox"
-                            checked={selectedStudents.includes(student.id)}
-                            onChange={() => handleStudentSelection(student.id)}
-                            className="absolute top-3 right-3 h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                            title="Select student"
-                          />
-                          <div className="flex items-center gap-3">
-                            <span className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-indigo-200 text-indigo-700 font-bold text-lg">
-                              {student.studentName.charAt(0)}
-                            </span>
-                            <div>
-                              <div className="font-semibold text-gray-900 text-base">{student.studentName}</div>
-                              <div className="text-xs text-gray-500">@{student.username}</div>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                      <div>
+                        <h2 className="text-2xl font-bold text-indigo-700 flex items-center gap-2">
+                          <svg className="h-6 w-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4V7a4 4 0 10-8 0v3m12 4a4 4 0 01-8 0m8 0a4 4 0 01-8 0" /></svg>
+                          Student Management
+                        </h2>
+                        <p className="text-gray-500 mt-1">Select and assign students to your roster. Use the checkboxes to select multiple students.</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {/* Role Filter */}
+                        <select 
+                          value={availableStudentsRoleFilter} 
+                          onChange={(e) => setAvailableStudentsRoleFilter(e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value="ALL">All Roles</option>
+                          <option value="BATSMAN">Batsman</option>
+                          <option value="BOWLER">Bowler</option>
+                          <option value="ALL_ROUNDER">All Rounder</option>
+                          <option value="KEEPER">Wicket Keeper</option>
+                        </select>
+                        {/* Select All Button */}
+                        {filteredAvailableStudents.length > 0 && (
+                          <button 
+                            onClick={handleSelectAllAvailable}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                              isAllFilteredAvailableSelected 
+                                ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            {isAllFilteredAvailableSelected ? 'Deselect All' : 'Select All'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Results Summary */}
+                    {availableStudentsRoleFilter !== 'ALL' && (
+                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-blue-800 text-sm">
+                          <span className="font-medium">Filter Active:</span> Showing {getRoleDisplayName(availableStudentsRoleFilter)} students ({studentsToShow.length} of {availableStudents.length} available)
+                        </p>
+                      </div>
+                    )}
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        {studentsToShow.map(student => (
+                          <div key={student.id} className="bg-gradient-to-br from-indigo-50 to-white rounded-2xl shadow hover:shadow-xl transition-shadow p-5 flex flex-col gap-2 border border-gray-100 relative group">
+                            <input
+                              type="checkbox"
+                              checked={selectedStudents.includes(student.id)}
+                              onChange={() => handleStudentSelection(student.id)}
+                              className="absolute top-3 right-3 h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                              title="Select student"
+                            />
+                            <div className="flex items-center gap-3">
+                              <span className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-indigo-200 text-indigo-700 font-bold text-lg">
+                                {student.studentName.charAt(0)}
+                              </span>
+                              <div>
+                                <div className="font-semibold text-gray-900 text-base">{student.studentName}</div>
+                                <div className="text-xs text-gray-500">@{student.username}</div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-700">
+                              <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">{getRoleDisplayName(student.role)}</span>
+                              <span className="text-gray-500">Age {student.age}</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-700">
-                            <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">{student.role.replace('_', ' ')}</span>
-                            <span className="text-gray-500">Age {student.age}</span>
-                          </div>
+                        ))}
+                      </div>
+                      
+                      {studentsToShow.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          {availableStudentsRoleFilter !== 'ALL' 
+                            ? `No ${getRoleDisplayName(availableStudentsRoleFilter)} students available for assignment.`
+                            : 'No students available for assignment.'
+                          }
                         </div>
-                      ))}
-                    </div>
+                      )}
                     {selectedStudents.length > 0 && (
                       <div className="flex justify-center mt-6">
                         <button
@@ -648,7 +744,7 @@ export default function Dashboard() {
                         </button>
                       </div>
                     )}
-                    {availableStudents.length > 3 && (
+                    {filteredAvailableStudents.length > 3 && (
                       <div className="flex justify-center mt-4">
                         <button
                           className="text-indigo-600 hover:underline font-medium"
@@ -662,7 +758,29 @@ export default function Dashboard() {
 
                   {/* Assigned Students Section */}
                   <section className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-                    <h2 className="text-2xl font-bold text-indigo-700 mb-2">Your Athletes</h2>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                      <h2 className="text-2xl font-bold text-indigo-700">Your Athletes</h2>
+                      <select 
+                        value={assignedStudentsRoleFilter} 
+                        onChange={(e) => setAssignedStudentsRoleFilter(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="ALL">All Roles</option>
+                        <option value="BATSMAN">Batsman</option>
+                        <option value="BOWLER">Bowler</option>
+                        <option value="ALL_ROUNDER">All Rounder</option>
+                        <option value="KEEPER">Wicket Keeper</option>
+                      </select>
+                    </div>
+                    
+                    {/* Results Summary */}
+                    {assignedStudentsRoleFilter !== 'ALL' && (
+                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-blue-800 text-sm">
+                          <span className="font-medium">Filter Active:</span> Showing {getRoleDisplayName(assignedStudentsRoleFilter)} athletes ({assignedToShow.length} of {assignedStudents.length} assigned)
+                        </p>
+                      </div>
+                    )}
                     <div className="flex flex-col gap-4">
                       {assignedToShow.map(student => (
                         <div key={student.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0 border-b last:border-b-0 border-gray-100 py-3 group hover:bg-indigo-50 transition">
@@ -672,7 +790,7 @@ export default function Dashboard() {
                             </span>
                             <div>
                               <div className="font-semibold text-gray-900 text-base">{student.studentName}</div>
-                              <div className="text-xs text-gray-500">@{student.username} • {student.role.replace('_', ' ')} • Age {student.age}</div>
+                              <div className="text-xs text-gray-500">@{student.username} • {getRoleDisplayName(student.role)} • Age {student.age}</div>
                             </div>
                           </div>
                           <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-sm md:text-base">
@@ -703,7 +821,17 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
-                      {assignedStudents.length > 3 && (
+                      
+                      {assignedToShow.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          {assignedStudentsRoleFilter !== 'ALL' 
+                            ? `No ${getRoleDisplayName(assignedStudentsRoleFilter)} athletes assigned to you.`
+                            : 'No athletes assigned to you yet.'
+                          }
+                        </div>
+                      )}
+                      
+                      {filteredAssignedStudents.length > 3 && (
                         <div className="flex justify-center mt-4">
                           <button
                             className="text-indigo-600 hover:underline font-medium"

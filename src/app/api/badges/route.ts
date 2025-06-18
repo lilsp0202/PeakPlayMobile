@@ -299,15 +299,14 @@ export async function POST(request: NextRequest) {
     const newBadge = await prisma.badge.create({
       data: {
         name,
-        description,
+        // Store coach ID in a way we can identify coach-created badges
+        // We'll use the description to add a marker for coach-created badges
+        description: `${description}|||COACH_CREATED:${coach.id}`,
         motivationalText: motivationalText || '',
         level,
         icon: icon || 'trophy',
         sport: sport || 'ALL',
-        categoryId: badgeCategory.id,
-        // Store coach ID in a way we can identify coach-created badges
-        // We'll use the description to add a marker for coach-created badges
-        description: `${description}|||COACH_CREATED:${coach.id}`
+        categoryId: badgeCategory.id
       },
       include: {
         category: true

@@ -438,7 +438,7 @@ export class BadgeEngine {
           console.log(`BadgeEngine - Awarded ${result.newBadges.length} new badges to ${student.studentName}`);
         }
       } catch (error) {
-        const errorMsg = `Error evaluating student ${student.studentName}: ${error.message}`;
+        const errorMsg = `Error evaluating student ${student.studentName}: ${error instanceof Error ? error.message : 'Unknown error'}`;
         console.error('BadgeEngine -', errorMsg);
         errors.push(errorMsg);
       }

@@ -512,10 +512,9 @@ export default function BadgeDisplay({
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <button
             onClick={() => setShowEarnedExpanded(!showEarnedExpanded)}
-            className="w-full px-4 py-3 transition-colors duration-200 flex items-center justify-between"
+            className="w-full px-4 py-3 transition-colors duration-200 flex items-center justify-between hover:opacity-90"
             style={{
-              background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
-              '&:hover': { background: 'linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%)' }
+              background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)'
             }}
           >
             <div className="flex items-center space-x-3">
@@ -570,10 +569,9 @@ export default function BadgeDisplay({
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <button
             onClick={() => setShowInProgressExpanded(!showInProgressExpanded)}
-            className="w-full px-4 py-3 transition-colors duration-200 flex items-center justify-between"
+            className="w-full px-4 py-3 transition-colors duration-200 flex items-center justify-between hover:opacity-90"
             style={{
-              background: 'linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)',
-              '&:hover': { background: 'linear-gradient(135deg, #DDD6FE 0%, #A78BFA 100%)' }
+              background: 'linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)'
             }}
           >
             <div className="flex items-center space-x-3">
