@@ -22,6 +22,7 @@ import BadgeForm from "@/components/BadgeForm";
 import { PeakPlayLogo } from "../../components/Navigation";
 import SessionTodoCoach from '../../components/SessionTodoCoach';
 import SessionTodoStudent from '../../components/SessionTodoStudent';
+import PWAStatus from '@/components/PWAStatus';
 
 // Dynamic import for SkillSnap to avoid SSR issues
 import dynamic from 'next/dynamic';
@@ -339,6 +340,11 @@ export default function Dashboard() {
 
             {/* Enhanced User Controls */}
             <div className="flex items-center space-x-4">
+              {/* PWA Status */}
+              <div className="hidden lg:block">
+                <PWAStatus />
+              </div>
+
               {/* Role Badge */}
               <div className="hidden sm:flex">
                 <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase shadow-lg ${
@@ -419,61 +425,167 @@ export default function Dashboard() {
               {session?.user.role === "ATHLETE" ? (
                 // 🎨 NEW MODERN ATHLETE DASHBOARD DESIGN
                 <div className="space-y-8">
-                  {/* Hero Section */}
-                  <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 rounded-3xl p-8 text-white shadow-2xl">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-16"></div>
+                  {/* Mobile-Optimized Performance Hub */}
+                  <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 rounded-3xl p-6 text-white shadow-2xl animate-pulse-slow">
+                    {/* Animated Background Elements */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16 animate-float"></div>
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12 animate-float-delayed"></div>
+                    
                     <div className="relative z-10">
-                      <div className="flex items-center space-x-4 mb-6">
-                        <div className="h-16 w-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                          <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <h1 className="text-4xl font-bold">Performance Hub</h1>
-                          <p className="text-indigo-100 text-lg">Track. Train. Transform.</p>
+                      {/* Compact Header */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-12 w-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg transform hover:rotate-12 transition-all duration-300">
+                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                          </div>
+                          <div>
+                            <h1 className="text-2xl md:text-3xl font-bold">Performance Hub</h1>
+                            <p className="text-indigo-100 text-sm">Track. Train. Transform.</p>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-gray-100">
-                          <div className="flex items-center space-x-3 mb-3">
-                            <div className="h-8 w-8 bg-emerald-400 rounded-lg flex items-center justify-center">
-                              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {/* Compact Mobile Cards */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 transform hover:scale-105 transition-all duration-300">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-6 w-6 bg-emerald-400 rounded-lg flex items-center justify-center">
+                              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                               </svg>
                             </div>
-                            <h3 className="font-semibold">Athlete</h3>
+                            <h3 className="font-semibold text-sm">Athlete</h3>
                           </div>
-                          <p className="text-2xl font-bold">{profileData.studentName}</p>
-                          <p className="text-indigo-200 text-sm">@{profileData.username}</p>
+                          <p className="text-lg font-bold truncate">{profileData.studentName}</p>
+                          <p className="text-indigo-200 text-xs">@{profileData.username}</p>
                         </div>
                         
-                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-gray-100">
-                          <div className="flex items-center space-x-3 mb-3">
-                            <div className="h-8 w-8 bg-blue-400 rounded-lg flex items-center justify-center">
-                              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 transform hover:scale-105 transition-all duration-300">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-6 w-6 bg-blue-400 rounded-lg flex items-center justify-center">
+                              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8h1m-1-4h1m4 4h1m-1-4h1"/>
                               </svg>
                             </div>
-                            <h3 className="font-semibold">Academy</h3>
+                            <h3 className="font-semibold text-sm">Academy</h3>
                           </div>
-                          <p className="text-xl font-bold">{profileData.academy}</p>
-                          <p className="text-indigo-200 text-sm">{profileData.role.replace('_', ' ')}</p>
+                          <p className="text-lg font-bold">{profileData.academy}</p>
+                          <p className="text-indigo-200 text-xs">{getRoleDisplayName(profileData.role)}</p>
                         </div>
                         
-                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-gray-100">
-                          <div className="flex items-center space-x-3 mb-3">
-                            <div className="h-8 w-8 bg-yellow-400 rounded-lg flex items-center justify-center">
-                              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 transform hover:scale-105 transition-all duration-300">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-6 w-6 bg-yellow-400 rounded-lg flex items-center justify-center">
+                              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                               </svg>
                             </div>
-                            <h3 className="font-semibold">Progress</h3>
+                            <h3 className="font-semibold text-sm">Progress</h3>
                           </div>
-                          <p className="text-2xl font-bold">{Math.round(calculateOverallProgress(skillData))}%</p>
-                          <p className="text-indigo-200 text-sm">Overall Performance</p>
+                          <p className="text-lg font-bold">{Math.round(calculateOverallProgress(skillData))}%</p>
+                          <p className="text-indigo-200 text-xs">Overall Performance</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile-Optimized Overall Progress Section */}
+                  <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden transform hover:scale-[1.01] transition-all duration-500 animate-fade-in">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-blue-50 p-4 border-b border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg transform hover:rotate-12 transition-all duration-300">
+                          <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <span className="text-2xl animate-bounce">🎯</span>
+                            Overall Progress
+                          </h2>
+                          <p className="text-gray-600 text-sm">Your complete performance overview</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            {Math.round(calculateOverallProgress(skillData))}%
+                          </p>
+                          <p className="text-gray-500 text-xs font-medium">Complete</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 bg-gradient-to-br from-white to-indigo-50/30">
+                      {/* Progress Ring - Mobile Centered */}
+                      <div className="flex justify-center mb-6">
+                        <div className="relative">
+                          <ProgressRing 
+                            progress={calculateOverallProgress(skillData)} 
+                            size={120} 
+                          />
+                          {/* Remove duplicate text overlay since ProgressRing already has it */}
+                        </div>
+                      </div>
+
+                      {/* Progress Breakdown - Mobile Grid */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 transform hover:scale-105 hover:shadow-md transition-all duration-300">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse"></div>
+                            <p className="text-sm font-medium text-gray-700">Physical</p>
+                          </div>
+                          <p className="text-xl font-bold text-gray-900">{Math.round(calculatePhysicalAggregateScore(skillData))}%</p>
+                        </div>
+                        
+                        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 transform hover:scale-105 hover:shadow-md transition-all duration-300">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-3 w-3 bg-blue-500 rounded-full animate-pulse"></div>
+                            <p className="text-sm font-medium text-gray-700">Mental</p>
+                          </div>
+                          <p className="text-xl font-bold text-gray-900">{Math.round(calculateMentalAggregateScore(skillData))}%</p>
+                        </div>
+                        
+                        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 transform hover:scale-105 hover:shadow-md transition-all duration-300">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
+                            <p className="text-sm font-medium text-gray-700">Nutrition</p>
+                          </div>
+                          <p className="text-xl font-bold text-gray-900">{Math.round(calculateNutritionAggregateScore(skillData))}%</p>
+                        </div>
+                        
+                        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 transform hover:scale-105 hover:shadow-md transition-all duration-300">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-3 w-3 bg-purple-500 rounded-full animate-pulse"></div>
+                            <p className="text-sm font-medium text-gray-700">Technical</p>
+                          </div>
+                          <p className="text-xl font-bold text-gray-900">{Math.round(calculateTechnicalAggregateScore(skillData))}%</p>
+                        </div>
+                      </div>
+                      
+                      {/* Progress Message - Compact */}
+                      <div className="p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                        <div className="flex items-center gap-2">
+                          <div className="h-6 w-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-900">
+                              {calculateOverallProgress(skillData) < 30 ? "Getting Started! 🚀" :
+                               calculateOverallProgress(skillData) < 60 ? "Making Progress! 💪" :
+                               calculateOverallProgress(skillData) < 80 ? "Almost There! 🔥" :
+                               "Excellent Work! ⭐"}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {calculateOverallProgress(skillData) < 30 ? "Keep training to build your foundation" :
+                               calculateOverallProgress(skillData) < 60 ? "You're on the right track, keep going!" :
+                               calculateOverallProgress(skillData) < 80 ? "Great momentum, push to the finish!" :
+                               "Outstanding performance across all areas!"}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -501,7 +613,7 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className="p-6 bg-gradient-to-br from-white to-gray-50">
-                          <SkillSnapDynamic />
+                          <SkillSnapDynamic onSkillsUpdated={fetchSkillData} />
                         </div>
                       </div>
 
@@ -528,27 +640,7 @@ export default function Dashboard() {
 
                     {/* Right Column - Sidebar Content */}
                     <div className="space-y-6">
-                      {/* Overall Progress Ring */}
-                      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 text-center transform hover:scale-[1.02] transition-all duration-300">
-                        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 mb-4">
-                          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-2">
-                            <span className="text-2xl">🎯</span>
-                            Overall Progress
-                          </h3>
-                          <div className="flex justify-center mb-4">
-                            <ProgressRing 
-                              progress={calculateOverallProgress(skillData)} 
-                              size={120} 
-                            />
-                          </div>
-                          <div className="bg-white rounded-xl p-4 shadow-sm">
-                            <p className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-1">
-                              {Math.round(calculateOverallProgress(skillData))}%
-                            </p>
-                            <p className="text-gray-600 text-sm font-medium">Performance Score</p>
-                          </div>
-                        </div>
-                      </div>
+
 
                       {/* Achievements */}
                       <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
@@ -783,7 +875,7 @@ export default function Dashboard() {
                     )}
                     <div className="flex flex-col gap-4">
                       {assignedToShow.map(student => (
-                        <div key={student.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0 border-b last:border-b-0 border-gray-100 py-3 group hover:bg-indigo-50 transition">
+                        <div key={student.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4 border-b last:border-b-0 border-gray-100 py-3 group hover:bg-indigo-50 transition">
                           <div className="flex items-center gap-4">
                             <span className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-indigo-200 text-indigo-700 font-bold text-lg">
                               {student.studentName.charAt(0)}
@@ -933,7 +1025,11 @@ export default function Dashboard() {
                     <div className="mb-8">
                       <SkillSnapDynamic 
                         studentId={selectedStudentForSkills}
-                        isCoachView={true} 
+                        isCoachView={true}
+                        onSkillsUpdated={() => {
+                          // Re-fetch badge stats when skills are updated for a student in modal
+                          fetchBadgeStats();
+                        }}
                       />
                     </div>
                   )}
@@ -998,7 +1094,14 @@ export default function Dashboard() {
             >
               &times;
             </button>
-            <SkillSnapDynamic studentId={selectedStudentForSkills} isCoachView={true} />
+            <SkillSnapDynamic 
+              studentId={selectedStudentForSkills} 
+              isCoachView={true}
+              onSkillsUpdated={() => {
+                // Re-fetch badge stats when skills are updated for a student in modal
+                fetchBadgeStats();
+              }}
+            />
           </div>
         </div>
       )}

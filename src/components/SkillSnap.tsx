@@ -96,6 +96,7 @@ interface SkillCategory {
 interface SkillSnapProps {
   studentId?: string;
   isCoachView?: boolean;
+  onSkillsUpdated?: () => void; // New callback prop for when skills are updated
 }
 
 interface TechnicalSkillsProps {
@@ -835,10 +836,9 @@ const SkillBar: React.FC<{
 // Category Card component for main grid
 const CategoryCard: React.FC<{
   category: SkillCategory;
-  isExpanded: boolean;
-  onToggle: () => void;
+  onOpen: () => void;
   skillData: SkillData | null;
-}> = ({ category, isExpanded, onToggle, skillData }) => {
+}> = ({ category, onOpen, skillData }) => {
   // Special handling for TECHNIQUE category - count technical skills differently
   let hasData: boolean;
   let skillCount: number;
@@ -866,8 +866,8 @@ const CategoryCard: React.FC<{
 
   return (
     <div 
-      className={`bg-gradient-to-br ${category.colorScheme.gradient} rounded-xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl cursor-pointer`}
-      onClick={onToggle}
+      className={`bg-gradient-to-br ${category.colorScheme.gradient} rounded-xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95 cursor-pointer`}
+      onClick={onOpen}
     >
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
@@ -885,12 +885,12 @@ const CategoryCard: React.FC<{
               <div className={`w-2 h-2 bg-${category.colorScheme.primary} rounded-full`} />
             )}
             <svg 
-              className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+              className="w-5 h-5 text-gray-400 transition-transform duration-200"
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
         </div>
@@ -902,7 +902,7 @@ const CategoryCard: React.FC<{
             <span className="text-gray-500">Coming soon</span>
           ) : (
             <span className={`text-${category.colorScheme.primary} font-medium`}>
-              {isExpanded ? 'Collapse' : 'Expand'}
+              Open
             </span>
           )}
         </div>
@@ -1012,6 +1012,201 @@ const BMICard: React.FC<{
 
       <div className="mt-4 text-xs text-gray-500 text-center">
         💡 These recommendations are personalized based on your BMI and athletic needs
+      </div>
+    </div>
+  );
+};
+
+// Modal Component for Skills
+const SkillModal: React.FC<{
+  category: SkillCategory;
+  isOpen: boolean;
+  onClose: () => void;
+  skillData: SkillData | null;
+  isEditing: boolean;
+  isSaving: boolean;
+  editedScores: Record<string, number>;
+  averages: SkillAverages | null;
+  isCoachView: boolean;
+  onStartEdit: () => void;
+  onSave: () => void;
+  onCancel: () => void;
+  onScoreChange: (skillId: string, value: number) => void;
+}> = ({
+  category,
+  isOpen,
+  onClose,
+  skillData,
+  isEditing,
+  isSaving,
+  editedScores,
+  averages,
+  isCoachView,
+  onStartEdit,
+  onSave,
+  onCancel,
+  onScoreChange
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ease-out"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div className="flex items-end justify-center min-h-screen p-4 text-center sm:items-center sm:p-0">
+        <div 
+          className="relative transform overflow-hidden rounded-t-3xl sm:rounded-3xl bg-white text-left shadow-xl transition-all duration-300 ease-out w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+          style={{ animation: 'slideUp 0.3s ease-out' }}
+        >
+          {/* Header */}
+          <div className={`bg-gradient-to-r ${category.colorScheme.gradient} px-6 py-4 border-b border-gray-200 sticky top-0 z-10`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className={`p-3 bg-${category.colorScheme.primary} rounded-lg text-white shadow-lg`}>
+                  {category.icon}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">{category.name} Skills</h3>
+                  <p className="text-gray-600">{category.description}</p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+              >
+                <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Action buttons - Show for both coaches and athletes */}
+            <div className="flex space-x-2 mt-4">
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={onCancel}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md transition-all duration-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={onSave}
+                    disabled={isSaving}
+                    className="px-4 py-2 bg-orange-600 text-white rounded-md text-sm font-medium hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 shadow-md transition-all duration-200"
+                  >
+                    {isSaving ? "Saving..." : "Save"}
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={onStartEdit}
+                  className="px-6 py-3 bg-orange-600 text-white rounded-lg text-sm font-semibold hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  {skillData ? "Edit Scores" : "Add Scores"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            {category.id === "TECHNIQUE" ? (
+              <div>
+                <TechnicalSkillsComponent
+                  skillData={skillData}
+                  isEditing={isEditing}
+                  editedScores={editedScores}
+                  onScoreChange={onScoreChange}
+                  averages={averages}
+                />
+                <div className="mt-6">
+                  <AggregateScoreDisplay
+                    category={category}
+                    aggregateScore={calculateTechnicalAggregateScore(skillData)}
+                  />
+                </div>
+              </div>
+            ) : category.skills.length > 0 ? (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {category.skills.map((skill) => {
+                    let personalizedTarget: number | undefined = undefined;
+                    if (category.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight) {
+                      const personalizedNutrition = calculatePersonalizedNutrition(
+                        skillData.student.weight,
+                        skillData.student.height,
+                        skillData.student.age
+                      );
+                      switch (skill.id) {
+                        case "totalCalories":
+                          personalizedTarget = personalizedNutrition.calories;
+                          break;
+                        case "protein":
+                          personalizedTarget = personalizedNutrition.protein;
+                          break;
+                        case "carbohydrates":
+                          personalizedTarget = personalizedNutrition.carbohydrates;
+                          break;
+                        case "fats":
+                          personalizedTarget = personalizedNutrition.fats;
+                          break;
+                      }
+                    }
+
+                    return (
+                      <SkillBar
+                        key={skill.id}
+                        skill={skill}
+                        userScore={
+                          isEditing
+                            ? editedScores[skill.id] 
+                            : skillData?.[skill.id as keyof SkillData] as number
+                        }
+                        averageScore={averages?.averages[skill.id] || 0}
+                        isEditing={isEditing}
+                        onScoreChange={onScoreChange}
+                        showComparison={category.id !== "MENTAL"}
+                        personalizedTarget={personalizedTarget}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* BMI Card for Nutrition Category */}
+                {category.id === "NUTRITION" && (
+                  <div className="mt-6">
+                    <BMICard skillData={skillData} />
+                  </div>
+                )}
+
+                {/* Aggregate Score Display */}
+                <div className="mt-6">
+                  <AggregateScoreDisplay
+                    category={category}
+                    aggregateScore={calculateAggregateScore(category, skillData)}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className={`p-4 bg-${category.colorScheme.secondary} rounded-lg inline-block mb-4`}>
+                  {category.icon}
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Coming Soon</h3>
+                <p className="text-gray-600">
+                  {category.name} skill tracking will be available in the next update. 
+                  Stay tuned for exciting new features!
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1310,7 +1505,8 @@ export const calculateTechnicalAggregateScore = (skillData: SkillData | null): n
 
 export default function SkillSnap({
   studentId,
-  isCoachView = false
+  isCoachView = false,
+  onSkillsUpdated
 }: SkillSnapProps) {
   const { data: session } = useSession();
   const [skillData, setSkillData] = useState<SkillData | null>(null);
@@ -1319,7 +1515,7 @@ export default function SkillSnap({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [editedScores, setEditedScores] = useState<Record<string, number>>({});
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [activeModal, setActiveModal] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSkillData();
@@ -1474,6 +1670,7 @@ export default function SkillSnap({
         console.log("Skills saved successfully:", responseData);
         await fetchSkillData();
         setIsEditing(null);
+        onSkillsUpdated?.();
       } else {
         const errorData = await response.json();
         console.error("Failed to save skills:", response.status, errorData);
@@ -1513,16 +1710,20 @@ export default function SkillSnap({
     setIsEditing(null);
   };
 
-  const toggleCategory = (categoryId: string) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(categoryId)) {
-        newSet.delete(categoryId);
-      } else {
-        newSet.add(categoryId);
-      }
-      return newSet;
-    });
+  const openModal = (categoryId: string) => {
+    setActiveModal(categoryId);
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+    // Restore body scroll when modal is closed
+    document.body.style.overflow = 'unset';
+    // Cancel any ongoing edits
+    if (isEditing) {
+      handleCancel(isEditing);
+    }
   };
 
   if (isLoading) {
@@ -1574,190 +1775,36 @@ export default function SkillSnap({
       </div>
 
       {/* Categories Grid */}
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {skillCategories.map((category) => (
-          <div key={category.id}>
-            <CategoryCard
-              category={category}
-              isExpanded={expandedCategories.has(category.id)}
-              onToggle={() => toggleCategory(category.id)}
-              skillData={skillData}
-            />
-
-            {/* Expanded Skills */}
-            {expandedCategories.has(category.id) && (
-              <div className={`mt-4 bg-gradient-to-br ${category.colorScheme.gradient} rounded-xl p-6 shadow-inner`}>
-                {/* Special handling for TECHNIQUE category */}
-                {category.id === "TECHNIQUE" ? (
-                  <div>
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-3 bg-${category.colorScheme.primary} rounded-lg shadow-lg`}>
-                          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-gray-900">Technical Skills</h3>
-                          <p className="text-gray-600">Master the fundamentals of cricket</p>
-                        </div>
-                      </div>
-                      {/* Action buttons - Only show for coaches */}
-                      {isCoachView && (
-                        <div className="flex space-x-2 ml-auto">
-                          {isEditing === category.id ? (
-                            <>
-                              <button
-                                onClick={() => handleCancel(category.id)}
-                                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md"
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                onClick={() => handleSave(category.id)}
-                                disabled={isSaving}
-                                className="px-4 py-2 bg-orange-600 text-white rounded-md text-sm font-medium hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 shadow-md"
-                              >
-                                {isSaving ? "Saving..." : "Save"}
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => handleStartEdit(category.id)}
-                              className="px-6 py-3 bg-orange-600 text-white rounded-lg text-sm font-semibold hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-lg transform hover:scale-105 transition-all duration-200"
-                            >
-                              {skillData ? "Edit Scores" : "Add Scores"}
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <TechnicalSkillsComponent
-                      skillData={skillData}
-                      isEditing={isEditing === category.id}
-                      editedScores={editedScores}
-                      onScoreChange={handleScoreChange}
-                      averages={averages}
-                    />
-
-                    {/* Aggregate Score Display for Technical */}
-                    <AggregateScoreDisplay
-                      category={category}
-                      aggregateScore={calculateTechnicalAggregateScore(skillData)}
-                    />
-                  </div>
-                ) : category.skills.length > 0 ? (
-                  <div>
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-bold text-gray-900">{category.name} Skills</h3>
-                      
-                      {/* Action buttons */}
-                      <div className="flex space-x-2">
-                        {isEditing === category.id ? (
-                          <>
-                            <button
-                              onClick={() => handleCancel(category.id)}
-                              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              onClick={() => handleSave(category.id)}
-                              disabled={isSaving}
-                              className="px-4 py-2 bg-orange-600 text-white rounded-md text-sm font-medium hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 shadow-md"
-                            >
-                              {isSaving ? "Saving..." : "Save"}
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => handleStartEdit(category.id)}
-                            className="px-6 py-3 bg-orange-600 text-white rounded-lg text-sm font-semibold hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-lg transform hover:scale-105 transition-all duration-200"
-                          >
-                            {skillData ? "Edit Scores" : "Add Scores"}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Skills grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {category.skills.map((skill) => {
-                        // Get personalized nutrition targets if this is nutrition category
-                        let personalizedTarget: number | undefined = undefined;
-                        if (category.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight) {
-                          const personalizedNutrition = calculatePersonalizedNutrition(
-                            skillData.student.weight,
-                            skillData.student.height,
-                            skillData.student.age
-                          );
-                          switch (skill.id) {
-                            case "totalCalories":
-                              personalizedTarget = personalizedNutrition.calories;
-                              break;
-                            case "protein":
-                              personalizedTarget = personalizedNutrition.protein;
-                              break;
-                            case "carbohydrates":
-                              personalizedTarget = personalizedNutrition.carbohydrates;
-                              break;
-                            case "fats":
-                              personalizedTarget = personalizedNutrition.fats;
-                              break;
-                          }
-                        }
-
-                        return (
-                          <SkillBar
-                            key={skill.id}
-                            skill={skill}
-                            userScore={
-                              isEditing === category.id
-                                ? editedScores[skill.id] 
-                                : skillData?.[skill.id as keyof SkillData] as number
-                            }
-                            averageScore={averages?.averages[skill.id] || 0}
-                            isEditing={isEditing === category.id}
-                            onScoreChange={handleScoreChange}
-                            showComparison={category.id !== "MENTAL"} // Remove comparison for mental skills
-                            personalizedTarget={personalizedTarget}
-                          />
-                        );
-                      })}
-                    </div>
-
-                    {/* BMI Card for Nutrition Category */}
-                    {category.id === "NUTRITION" && (
-                      <div className="mt-6">
-                        <BMICard skillData={skillData} />
-                      </div>
-                    )}
-
-                    {/* Aggregate Score Display */}
-                    <AggregateScoreDisplay
-                      category={category}
-                      aggregateScore={calculateAggregateScore(category, skillData)}
-                    />
-                  </div>
-                ) : (
-                  // Coming Soon message for empty categories
-                  <div className={`bg-gradient-to-br ${category.colorScheme.gradient} rounded-xl p-12 shadow-inner text-center`}>
-                    <div className={`p-4 bg-${category.colorScheme.secondary} rounded-lg inline-block mb-4`}>
-                      {category.icon}
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Coming Soon</h3>
-                    <p className="text-gray-600">
-                      {category.name} skill tracking will be available in the next update. 
-                      Stay tuned for exciting new features!
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <CategoryCard
+            key={category.id}
+            category={category}
+            onOpen={() => openModal(category.id)}
+            skillData={skillData}
+          />
         ))}
       </div>
+
+      {/* Modals */}
+      {skillCategories.map((category) => (
+        <SkillModal
+          key={`modal-${category.id}`}
+          category={category}
+          isOpen={activeModal === category.id}
+          onClose={closeModal}
+          skillData={skillData}
+          isEditing={isEditing === category.id}
+          isSaving={isSaving}
+          editedScores={editedScores}
+          averages={averages}
+          isCoachView={isCoachView}
+          onStartEdit={() => handleStartEdit(category.id)}
+          onSave={() => handleSave(category.id)}
+          onCancel={() => handleCancel(category.id)}
+          onScoreChange={handleScoreChange}
+        />
+      ))}
 
       {/* Footer stats */}
       {averages && (
