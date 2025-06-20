@@ -80,6 +80,20 @@ export const authOptions: NextAuthOptions = {
     }
   },
   pages: {
-    signIn: "/auth/signin"
-  }
+    signIn: "/auth/signin",
+    signOut: "/auth/signin",
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production'
+      }
+    }
+  },
+  secret: process.env.NEXTAUTH_SECRET || 'peakplay-secret-key',
+  debug: process.env.NODE_ENV === 'development'
 }; 
