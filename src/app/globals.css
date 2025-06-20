@@ -287,3 +287,104 @@ body {
     0 4px 6px -2px rgba(0, 0, 0, 0.05),
     0 0 0 1px rgba(0, 0, 0, 0.05);
 }
+
+/* Mobile-First Design Improvements */
+.mobile-compact {
+  @apply text-sm leading-tight;
+}
+
+.mobile-card {
+  @apply bg-white rounded-lg shadow-sm border;
+}
+
+.mobile-button {
+  @apply px-3 py-2 text-sm font-medium rounded-lg transition-colors;
+}
+
+.mobile-button-primary {
+  @apply bg-blue-500 text-white hover:bg-blue-600;
+}
+
+.mobile-button-secondary {
+  @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+}
+
+.mobile-icon-button {
+  @apply p-2 rounded-lg transition-colors;
+}
+
+.mobile-avatar {
+  @apply w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0;
+}
+
+.mobile-section-header {
+  @apply flex items-center justify-between p-3 cursor-pointer;
+}
+
+.mobile-collapsible-content {
+  @apply px-3 pb-3 border-t;
+}
+
+.mobile-stats-card {
+  @apply bg-white rounded-lg p-3 shadow-sm border text-center;
+}
+
+.mobile-stats-icon {
+  @apply w-6 h-6 rounded-lg flex items-center justify-center mx-auto mb-1;
+}
+
+.mobile-compact-list {
+  @apply space-y-2;
+}
+
+.mobile-list-item {
+  @apply flex items-center gap-3 p-2 rounded border;
+}
+
+.mobile-badge {
+  @apply text-xs font-medium px-2 py-0.5 rounded-full;
+}
+
+/* Improved button sizing for mobile */
+@media (max-width: 768px) {
+  .btn-mobile {
+    @apply px-4 py-2 text-sm;
+  }
+  
+  .btn-icon-mobile {
+    @apply p-2 min-w-0;
+  }
+  
+  .text-mobile-sm {
+    @apply text-sm;
+  }
+  
+  .text-mobile-xs {
+    @apply text-xs;
+  }
+  
+  .spacing-mobile-compact {
+    @apply space-y-2;
+  }
+  
+  .padding-mobile-compact {
+    @apply p-3;
+  }
+  
+  .margin-mobile-compact {
+    @apply m-2;
+  }
+}
+
+/* Mobile touch-friendly enhancements */
+.touch-target {
+  @apply min-h-11 min-w-11;
+}
+
+.mobile-input {
+  @apply px-3 py-2 text-base border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.mobile-select {
+  @apply px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
