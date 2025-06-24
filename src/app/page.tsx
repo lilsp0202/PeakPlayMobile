@@ -1,191 +1,312 @@
-import Link from "next/link";
-import { PeakPlayLogo } from "../components/Navigation";
+"use client";
 
-export default function Home() {
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useSpring, animated } from "react-spring";
+
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-indigo-100">
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      className="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full"
+    />
+  </div>
+);
+
+// Animated Components
+const AnimatedSection = ({ children, className = "", delay = 0 }: any) => {
+  const props = useSpring({
+    from: { opacity: 0, transform: "translateY(50px)" },
+    to: { opacity: 1, transform: "translateY(0px)" },
+    delay,
+    config: { tension: 280, friction: 60 }
+  });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Enhanced Header */}
-      <header className="relative bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-50">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/5 via-purple-600/5 to-blue-600/5"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            {/* Enhanced Logo */}
-            <PeakPlayLogo size="default" />
+    <animated.div style={props} className={className}>
+      {children}
+    </animated.div>
+  );
+};
 
-            {/* Enhanced Navigation */}
-            <div className="flex items-center space-x-3">
-              <Link
-                href="/auth/signin"
-                className="group relative px-6 py-2.5 text-gray-700 hover:text-indigo-600 font-medium text-sm transition-all duration-300 rounded-lg hover:bg-indigo-50"
-              >
-                <span className="relative z-10">Sign In</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="group relative px-6 py-2.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 text-white font-medium text-sm rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden"
-              >
-                <span className="relative z-10">Get Started</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+const FeatureCard = ({ icon, title, description, delay }: any) => (
+  <motion.div
+    initial={{ opacity: 0, y: 50 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, delay }}
+    whileHover={{ y: -10, scale: 1.02 }}
+    className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300"
+  >
+    <div className="text-6xl mb-6">{icon}</div>
+    <h3 className="text-2xl font-bold text-gray-800 mb-4">{title}</h3>
+    <p className="text-gray-600 leading-relaxed">{description}</p>
+  </motion.div>
+);
 
-      {/* Enhanced Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="text-center">
-          <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-100 via-purple-100 to-blue-100 rounded-full text-sm font-medium text-gray-700 mb-8 border border-indigo-200/50">
-            <svg className="w-4 h-4 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd"/>
-            </svg>
-            Unlock Your Athletic Potential
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-8 leading-tight">
-            Reach Your
-            <span className="block bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Peak Performance
-            </span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
-            Connect athletes with coaches, track progress across 5 comprehensive skillsets, and unlock your sporting potential with our advanced performance tracking platform.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-20">
-            <Link
-              href="/auth/signup"
-              className="group relative px-8 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 text-white text-lg font-semibold rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
+export default function LandingPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 300], [0, -50]);
+  const y2 = useTransform(scrollY, [0, 300], [0, -100]);
+
+  useEffect(() => {
+    if (status !== "loading") {
+      setIsLoading(false);
+      if (session?.user) {
+        router.replace("/dashboard");
+      }
+    }
+  }, [session, status, router]);
+
+  if (isLoading) return <LoadingSpinner />;
+
+  return (
+    <div className="min-h-screen overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-800">
+        <motion.div
+          style={{ y: y1 }}
+          className="absolute inset-0 bg-gradient-to-tr from-purple-400/30 via-blue-500/20 to-indigo-600/30"
+        />
+        <motion.div
+          style={{ y: y2 }}
+          className="absolute inset-0 bg-gradient-to-bl from-blue-400/20 via-purple-500/10 to-indigo-700/20"
+        />
+      </div>
+
+      {/* Navigation */}
+      <motion.nav
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        className="relative z-50 bg-white/10 backdrop-blur-md border-b border-white/20"
+      >
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="flex items-center space-x-3"
             >
-              <span className="relative z-10">Start Your Journey</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Link>
-            <Link
-              href="/auth/signin"
-              className="group relative px-8 py-4 bg-white text-gray-700 text-lg font-semibold rounded-xl border-2 border-gray-200 hover:border-indigo-300 hover:text-indigo-600 transition-all duration-300 hover:shadow-lg"
-            >
-              <span className="relative z-10">Sign In</span>
-            </Link>
-          </div>
-
-          {/* Enhanced Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-24">
-            <div className="group relative bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative">
-                <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                  <svg
-                    className="h-8 w-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Comprehensive Profiles
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Create detailed athlete profiles with personal stats, academy information, and specialized playing roles for complete performance tracking.
-                </p>
-              </div>
-            </div>
-
-            <div className="group relative bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative">
-                <div className="h-16 w-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                  <svg
-                    className="h-8 w-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Expert Coaching
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Advanced coach management tools to track athlete progress, analyze performance data, and build personalized training programs.
-                </p>
-              </div>
-            </div>
-
-            <div className="group relative bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative">
-                <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                  <svg
-                    className="h-8 w-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  SkillSnap Analytics
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Track performance across 5 comprehensive skillsets: Physical, Mental, Nutrition, Technique, and Tactical development.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Enhanced Footer */}
-      <footer className="relative bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-purple-600/10 to-blue-600/10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <div className="h-8 w-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-                <svg
-                  className="h-5 w-5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-blue-500 rounded-xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <span className="ml-2 text-xl font-bold text-white">PeakPlay</span>
+              <div>
+                <h1 className="text-2xl font-bold text-white">PeakPlay</h1>
+                <p className="text-sm text-purple-200">Peak Performance Platform</p>
+              </div>
+            </motion.div>
+            
+            <div className="flex items-center space-x-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push("/auth/signin")}
+                className="px-6 py-2 text-white hover:text-purple-200 transition-colors font-medium"
+              >
+                Sign In
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push("/auth/signup")}
+                className="px-6 py-3 bg-white text-purple-600 rounded-xl font-semibold hover:bg-purple-50 transition-all duration-300 shadow-lg"
+              >
+                Get Started
+              </motion.button>
             </div>
-            <p className="text-gray-400 mb-6">
-              Empowering athletes and coaches to reach their peak performance through advanced analytics and comprehensive tracking.
-            </p>
-            <p className="text-gray-500 text-sm">
-              &copy; 2024 PeakPlay. Built for athletes, coaches, and sporting excellence.
-            </p>
           </div>
+        </div>
+      </motion.nav>
+
+      {/* Hero Section */}
+      <div className="relative z-10 pt-20 pb-32">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <AnimatedSection delay={200}>
+            <motion.h1
+              className="text-6xl md:text-8xl font-bold text-white mb-8 leading-tight"
+            >
+              Unlock Your{" "}
+              <span className="bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                Peak Performance
+              </span>
+            </motion.h1>
+          </AnimatedSection>
+
+          <AnimatedSection delay={400}>
+            <p className="text-xl md:text-2xl text-purple-100 mb-12 max-w-4xl mx-auto leading-relaxed">
+              Redefining youth sports development with a future-forward platform that's purposeful, 
+              performance-measurable, and makes the journey unforgettable.
+            </p>
+          </AnimatedSection>
+
+          <AnimatedSection delay={600}>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(139, 92, 246, 0.3)" }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push("/auth/signup")}
+                className="px-12 py-4 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-xl font-bold text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300"
+              >
+                Start Your Journey
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 bg-white/20 backdrop-blur-sm text-white rounded-xl font-semibold border border-white/30 hover:bg-white/30 transition-all duration-300"
+              >
+                Watch Demo
+              </motion.button>
+            </div>
+          </AnimatedSection>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="relative z-10 py-32 bg-white/5 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-6">
+          <AnimatedSection delay={100}>
+            <h2 className="text-5xl font-bold text-center text-white mb-6">
+              Tailored Solutions for Every Role
+            </h2>
+            <p className="text-xl text-purple-100 text-center mb-20 max-w-3xl mx-auto">
+              Whether you're an athlete, coach, or parent, PeakPlay adapts to your unique needs 
+              with personalized dashboards and insights.
+            </p>
+          </AnimatedSection>
+
+          <div className="grid md:grid-cols-3 gap-12">
+            <FeatureCard
+              icon="⚡"
+              title="Athlete"
+              description="Get your personalized training roadmap with AI-powered insights that track your progress across strength, speed, technique, and mental performance."
+              delay={0.1}
+            />
+            <FeatureCard
+              icon="👨‍👩‍👧‍👦"
+              title="Parent"
+              description="Stay connected with transparent updates on your child's development, nutrition plans, and achievements through our secure family portal."
+              delay={0.3}
+            />
+            <FeatureCard
+              icon="🏆"
+              title="Coach"
+              description="Manage your entire roster from one intelligent dashboard—assign workouts, monitor real-time progress, and celebrate every breakthrough with data-backed insights."
+              delay={0.5}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* SkillSnap Section */}
+      <div className="relative z-10 py-32">
+        <div className="max-w-7xl mx-auto px-6">
+          <AnimatedSection delay={100}>
+            <h2 className="text-5xl font-bold text-center text-white mb-6">
+              SkillSnap - Our Five-Pillar Skills Framework
+            </h2>
+            <p className="text-xl text-purple-100 text-center mb-20 max-w-3xl mx-auto">
+              A comprehensive approach to athletic development, with every skill supporting your growth.
+            </p>
+          </AnimatedSection>
+
+          <div className="grid md:grid-cols-5 gap-8">
+            {[
+              { icon: "⚡", title: "Physical", desc: "Strength, speed, and agility foundation" },
+              { icon: "🎯", title: "Technique", desc: "Movement patterns and precision" },
+              { icon: "👁️", title: "Tactical", desc: "Game awareness and strategy" },
+              { icon: "🧠", title: "Mental", desc: "Focus, resilience, and confidence" },
+              { icon: "🍎", title: "Nutrition", desc: "Fuel performance and recovery" }
+            ].map((skill, index) => (
+              <motion.div
+                key={skill.title}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ y: -10 }}
+                className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300"
+              >
+                <div className="text-4xl mb-4">{skill.icon}</div>
+                <h3 className="text-xl font-bold text-white mb-2">{skill.title}</h3>
+                <p className="text-purple-200 text-sm">{skill.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Values Section */}
+      <div className="relative z-10 py-32 bg-white/5 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-6">
+          <AnimatedSection delay={100}>
+            <h2 className="text-5xl font-bold text-center text-white mb-20">Our Values</h2>
+          </AnimatedSection>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { title: "Athlete-Centric Growth", desc: "We nurture the whole athlete—physical, mental and emotional." },
+              { title: "Empowered Coaching", desc: "Tools and insights that amplify mentorship and trust." },
+              { title: "Equity in Access", desc: "High-quality training for every community." },
+              { title: "Joy in the Journey", desc: "Balance discipline with curiosity and fun." },
+              { title: "Integrity Through Data", desc: "Transparent metrics you can rely on." }
+            ].map((value, index) => (
+              <motion.div
+                key={value.title}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300"
+              >
+                <h3 className="text-xl font-bold text-white mb-4">{value.title}</h3>
+                <p className="text-purple-200">{value.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="relative z-10 py-32">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <AnimatedSection delay={100}>
+            <h2 className="text-5xl font-bold text-white mb-8">
+              Ready to Reach Your Peak?
+            </h2>
+            <p className="text-xl text-purple-100 mb-12">
+              Join thousands of athletes, coaches, and families transforming their performance journey.
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(139, 92, 246, 0.4)" }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push("/auth/signup")}
+              className="px-16 py-5 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 text-white rounded-2xl font-bold text-xl shadow-2xl hover:shadow-purple-500/30 transition-all duration-300"
+            >
+              Start Your Journey Today
+            </motion.button>
+          </AnimatedSection>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="relative z-10 bg-black/20 backdrop-blur-sm border-t border-white/10 py-12">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-blue-500 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-white">PeakPlay</span>
+          </div>
+          <p className="text-purple-200 mb-4">© 2025 PeakPlay. All rights reserved.</p>
+          <p className="text-purple-300 text-sm">Made with ❤️ for athletes worldwide</p>
         </div>
       </footer>
     </div>

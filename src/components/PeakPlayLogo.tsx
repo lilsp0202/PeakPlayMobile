@@ -1,36 +1,105 @@
-import React from 'react';
+"use client";
+
+import { motion } from "framer-motion";
 
 interface PeakPlayLogoProps {
+  size?: "small" | "default" | "large";
+  variant?: "light" | "dark" | "gradient";
+  showTagline?: boolean;
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
 }
 
-const PeakPlayLogo: React.FC<PeakPlayLogoProps> = ({ 
-  className = '', 
-  size = 'md' 
-}) => {
+export function PeakPlayLogo({ 
+  size = "default", 
+  variant = "gradient",
+  showTagline = true,
+  className = "" 
+}: PeakPlayLogoProps) {
   const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
-    lg: 'w-12 h-12'
+    small: {
+      icon: "w-6 h-6",
+      iconContainer: "w-8 h-8",
+      title: "text-lg",
+      tagline: "text-xs"
+    },
+    default: {
+      icon: "w-6 h-6", 
+      iconContainer: "w-10 h-10",
+      title: "text-2xl",
+      tagline: "text-sm"
+    },
+    large: {
+      icon: "w-8 h-8",
+      iconContainer: "w-12 h-12", 
+      title: "text-3xl",
+      tagline: "text-base"
+    }
   };
 
+  const variantClasses = {
+    light: {
+      iconBg: "bg-gradient-to-br from-purple-100 to-blue-100",
+      iconColor: "text-purple-600",
+      title: "text-gray-800",
+      tagline: "text-gray-600"
+    },
+    dark: {
+      iconBg: "bg-gradient-to-br from-gray-800 to-gray-900",
+      iconColor: "text-white",
+      title: "text-white",
+      tagline: "text-gray-300"
+    },
+    gradient: {
+      iconBg: "bg-gradient-to-br from-purple-500 to-blue-600",
+      iconColor: "text-white",
+      title: "text-transparent bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text",
+      tagline: "text-gray-600"
+    }
+  };
+
+  const currentSize = sizeClasses[size];
+  const currentVariant = variantClasses[variant];
+
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
-      <div className={`${sizeClasses[size]} relative`}>
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-500 rounded-xl rotate-3 opacity-80"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-cyan-500 to-blue-600 rounded-xl -rotate-3"></div>
-        <div className="relative bg-white rounded-lg flex items-center justify-center h-full w-full shadow-lg">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 font-bold text-sm">
-            P
-          </span>
-        </div>
+    <motion.div 
+      whileHover={{ scale: 1.02 }}
+      className={`flex items-center space-x-3 ${className}`}
+    >
+      {/* Lightning Bolt Icon */}
+      <motion.div 
+        whileHover={{ rotate: [0, -5, 5, 0] }}
+        transition={{ duration: 0.3 }}
+        className={`${currentSize.iconContainer} ${currentVariant.iconBg} rounded-xl flex items-center justify-center shadow-lg`}
+      >
+        <svg 
+          className={`${currentSize.icon} ${currentVariant.iconColor}`} 
+          fill="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </motion.div>
+      
+      {/* Brand Text */}
+      <div className="flex flex-col">
+        <motion.h1 
+          className={`${currentSize.title} font-bold ${currentVariant.title} leading-tight`}
+        >
+          PeakPlay
+        </motion.h1>
+        {showTagline && (
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className={`${currentSize.tagline} ${currentVariant.tagline} font-medium leading-tight`}
+          >
+            Peak Performance Platform
+          </motion.p>
+        )}
       </div>
-      <span className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 bg-clip-text text-transparent">
-        PeakPlay
-      </span>
-    </div>
+    </motion.div>
   );
-};
+}
 
 export default PeakPlayLogo; 

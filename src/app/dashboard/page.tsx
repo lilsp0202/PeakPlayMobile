@@ -2,6 +2,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiShoppingCart, FiX, FiCalendar, FiBarChart } from "react-icons/fi";
 import { Check } from "lucide-react";
 import { Badge, Student } from "@prisma/client";
@@ -28,23 +29,31 @@ interface ProfileData {
 }
 
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full"
+    />
   </div>
 );
 
 const TabButton = ({ text, icon, active, onClick }: { text: string, icon: React.ReactNode, active: boolean, onClick: () => void }) => (
-  <button
+  <motion.button
     onClick={onClick}
-    className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 ${
-      active ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-300 ${
+      active 
+        ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25' 
+        : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
     }`}
   >
     <div className="mb-1">
       {icon}
     </div>
     <span className="text-xs font-medium">{text}</span>
-  </button>
+  </motion.button>
 );
 
 export default function Dashboard() {
@@ -328,16 +337,42 @@ export default function Dashboard() {
 
   if (isProfileIncomplete) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 p-4">
-        <PeakPlayLogo className="w-48 h-auto mx-auto mb-6" />
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">Welcome, {session?.user.name || 'User'}!</h2>
-        <p className="text-gray-600 mb-6">Please complete your profile to access your dashboard.</p>
-        <button
-          onClick={handleCompleteProfile}
-          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all"
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
         >
-          Complete Profile
-        </button>
+          <PeakPlayLogo size="large" variant="gradient" className="mb-8" />
+          <motion.h2 
+            className="text-3xl font-bold text-gray-900 mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            Welcome, {session?.user.name || 'User'}!
+          </motion.h2>
+          <motion.p 
+            className="text-gray-600 mb-8 text-lg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            Please complete your profile to access your dashboard.
+          </motion.p>
+          <motion.button
+            onClick={handleCompleteProfile}
+            whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(139, 92, 246, 0.3)" }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+          >
+            Complete Profile
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
@@ -366,10 +401,21 @@ export default function Dashboard() {
           switch(activeTab) {
             case 'skillsnap':
               return (
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Skill Tracking</h2>
+                <motion.div 
+                  className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-purple-100"
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-center mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-4">
+                      <FiActivity className="w-6 h-6 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      Skill Tracking
+                    </h2>
+                  </div>
                   <SkillSnap />
-              </div>
+                </motion.div>
               );
             case 'matches':
               return (
@@ -383,12 +429,21 @@ export default function Dashboard() {
               );
             case 'badges':
               return (
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Your Badges
-                  </h2>
+                <motion.div 
+                  className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-purple-100"
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-center mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mr-4">
+                      <FiAward className="w-6 h-6 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                      Your Badges
+                    </h2>
+                  </div>
                   <BadgeDisplay />
-              </div>
+                </motion.div>
               );
             case 'feedback':
               return (
@@ -907,72 +962,130 @@ export default function Dashboard() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 font-sans">
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg shadow-sm">
+    return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 font-sans">
+      <motion.header 
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl shadow-lg border-b border-purple-100"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <PeakPlayLogo className="h-8 w-auto" />
-            </div>
+            <motion.div 
+              className="flex items-center"
+              whileHover={{ scale: 1.02 }}
+            >
+              <PeakPlayLogo size="default" variant="gradient" className="h-8 w-auto" />
+            </motion.div>
             <div className="flex items-center space-x-4">
-              <div className="text-right">
+              <motion.div 
+                className="text-right"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
                 <p className="text-md font-semibold text-gray-900">{profileData?.name || session?.user.name}</p>
-                <p className="text-sm text-gray-500 capitalize">{profileData?.role?.toLowerCase() || session?.user.role?.toLowerCase()}</p>
-              </div>
-                            <button
+                <p className="text-sm text-purple-600 capitalize font-medium">{profileData?.role?.toLowerCase() || session?.user.role?.toLowerCase()}</p>
+              </motion.div>
+              <motion.button
                 onClick={handleSignOut}
-                className="p-2 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-500 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-500 transition-all duration-300 shadow-sm"
                 disabled={isSigningOut}
                 aria-label="Sign Out"
               >
-                {isSigningOut ? <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" /> : <FiLogOut className="w-5 h-5" />}
-                            </button>
-                        </div>
-                          </div>
-                      </div>
-      </header>
+                {isSigningOut ? (
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full" 
+                  />
+                ) : (
+                  <FiLogOut className="w-5 h-5" />
+                )}
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </motion.header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Desktop Tab Navigation */}
-        <div className="hidden lg:block mb-6">
-          <nav className="flex space-x-8">
-            {tabs.map(tab => (
-              <button
+        <motion.div 
+          className="hidden lg:block mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <nav className="flex space-x-2 bg-white/60 backdrop-blur-sm rounded-2xl p-2 shadow-lg">
+            {tabs.map((tab, index) => (
+              <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 * index }}
+                className={`flex items-center px-6 py-3 text-sm font-medium rounded-xl transition-all duration-300 ${
                   activeTab === tab.id
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25'
+                    : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
                 }`}
               >
                 {tab.icon}
                 <span className="ml-2">{tab.label}</span>
-              </button>
+              </motion.button>
             ))}
           </nav>
-                    </div>
+        </motion.div>
         
-        <div className="space-y-6">
-          {session?.user.role === 'ATHLETE' ? renderAthleteContent() : renderCoachContent()}
-        </div>
+        <motion.div 
+          className="space-y-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {session?.user.role === 'ATHLETE' ? renderAthleteContent() : renderCoachContent()}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
       </main>
 
       {/* Bottom Tab Navigation for Mobile */}
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-gray-200 lg:hidden">
+      <motion.footer 
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-purple-100 lg:hidden shadow-2xl"
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+      >
         <nav className="flex items-center justify-around max-w-7xl mx-auto px-2 py-1">
-          {tabs.map(tab => (
-            <TabButton
+          {tabs.map((tab, index) => (
+            <motion.div
               key={tab.id}
-              text={tab.label}
-              icon={tab.icon}
-              active={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-            />
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index + 0.9 }}
+            >
+              <TabButton
+                text={tab.label}
+                icon={tab.icon}
+                active={activeTab === tab.id}
+                onClick={() => setActiveTab(tab.id)}
+              />
+            </motion.div>
           ))}
         </nav>
-      </footer>
+      </motion.footer>
 
       {/* Add padding to the bottom of the main content to prevent overlap with the footer */}
       <div className="pb-20 lg:pb-0"></div>
