@@ -59,8 +59,21 @@ export async function POST(request: Request) {
         height,
         weight,
         academy,
+        sport: "CRICKET", // Add default sport
         role,
       },
+    });
+
+    // Also create a skills profile for the student
+    await prisma.skills.create({
+      data: {
+        userId: session.user.id,
+        studentId: student.id,
+        studentName: name,
+        studentEmail: user.email,
+        age,
+        category: "PHYSICAL"
+      }
     });
 
     return NextResponse.json(

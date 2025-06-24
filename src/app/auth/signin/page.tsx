@@ -20,18 +20,27 @@ export default function SignIn() {
     setError("");
 
     try {
+      console.log("🔐 Attempting sign-in with:", { email, password: "***" });
+      
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
 
+      console.log("🔐 Sign-in result:", result);
+
       if (result?.error) {
-        setError("Invalid credentials");
-      } else {
-        router.push("/dashboard");
+        console.error("🔐 Sign-in error:", result.error);
+        setError(result.error);
+      } else if (result?.ok) {
+        console.log("🔐 Sign-in successful, redirecting to dashboard...");
+        
+        // Use replace instead of push to prevent back navigation issues
+        router.replace("/dashboard");
       }
     } catch (error) {
+      console.error("🔐 Sign-in exception:", error);
       setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);

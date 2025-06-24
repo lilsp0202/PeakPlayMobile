@@ -20,6 +20,27 @@ export async function GET(request: Request) {
     
     // If coach is requesting specific student data
     if (studentId && session.user.role === "COACH") {
+      // Verify coach has access to this student
+      const coach = await prisma.coach.findUnique({
+        where: { userId: session.user.id },
+        include: { students: true }
+      });
+      
+      if (!coach) {
+        return NextResponse.json(
+          { message: "Coach profile not found" },
+          { status: 404 }
+        );
+      }
+      
+      const hasAccess = coach.students.some(student => student.id === studentId);
+      if (!hasAccess) {
+        return NextResponse.json(
+          { message: "Not authorized to access this student's skills" },
+          { status: 403 }
+        );
+      }
+      
       const skills = await prisma.skills.findUnique({
         where: { studentId },
         include: {
@@ -36,6 +57,13 @@ export async function GET(request: Request) {
       });
       
       return NextResponse.json(skills || null, { status: 200 });
+    }
+    
+    // If coach is requesting without specific student (general access)
+    if (session.user.role === "COACH") {
+      // Return empty array or success response for coaches
+      // This allows the dashboard to load without 403 errors
+      return NextResponse.json([], { status: 200 });
     }
     
     // For athletes, get their own skills

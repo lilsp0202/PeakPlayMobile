@@ -87,6 +87,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log("Matches API - Request body:", body);
+    
     let studentId = body.studentId;
     let isCoach = session.user.role === "COACH";
     let isAthlete = session.user.role === "ATHLETE";
@@ -97,29 +99,48 @@ export async function POST(request: NextRequest) {
         where: { userId: session.user.id },
       });
       if (!student) {
-        return NextResponse.json({ error: "Student not found" }, { status: 404 });
+        console.error("Matches API - Student not found for user:", session.user.id);
+        return NextResponse.json({ error: "Student profile not found" }, { status: 404 });
       }
       studentId = student.id;
+      console.log("Matches API - Using athlete's studentId:", studentId);
     }
 
     // For coaches, require studentId in body
     if (isCoach && !studentId) {
-      return NextResponse.json({ error: "Student ID required" }, { status: 400 });
+      console.error("Matches API - Coach request missing studentId");
+      return NextResponse.json({ error: "Student ID required for coach" }, { status: 400 });
     }
 
+    // Validate required fields
     const {
+      matchName,
+      opponent,
+      venue,
+      matchDate,
+      sport = "CRICKET",
+      matchType = "PRACTICE",
+      result = "WIN",
+      position,
+      stats,
+      rating,
+      notes,
+    } = body;
+
+    if (!matchName || !opponent || !matchDate) {
+      console.error("Matches API - Missing required fields:", { matchName, opponent, matchDate });
+      return NextResponse.json({ error: "Missing required fields: matchName, opponent, matchDate" }, { status: 400 });
+    }
+
+    console.log("Matches API - Creating match with data:", {
       matchName,
       opponent,
       venue,
       matchDate,
       sport,
       matchType,
-      result,
-      position,
-      stats,
-      rating,
-      notes,
-    } = body;
+      result
+    });
 
     // Create or find the match
     let match = await prisma.match.findFirst({
@@ -136,14 +157,37 @@ export async function POST(request: NextRequest) {
         data: {
           matchName,
           opponent,
-          venue,
+          venue: venue || "",
           matchDate: new Date(matchDate),
           sport,
           matchType,
           result,
         },
       });
+      console.log("Matches API - Created new match:", match.id);
+    } else {
+      console.log("Matches API - Using existing match:", match.id);
     }
+
+    // Parse stats if it's a string
+    let parsedStats = stats;
+    if (typeof stats === 'string') {
+      try {
+        parsedStats = JSON.parse(stats);
+      } catch (e) {
+        console.error("Matches API - Error parsing stats:", e);
+        parsedStats = {};
+      }
+    }
+
+    console.log("Matches API - Creating performance with:", {
+      studentId,
+      matchId: match.id,
+      position,
+      stats: parsedStats,
+      rating,
+      notes
+    });
 
     // Create or update match performance
     const performance = await prisma.matchPerformance.upsert({
@@ -154,18 +198,18 @@ export async function POST(request: NextRequest) {
         },
       },
       update: {
-        position,
-        stats: JSON.stringify(stats),
-        rating,
-        notes,
+        position: position || "Player",
+        stats: JSON.stringify(parsedStats || {}),
+        rating: rating ? parseFloat(rating) : null,
+        notes: notes || "",
       },
       create: {
         studentId,
         matchId: match.id,
-        position,
-        stats: JSON.stringify(stats),
-        rating,
-        notes,
+        position: position || "Player",
+        stats: JSON.stringify(parsedStats || {}),
+        rating: rating ? parseFloat(rating) : null,
+        notes: notes || "",
       },
       include: {
         match: true,
@@ -179,9 +223,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log("Matches API - Successfully created performance:", performance.id);
     return NextResponse.json(performance, { status: 201 });
   } catch (error) {
-    console.error("Error creating match performance:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Matches API - Error creating match performance:", error);
+    return NextResponse.json({ error: "Failed to create match performance" }, { status: 500 });
   }
 } 

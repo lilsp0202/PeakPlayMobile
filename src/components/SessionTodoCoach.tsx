@@ -17,7 +17,7 @@ interface TodoItem {
   isCompleted?: boolean;
 }
 
-export default function SessionTodoCoach({ assignedStudents }: { assignedStudents: AssignedStudent[] }) {
+export default function SessionTodoCoach({ assignedStudents = [] }: { assignedStudents?: AssignedStudent[] }) {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [showAll, setShowAll] = useState(false);
   const [showForm, setShowForm] = useState(false);

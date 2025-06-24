@@ -86,66 +86,110 @@ export default function BadgeManager({ onEditBadge, onDeleteBadge, refreshTrigge
 
     if (badges.length === 0) {
       return (
-        <div className="text-center py-8">
-          <Trophy className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
-            {tab === 'coach' ? 'No custom badges' : 'No default badges'}
+        <div className="text-center py-12">
+          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-full flex items-center justify-center">
+            <Trophy className="h-10 w-10 text-yellow-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            {tab === 'coach' ? 'No Custom Badges Created Yet' : 'No Default Badges Available'}
           </h3>
-          <p className="mt-1 text-sm text-gray-700">
+          <p className="text-gray-600 mb-6">
             {tab === 'coach' 
-              ? 'Get started by creating your first custom badge.' 
-              : 'Default system badges will appear here.'}
+              ? 'Start creating personalized badges to motivate and reward your students for their achievements.' 
+              : 'Default system badges will appear here once available.'}
           </p>
+          {tab === 'coach' && (
+            <button
+              onClick={() => onEditBadge && onEditBadge(null)}
+              className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-semibold rounded-xl hover:from-yellow-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              🏆 Create Your First Badge
+            </button>
+          )}
         </div>
       );
     }
 
     return (
       <>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {badgesToShow.map((badge) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {badgesToShow.map((badge, index) => (
             <div
               key={`badge-${badge.id}`}
-              className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition-shadow flex flex-col justify-between"
+              className="group bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] hover:border-yellow-300 flex flex-col justify-between"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="flex items-center gap-3 mb-2">
-                <div className={`h-10 w-10 rounded-lg flex items-center justify-center text-2xl font-bold ${
-                  badge.level === 'CHAMPION' ? 'text-amber-800' :  // Dark text for gold background
-                  badge.level === 'ATHLETE' ? 'text-cyan-800' :    // Dark text for cyan background  
-                  badge.level === 'ROOKIE' ? 'text-purple-800' :   // Dark text for purple background
-                  badge.level === 'GOLD' ? 'bg-yellow-100 text-yellow-600' :
-                  badge.level === 'SILVER' ? 'bg-gray-100 text-gray-600' :
-                  badge.level === 'BRONZE' ? 'bg-orange-100 text-orange-600' :
-                  'bg-indigo-100 text-indigo-600'
-                }`} style={{
-                  backgroundColor: 
-                    badge.level === 'CHAMPION' ? '#FDE68A' :  // Light gold background
-                    badge.level === 'ATHLETE' ? '#CFFAFE' :   // Light cyan background (#06B6D4 tint)
-                    badge.level === 'ROOKIE' ? '#DDD6FE' :    // Light purple background (#A78BFA tint)
-                    undefined
-                }}>
+              <div className="flex items-start gap-4 mb-4">
+                <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-3xl font-bold shadow-lg transition-transform duration-300 group-hover:scale-110 ${
+                  badge.level === 'CHAMPION' ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white' :
+                  badge.level === 'ATHLETE' ? 'bg-gradient-to-br from-cyan-400 to-blue-500 text-white' :
+                  badge.level === 'ROOKIE' ? 'bg-gradient-to-br from-purple-400 to-pink-500 text-white' :
+                  badge.level === 'GOLD' ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white' :
+                  badge.level === 'SILVER' ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white' :
+                  badge.level === 'BRONZE' ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' :
+                  'bg-gradient-to-br from-indigo-400 to-indigo-600 text-white'
+                }`}>
                   <Trophy />
                 </div>
-                <div>
-                  <h4 className="text-base font-semibold text-gray-900">{badge.name}</h4>
-                  <p className="text-xs text-gray-500">{badge.level} • {badge.category?.name || 'General'}</p>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-gray-900 group-hover:text-yellow-600 transition-colors duration-200 mb-1">
+                    {badge.name}
+                  </h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      badge.level === 'CHAMPION' ? 'bg-yellow-100 text-yellow-800' :
+                      badge.level === 'ATHLETE' ? 'bg-cyan-100 text-cyan-800' :
+                      badge.level === 'ROOKIE' ? 'bg-purple-100 text-purple-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {badge.level}
+                    </span>
+                    <span className="text-xs text-gray-500 font-medium">
+                      {badge.category?.name || 'General'}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-800 mb-2 line-clamp-2">{badge.description || 'No description'}</p>
-              <div className="flex items-center justify-between mt-auto">
-                <span className="text-xs text-gray-500">{badge.sport || 'ALL'} Sport</span>
-                <div className="flex gap-2">
+              
+              <p className="text-sm text-gray-700 mb-4 leading-relaxed line-clamp-3">
+                {badge.description || 'No description available'}
+              </p>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded-lg font-medium">
+                    {badge.sport || 'ALL'} Sport
+                  </span>
+                  {badge._count?.studentBadges > 0 && (
+                    <span className="text-xs text-green-600 px-2 py-1 bg-green-100 rounded-lg font-medium">
+                      {badge._count.studentBadges} awarded
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex items-center gap-2">
                   {tab === 'coach' && (
+                    <>
+                      {onEditBadge && (
+                        <button
+                          onClick={() => onEditBadge(badge)}
+                          className="p-2 text-blue-500 hover:text-white hover:bg-blue-500 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                          title="Edit badge"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
                     <button
                       onClick={() => handleDeleteBadge(badge.id)}
-                      className="p-1 text-red-500 hover:text-white hover:bg-red-500 rounded transition"
+                        className="p-2 text-red-500 hover:text-white hover:bg-red-500 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
                       title="Delete badge"
                     >
-                      <Trash2 className="h-5 w-5" />
+                        <Trash2 className="h-4 w-4" />
                     </button>
+                    </>
                   )}
                   {tab === 'system' && (
-                    <span className="text-xs text-gray-400 px-2 py-1 bg-gray-100 rounded">
+                    <span className="text-xs text-blue-600 px-3 py-1 bg-blue-100 rounded-full font-medium">
                       System Badge
                     </span>
                   )}
@@ -155,12 +199,12 @@ export default function BadgeManager({ onEditBadge, onDeleteBadge, refreshTrigge
           ))}
         </div>
         {badges.length > 6 && (
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-8">
             <button
-              className="text-indigo-600 hover:underline font-medium"
+              className="px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 font-semibold rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-300 hover:scale-105 shadow-lg"
               onClick={() => setShowAll(prev => ({...prev, [tab]: !prev[tab]}))}
             >
-              {showAll[tab] ? 'Show Less' : `Show More (${badges.length - 6} more)`}
+              {showAll[tab] ? 'Show Less' : `Show ${badges.length - 6} More Badges`}
             </button>
           </div>
         )}

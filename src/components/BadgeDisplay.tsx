@@ -41,6 +41,7 @@ interface BadgeDisplayProps {
   showProgress?: boolean;
   showEarnedOnly?: boolean;
   layout?: 'grid' | 'list';
+  badges?: Badge[];
 }
 
 const ICON_MAP = {
@@ -76,7 +77,8 @@ export default function BadgeDisplay({
   studentId, 
   showProgress = true, 
   showEarnedOnly = false,
-  layout = 'grid'
+  layout = 'grid',
+  badges
 }: BadgeDisplayProps) {
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,15 +97,28 @@ export default function BadgeDisplay({
       setLoading(true);
       setError(null);
       
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+      
       const params = new URLSearchParams();
       params.append('type', 'progress');
       if (studentId) {
         params.append('studentId', studentId);
       }
       
-      const response = await fetch(`/api/badges?${params}`);
+      const response = await fetch(`/api/badges?${params}`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
+        if (response.status === 404) {
+          // No badges found, that's okay
+          setAllBadges([]);
+          return;
+        }
         throw new Error(`Failed to fetch badges: ${response.statusText}`);
       }
       
@@ -125,8 +140,6 @@ export default function BadgeDisplay({
         rawBadges = data.progress;
       }
       
-      console.log('BadgeDisplay - Raw badges data:', rawBadges);
-      
       // Ensure each badge has a unique ID and required properties
       const processedBadges = rawBadges.map((badge: any, index: number) => ({
         id: badge.badgeId || badge.id || `badge-${index}`,
@@ -142,9 +155,15 @@ export default function BadgeDisplay({
       }));
       
       setAllBadges(processedBadges);
-    } catch (err) {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.error('Badges request timeout');
+        setError('Request timeout - please check your connection');
+      } else {
       console.error('Error fetching badges:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
+      }
+      // Don't clear existing badges on error
     } finally {
       setLoading(false);
     }

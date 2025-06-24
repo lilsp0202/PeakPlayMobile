@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     
     if (!session?.user?.id) {
       return NextResponse.json(
-        { message: "Unauthorized" },
+        { message: "Unauthorized", students: [] },
         { status: 401 }
       );
     }
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
     if (!academy) {
       return NextResponse.json(
-        { message: "Academy parameter is required" },
+        { message: "Academy parameter is required", students: [] },
         { status: 400 }
       );
     }
@@ -39,14 +39,16 @@ export async function GET(request: Request) {
         age: true,
         role: true,
         academy: true,
+        sport: true,
       },
     });
 
-    return NextResponse.json({ students }, { status: 200 });
+    // Always return students array, even if empty
+    return NextResponse.json({ students: students || [] }, { status: 200 });
   } catch (error) {
     console.error("Error fetching students by academy:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Internal server error", students: [] },
       { status: 500 }
     );
   }

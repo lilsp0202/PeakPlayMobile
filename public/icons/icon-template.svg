@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="256" fill="#F5F3FF"/>
+  
+  <!-- Lightning Bolt -->
+  <path d="M320 96H192L160 256H256L224 416L384 224H288L320 96Z" 
+        fill="#A78BFA" 
+        stroke="#A78BFA" 
+        stroke-width="16" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+</svg> 

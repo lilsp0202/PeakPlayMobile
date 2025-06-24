@@ -15,17 +15,33 @@ export default function SessionTodoStudent({ studentId, coachName }: { studentId
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<TodoItem | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTodos = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`/api/session-todo?studentId=${studentId}`);
+        // Add timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        
+        const res = await axios.get(`/api/session-todo?studentId=${studentId}`, {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
         setTodos(res.data || []);
-      } catch (e) { 
+      } catch (e: unknown) { 
+        if (e instanceof Error && e.name === 'AbortError') {
+          console.error('Session todo request timeout');
+        } else {
+          console.error('Error fetching session todos:', e);
+          setError(e instanceof Error ? e.message : 'Unknown error');
+        }
         setTodos([]); 
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchTodos();
   }, [studentId]);

@@ -26,7 +26,9 @@ export async function GET() {
             age: true,
             height: true,
             weight: true,
+            sport: true,
             role: true,
+            academy: true,
           },
         },
       },
@@ -39,7 +41,8 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(coach, { status: 200 });
+    // Ensure students is always an array
+    return NextResponse.json({ ...coach, students: coach.students || [] }, { status: 200 });
   } catch (error) {
     console.error("Error fetching coach profile:", error);
     return NextResponse.json(

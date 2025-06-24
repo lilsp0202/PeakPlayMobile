@@ -28,6 +28,7 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
   const [loading, setLoading] = useState(true);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFeedback();
@@ -35,14 +36,35 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
 
   const fetchFeedback = async () => {
     try {
+      setLoading(true);
+      
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+      
       const url = studentId ? `/api/feedback?studentId=${studentId}` : '/api/feedback';
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data = await response.json();
         setFeedback(data);
+      } else if (response.status === 404) {
+        // No feedback found, that's okay
+        setFeedback([]);
+      } else {
+        console.error("Failed to fetch feedback:", response.status);
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error("Feedback request timeout");
+      } else {
       console.error("Error fetching feedback:", error);
+        setError(error instanceof Error ? error.message : 'Unknown error');
+      }
     } finally {
       setLoading(false);
     }
