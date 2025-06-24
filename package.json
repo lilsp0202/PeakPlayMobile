@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:seed": "node scripts/seed-database.js && node scripts/seed-users.js",
+    "db:reset": "rm -f prisma/dev.db && npx prisma db push && npm run db:seed",
+    "studio": "npx prisma studio"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

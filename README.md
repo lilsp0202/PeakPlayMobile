@@ -1,220 +1,258 @@
-# PeakPlay - Sports Academy Management Platform
+# PeakPlay - Sports Academy Management PWA
 
-A modern sports academy management platform built with Next.js 14, designed to connect athletes and coaches, streamline profile management, and enhance athletic development.
+A comprehensive Progressive Web App for sports academy management, connecting athletes and coaches with advanced performance tracking, badge systems, and academy management tools.
 
-## 🌟 Features
-
-### Authentication & User Management
-- **Secure Authentication**: NextAuth.js integration with credentials provider
-- **Role-Based Access**: Separate dashboards for Athletes and Coaches
-- **Username System**: Personalized user experience with unique usernames
-- **Profile Management**: Comprehensive onboarding flows for both user types
-
-### Athlete Features
-- **Comprehensive Profiles**: Name, age, height, weight, academy, and playing role
-- **Role Specialization**: Support for Batsman, Bowler, All-rounder, and Wicket Keeper
-- **Academy Integration**: Connect with coaches from the same academy
-- **Performance Tracking**: Foundation for future analytics and progress monitoring
-
-### Coach Features
-- **Coach Dashboards**: Dedicated interface for managing athletes
-- **Student Selection**: Browse and select athletes from the same academy
-- **Assignment Management**: Assign students to coaching supervision
-- **Academy Management**: Organize athletes by academy affiliation
-
-### Database Structure
-- **User Management**: Secure user accounts with role-based permissions
-- **Student Records**: Comprehensive athlete data with User ID foreign keys
-- **Coach Profiles**: Coach information with student relationship management
-- **Academy Organization**: Students and coaches grouped by academy
-
-## 🚀 Technology Stack
-
-- **Framework**: Next.js 14 with App Router and TypeScript
-- **Styling**: Tailwind CSS for modern, responsive design
-- **Database**: Prisma ORM with SQLite (development) / PostgreSQL (production)
-- **Authentication**: NextAuth.js with secure session management
-- **Deployment**: Vercel-ready with environment configuration
-
-## 📦 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
-- npm or yarn package manager
+
+- **Node.js** 18+ 
+- **npm** or **yarn**
+- **Git**
 
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd sports-app-prototype
-   ```
+```bash
+git clone https://github.com/lilsp0202/PeakPlayMobile.git
+cd PeakPlayMobile
+```
 
 2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
 3. **Set up environment variables**
-   Create a `.env` file in the root directory:
-   ```env
-   DATABASE_URL="file:./dev.db"
-   NEXTAUTH_URL="http://localhost:3000"
-   NEXTAUTH_SECRET="your-secret-key-here"
-   ```
+Create a `.env` file in the root directory:
+```env
+DATABASE_URL="file:./dev.db"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-here-change-this-in-production"
+```
 
 4. **Initialize the database**
-   ```bash
-   npx prisma generate
-   npx prisma db push
-   ```
-
-5. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-6. **Open your browser**
-   Visit [http://localhost:3000](http://localhost:3000)
-
-## 🎯 Usage Guide
-
-### For Athletes
-1. **Sign Up**: Create an account and select "Athlete" role
-2. **Complete Profile**: Fill out your athletic information during onboarding
-3. **Dashboard Access**: View your profile and academy information
-4. **Coach Assignment**: Get assigned to coaches from your academy
-
-### For Coaches
-1. **Sign Up**: Create an account and select "Coach" role  
-2. **Complete Profile**: Set up your coaching profile with academy information
-3. **Student Management**: Browse available athletes from your academy
-4. **Assignment**: Select and assign athletes to your coaching supervision
-5. **Monitor Progress**: View detailed information about your assigned athletes
-
-## 🗄️ Database Schema
-
-### Core Models
-- **User**: Authentication and role management with usernames
-- **Student**: Comprehensive athlete profiles with academy relationships
-- **Coach**: Coach profiles with student assignment capabilities
-- **Relationships**: Proper foreign key relationships between users, students, and coaches
-
-### Key Fields
-- **Student Records**: User ID (FK), Student ID (PK), name, username, email, physical stats, academy, role
-- **Coach Records**: User ID (FK), Coach ID (PK), name, username, email, academy
-- **Academy Grouping**: Students and coaches organized by academy affiliation
-
-## 🔍 Database Viewing
-
-### Using Prisma Studio
 ```bash
+npx prisma generate
+npx prisma db push
+```
+
+5. **Seed the database (optional)**
+```bash
+npm run db:seed
+```
+
+6. **Start the development servers**
+```bash
+# Terminal 1 - Start the Next.js PWA server
+npm run dev
+
+# Terminal 2 - Start Prisma Studio (database management)
 npx prisma studio
 ```
-Access the web interface at [http://localhost:5555](http://localhost:5555)
 
-### Direct Database Access
-```bash
-# View tables
-sqlite3 prisma/dev.db ".tables"
+7. **Access the application**
+- **PWA**: http://localhost:3000
+- **Database Admin**: http://localhost:5555
 
-# Query users
-sqlite3 prisma/dev.db "SELECT * FROM User;"
+## 🎯 Test Accounts
 
-# Query students
-sqlite3 prisma/dev.db "SELECT * FROM Student;"
+The application comes with pre-configured test accounts:
 
-# Query coaches  
-sqlite3 prisma/dev.db "SELECT * FROM Coach;"
+### Athlete Account
+- **Email**: `student@transform.com`
+- **Password**: `password123`
+- **Features**: Skills tracking, badge earning, performance analytics
+
+### Coach Account  
+- **Email**: `coach@transform.com`
+- **Password**: `password123`
+- **Features**: Student management, academy oversight, progress tracking
+
+## 📱 PWA Features
+
+### Installation
+- **Desktop**: Click the install button in your browser's address bar
+- **Mobile**: Use "Add to Home Screen" option in your browser menu
+- **Works Offline**: Full functionality even without internet connection
+
+### Key Capabilities
+- 📱 **Progressive Web App** - Install like a native app
+- 🔒 **Secure Authentication** - NextAuth.js with role-based access
+- 🏆 **Badge System** - Automatic badge evaluation and rewards
+- 📊 **Performance Tracking** - Comprehensive skills and analytics
+- 👥 **Multi-Role Support** - Athletes, Coaches, and Academy management
+- 🎨 **Modern UI** - Beautiful gradients and responsive design
+
+## 🏗️ Project Structure
+
 ```
+src/
+├── app/                     # Next.js 14 App Router
+│   ├── api/                # API routes for all backend functionality
+│   ├── auth/               # Authentication pages (signin, signup)
+│   ├── dashboard/          # Main user dashboard
+│   ├── onboarding/         # User profile setup flows
+│   └── marketplace/        # Coach marketplace features
+├── components/             # Reusable UI components
+│   ├── SkillSnap.tsx      # Performance tracking component
+│   ├── BadgeManager.tsx   # Badge system management
+│   ├── SessionTodo*.tsx   # Task management for users
+│   └── PWA*.tsx           # Progressive Web App components
+├── lib/                   # Utility libraries
+│   ├── auth.ts           # NextAuth configuration
+│   ├── prisma.ts         # Database client
+│   └── badgeEngine.ts    # Badge evaluation system
+└── types/                # TypeScript definitions
+```
+
+## 🎮 User Flows
+
+### New Athlete Registration
+1. Sign up with email/username/password
+2. Complete athlete questionnaire (age, height, weight, academy, sport)
+3. Access personalized dashboard with:
+   - SkillSnap performance tracking
+   - Badge display and progress
+   - Academy information
+   - Performance analytics
+
+### New Coach Registration  
+1. Sign up with email/username/password
+2. Complete coach profile setup
+3. Access coach dashboard with:
+   - Student management by academy
+   - Performance oversight tools
+   - Badge system administration
+   - Academy analytics
+
+### Existing User Login
+1. Sign in with email and password
+2. Automatic redirect to role-appropriate dashboard
+3. Full access to saved data and progress
+
+## 🛠️ Development
+
+### Available Scripts
+
+```bash
+# Development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+
+# Database
+npx prisma studio    # Open database management UI
+npx prisma generate  # Generate Prisma client
+npx prisma db push   # Push schema changes to database
+npm run db:seed      # Seed database with sample data
+
+# Utilities
+npm run lint         # Run ESLint
+npm run type-check   # Run TypeScript checks
+```
+
+### Database Management
+
+The application uses **Prisma** with **SQLite** for development:
+
+- **View Data**: Access http://localhost:5555 (Prisma Studio)
+- **Schema**: Located in `prisma/schema.prisma`
+- **Migrations**: Automatically managed by Prisma
+
+### Key Technologies
+
+- **Framework**: Next.js 14 with App Router
+- **Authentication**: NextAuth.js with JWT strategy  
+- **Database**: Prisma ORM with SQLite/PostgreSQL
+- **Styling**: Tailwind CSS with custom gradients
+- **PWA**: Next-PWA with offline support
+- **UI Components**: React with TypeScript
+- **Icons**: React Icons + Lucide React
+
+## 🎨 Features Deep Dive
+
+### SkillSnap Performance Tracking
+- **Physical Skills**: Push-ups, pull-ups, sprint times, endurance
+- **Technical Skills**: Sport-specific skills (Cricket batting, bowling, fielding)
+- **Mental & Nutrition**: Mood scoring, nutrition tracking, sleep analysis
+- **Real-time Analytics**: Age-group comparisons and progress tracking
+
+### Badge System
+- **Automatic Evaluation**: Background processing of achievements
+- **Beautiful Design**: Gradient backgrounds for different badge levels
+- **Progress Tracking**: Visual progress indicators
+- **Coach Management**: Coaches can create custom badges
+
+### Academy Management
+- **Multi-Academy Support**: Students and coaches organized by academy
+- **Assignment System**: Coaches can assign unassigned students
+- **Performance Oversight**: Academy-wide analytics and progress tracking
 
 ## 🚀 Deployment
 
-### Vercel Deployment
-1. **Push to GitHub**: Ensure your code is in a GitHub repository
-2. **Connect Vercel**: Link your repository to Vercel
-3. **Environment Variables**: Add production environment variables
-4. **Database**: Configure PostgreSQL for production
-5. **Deploy**: Automatic deployment on push to main branch
+### Vercel (Recommended)
+
+1. **Connect Repository**: Link your GitHub repository to Vercel
+2. **Environment Variables**: Add production environment variables
+3. **Database**: Configure PostgreSQL for production
+4. **Deploy**: Automatic deployment on git push
 
 ### Production Environment Variables
 ```env
 DATABASE_URL="your-postgresql-connection-string"
-NEXTAUTH_URL="https://your-domain.vercel.app"
+NEXTAUTH_URL="https://your-domain.vercel.app"  
 NEXTAUTH_SECRET="your-production-secret"
 ```
 
-## 🛠️ Development
+## 🔧 Troubleshooting
 
-### Project Structure
-```
-src/
-├── app/                  # Next.js 14 App Router
-│   ├── api/             # API routes
-│   ├── auth/            # Authentication pages  
-│   ├── dashboard/       # User dashboards
-│   └── onboarding/      # Profile setup flows
-├── lib/                 # Utility libraries
-│   ├── auth.ts         # NextAuth configuration
-│   └── prisma.ts       # Database client
-└── types/              # TypeScript type definitions
+### Common Issues
+
+**Port Already in Use**
+```bash
+# Kill processes on ports 3000 and 5555
+pkill -f "next dev"
+pkill -f "prisma studio"
 ```
 
-### Key API Endpoints
-- `POST /api/auth/register` - User registration with username
-- `POST /api/student/create` - Create athlete profile
-- `POST /api/coach/create` - Create coach profile  
-- `GET /api/students/by-academy` - Fetch students by academy
-- `POST /api/coach/assign-students` - Assign students to coach
+**Database Issues**
+```bash
+# Reset database
+rm prisma/dev.db
+npx prisma db push
+```
 
-## 🎨 UI/UX Features
+**Missing Dependencies**
+```bash
+# Clean install
+rm -rf node_modules package-lock.json
+npm install
+```
 
-### Design Highlights
-- **Modern Interface**: Clean, professional design with intuitive navigation
-- **Responsive Layout**: Mobile-first design that works on all devices
-- **Role-Based Dashboards**: Customized interfaces for athletes and coaches
-- **Accessible Forms**: High contrast, readable forms with proper validation
-- **Interactive Elements**: Smooth animations and user feedback
-
-### User Experience
-- **Personalized Welcome**: Username-based greeting system
-- **Progressive Onboarding**: Step-by-step profile completion
-- **Real-time Updates**: Immediate feedback on actions and assignments
-- **Clear Navigation**: Intuitive flow between different sections
-
-## 🔐 Security Features
-
-- **Secure Authentication**: Password hashing with bcrypt
-- **Session Management**: Secure session handling with NextAuth.js
-- **Role-Based Access**: Proper authorization checks
-- **Data Validation**: Input validation on both client and server
-- **SQL Injection Protection**: Prisma ORM prevents SQL injection attacks
-
-## 📈 Future Enhancements
-
-### Planned Features
-- **Performance Analytics**: Track athlete progress and statistics
-- **Communication Tools**: In-app messaging between coaches and athletes
-- **Training Plans**: Create and assign personalized training programs
-- **Event Management**: Schedule and manage academy events and competitions
-- **Parent Portal**: Allow parents to view their child's progress
-- **Multi-Academy Support**: Support for coaches managing multiple academies
-
-### Technical Improvements
-- **Real-time Updates**: WebSocket integration for live data updates
-- **File Upload**: Profile pictures and document management
-- **Notification System**: Email and in-app notifications
-- **Mobile App**: React Native companion app
-- **Advanced Analytics**: Data visualization and reporting tools
+**PWA Not Installing**
+- Ensure HTTPS in production
+- Check manifest.json configuration
+- Verify service worker registration
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our contributing guidelines for details on how to submit improvements, bug fixes, and new features.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with Next.js 14 and modern web technologies
+- Designed for sports academies and athletic development
+- Inspired by the need for comprehensive sports management tools
 
 ---
 
-**PeakPlay** - Elevating athletic performance through technology and community.
+**PeakPlay** - Elevating athletic performance through technology 🏆
