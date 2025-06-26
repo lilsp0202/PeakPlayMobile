@@ -4,10 +4,12 @@ const nextConfig = {
     // Disable ESLint during production builds
     ignoreDuringBuilds: true,
   },
-  // Allow cross-origin requests from the network IP
   experimental: {
-    allowedDevOrigins: ['192.168.1.75']
+    serverActions: {
+      allowedOrigins: ['localhost:3000', '192.168.1.75:3000']
+    }
   },
+  serverExternalPackages: ['bcryptjs'],
   // Custom headers for PWA
   async headers() {
     return [

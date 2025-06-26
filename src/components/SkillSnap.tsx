@@ -108,6 +108,42 @@ interface TechnicalSkillsProps {
   averages: SkillAverages | null;
 }
 
+// Body scroll lock utilities
+const lockBodyScroll = () => {
+  // Get the current scroll position
+  const scrollY = window.scrollY;
+  
+  // Store the scroll position
+  document.body.style.top = `-${scrollY}px`;
+  
+  // Add the lock class
+  document.body.classList.add('modal-scroll-lock');
+  
+  // Apply styles
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+  document.body.style.overflowY = 'hidden';
+};
+
+const unlockBodyScroll = () => {
+  // Remove the lock class
+  document.body.classList.remove('modal-scroll-lock');
+  
+  // Get the stored scroll position
+  const scrollY = document.body.style.top;
+  
+  // Reset styles
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  document.body.style.overflowY = '';
+  
+  // Restore scroll position
+  if (scrollY) {
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+  }
+};
+
 // Skill definitions for all categories
 const skillCategories: SkillCategory[] = [
   {
@@ -1209,6 +1245,22 @@ export default function SkillSnap({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Add effect to manage body scroll when modals are open
+  useEffect(() => {
+    if (selectedCategory || selectedSkill) {
+      // Prevent background scroll when modal is open
+      lockBodyScroll();
+    } else {
+      // Restore scroll when modal is closed
+      unlockBodyScroll();
+    }
+
+    // Cleanup function to restore scroll on unmount
+    return () => {
+      unlockBodyScroll();
+    };
+  }, [selectedCategory, selectedSkill]);
+
   useEffect(() => {
     fetchSkillData();
   }, [studentId]);
@@ -1455,15 +1507,19 @@ export default function SkillSnap({
   };
 
   const openCategoryModal = (category: SkillCategory) => {
+    // Prevent scroll restoration while opening modal
+    document.documentElement.style.scrollBehavior = 'auto';
     setSelectedCategory(category);
-    // Prevent body scroll when modal is open
-    if (typeof document !== 'undefined') {
-      document.body.style.overflow = 'hidden';
-    }
+    setSelectedSkill(null);
+    // Re-enable smooth scrolling after modal is open
+    setTimeout(() => {
+      document.documentElement.style.scrollBehavior = '';
+    }, 150);
   };
 
   const openSkillModal = (skill: SkillItem, category: SkillCategory) => {
-    // Set state in the correct order
+    // Prevent scroll restoration while opening modal
+    document.documentElement.style.scrollBehavior = 'auto';
     setSelectedCategory(category);
     setSelectedSkill(skill);
     
@@ -1475,23 +1531,25 @@ export default function SkillSnap({
       }));
     }
     
-    // Prevent body scroll when modal is open
-    if (typeof document !== 'undefined') {
-      document.body.style.overflow = 'hidden';
-    }
+    // Re-enable smooth scrolling after modal is open
+    setTimeout(() => {
+      document.documentElement.style.scrollBehavior = '';
+    }, 150);
   };
 
   const closeModal = () => {
+    // Prevent scroll restoration while closing modal
+    document.documentElement.style.scrollBehavior = 'auto';
     setSelectedCategory(null);
     setSelectedSkill(null);
-    // Restore body scroll when modal is closed
-    if (typeof document !== 'undefined') {
-      document.body.style.overflow = '';
-    }
     // Cancel any ongoing edits
     if (isEditing) {
       handleCancel(isEditing);
     }
+    // Re-enable smooth scrolling after modal is closed and scroll is restored
+    setTimeout(() => {
+      document.documentElement.style.scrollBehavior = '';
+    }, 150);
   };
 
   const renderTechnicalSkills = () => {
@@ -1508,11 +1566,15 @@ export default function SkillSnap({
 
   const renderSkillsForCategory = (category: SkillCategory) => {
     if (category.id === "TECHNIQUE") {
-      return renderTechnicalSkills();
+      return (
+        <div className="pb-8">
+          {renderTechnicalSkills()}
+        </div>
+      );
     }
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
         {category.skills.map((skill) => (
           <SkillBar
             key={skill.id}
@@ -1551,55 +1613,76 @@ export default function SkillSnap({
 
     return (
       <div 
-        className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-modalFadeIn"
         onClick={closeModal}
+        style={{ 
+          touchAction: 'none',
+          overscrollBehavior: 'none',
+          WebkitOverflowScrolling: 'touch'
+        }}
       >
-        <div 
-          className="bg-white rounded-lg shadow-xl w-full max-w-2xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className={`p-3 rounded-lg bg-gradient-to-br ${selectedCategory.colorScheme.gradient} text-${selectedCategory.colorScheme.primary}`}>
-                  {selectedSkill.icon}
+        {/* Modal Container - Enhanced Mobile PWA Optimization */}
+        <div className="min-h-screen max-h-screen flex items-start justify-center pt-4 sm:pt-8 modal-mobile-safe modal-pwa-safe">
+          <div 
+            className="bg-white rounded-xl shadow-2xl w-full max-w-2xl animate-slideUpBounce relative mx-4 sm:mx-6"
+            onClick={(e) => e.stopPropagation()}
+            style={{ 
+              maxHeight: 'calc(100vh - 10rem)',
+              height: 'fit-content'
+            }}
+          >
+            {/* Modal Header - Fixed */}
+            <div className="modal-header-glass p-4 sm:p-6 border-b border-gray-200 rounded-t-xl flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
+                  <div className={`p-2 sm:p-3 rounded-lg bg-gradient-to-br ${selectedCategory.colorScheme.gradient} text-${selectedCategory.colorScheme.primary} flex-shrink-0`}>
+                    {selectedSkill.icon}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">{selectedSkill.name}</h3>
+                    <p className="text-sm md:text-base text-gray-600 line-clamp-2">{selectedSkill.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedSkill.name}</h3>
-                  <p className="text-gray-600">{selectedSkill.description}</p>
-                </div>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-500 hover:text-gray-700 transition-colors p-2 -m-2 flex-shrink-0 ml-4 touch-target"
+                  aria-label="Close modal"
+                >
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
               </div>
-              <button
-                onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
             </div>
-          </div>
 
-          <div className="p-6">
-            <SkillBar
-              skill={selectedSkill}
-              userScore={skillData?.[selectedSkill.id as keyof SkillData] as number}
-              averageScore={averages?.averages[selectedSkill.id] || 0}
-              isEditing={isEditing === selectedCategory.id}
-              onScoreChange={handleScoreChange}
-              showComparison={selectedCategory.id !== "MENTAL"}
-              personalizedTarget={
-                selectedCategory.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
-                  ? (() => {
-                      const nutrition = calculatePersonalizedNutrition(
-                        skillData.student.weight,
-                        skillData.student.height,
-                        skillData.student.age
-                      );
-                      const nutritionKey = selectedSkill.id as keyof NutritionData;
-                      return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
-                    })()
-                  : undefined
-              }
-            />
+            {/* Modal Content - Enhanced Mobile Scrolling */}
+            <div 
+              className="p-4 sm:p-6 modal-scroll-enhanced modal-mobile-content overflow-y-auto overscroll-contain" 
+              style={{ 
+                maxHeight: 'calc(100vh - 14rem)',
+                minHeight: '15vh'
+              }}
+            >
+              <SkillBar
+                skill={selectedSkill}
+                userScore={skillData?.[selectedSkill.id as keyof SkillData] as number}
+                averageScore={averages?.averages[selectedSkill.id] || 0}
+                isEditing={isEditing === selectedCategory.id}
+                onScoreChange={handleScoreChange}
+                showComparison={selectedCategory.id !== "MENTAL"}
+                personalizedTarget={
+                  selectedCategory.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
+                    ? (() => {
+                        const nutrition = calculatePersonalizedNutrition(
+                          skillData.student.weight,
+                          skillData.student.height,
+                          skillData.student.age
+                        );
+                        const nutritionKey = selectedSkill.id as keyof NutritionData;
+                        return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
+                      })()
+                    : undefined
+                }
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -1640,67 +1723,94 @@ export default function SkillSnap({
       {/* Category Modal */}
       {selectedCategory && !selectedSkill && (
         <div 
-          className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-modalFadeIn"
           onClick={closeModal}
+          style={{ 
+            touchAction: 'none',
+            overscrollBehavior: 'none',
+            WebkitOverflowScrolling: 'touch'
+          }}
         >
-          <div 
-            className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[80vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className={`p-3 rounded-lg bg-gradient-to-br ${selectedCategory.colorScheme.gradient} text-${selectedCategory.colorScheme.primary}`}>
-                    {selectedCategory.icon}
-                        </div>
-                        <div>
-                    <h3 className="text-2xl font-bold text-gray-900">{selectedCategory.name}</h3>
-                    <p className="text-gray-600">{selectedCategory.description}</p>
-                        </div>
-                      </div>
-                              <button
-                  onClick={closeModal}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
-                              >
-                  <X className="w-6 h-6" />
-                              </button>
-                        </div>
+          {/* Modal Container - Enhanced Mobile PWA Optimization */}
+          <div className="min-h-screen max-h-screen flex items-start justify-center pt-4 sm:pt-8 modal-mobile-safe modal-pwa-safe">
+            <div 
+              className="bg-white rounded-xl shadow-2xl w-full max-w-4xl flex flex-col animate-slideUpBounce relative mx-4 sm:mx-6"
+              onClick={(e) => e.stopPropagation()}
+              style={{ 
+                maxHeight: 'calc(100vh - 10rem)',
+                height: 'fit-content'
+              }}
+            >
+              {/* Modal Header - Fixed */}
+              <div className="modal-header-glass p-4 sm:p-6 border-b border-gray-200 rounded-t-xl flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
+                    <div className={`p-2 sm:p-3 rounded-lg bg-gradient-to-br ${selectedCategory.colorScheme.gradient} text-${selectedCategory.colorScheme.primary} flex-shrink-0`}>
+                      {selectedCategory.icon}
                     </div>
-
-            <div className="p-6 overflow-y-auto flex-1">
-              {isEditing === selectedCategory.id ? (
-                <div className="flex justify-end space-x-4 mb-6">
-                            <button
-                    onClick={() => handleCancel(selectedCategory.id)}
-                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium flex items-center space-x-2"
-                            >
-                    <X className="w-4 h-4" />
-                    <span>Cancel</span>
-                            </button>
-                            <button
-                    onClick={() => handleSave(selectedCategory.id)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2"
-                            >
-                    <Check className="w-4 h-4" />
-                    <span>Save Changes</span>
-                            </button>
-                </div>
-                        ) : (
-                <div className="flex justify-end mb-6">
-                          <button
-                    onClick={() => handleStartEdit(selectedCategory.id)}
-                    className="px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium flex items-center space-x-2"
-                          >
-                    <Edit className="w-4 h-4" />
-                    <span>Edit All</span>
-                          </button>
-                      </div>
-                    )}
-              {renderSkillsForCategory(selectedCategory)}
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">{selectedCategory.name}</h3>
+                      <p className="text-sm md:text-base text-gray-600 line-clamp-2">{selectedCategory.description}</p>
+                    </div>
                   </div>
-                    </div>
+                  <button
+                    onClick={closeModal}
+                    className="text-gray-500 hover:text-gray-700 transition-colors p-2 -m-2 flex-shrink-0 ml-4 touch-target"
+                    aria-label="Close modal"
+                  >
+                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons - Fixed */}
+              <div className="p-4 sm:p-6 border-b border-gray-100 flex-shrink-0">
+                {isEditing === selectedCategory.id ? (
+                  <div className="flex justify-end space-x-3 sm:space-x-4">
+                    <button
+                      onClick={() => handleCancel(selectedCategory.id)}
+                      className="px-3 sm:px-4 py-2 text-gray-700 hover:text-gray-900 font-medium flex items-center space-x-2 modal-btn-enhanced text-sm sm:text-base"
+                    >
+                      <X className="w-4 h-4" />
+                      <span className="hidden sm:inline">Cancel</span>
+                    </button>
+                    <button
+                      onClick={() => handleSave(selectedCategory.id)}
+                      className="px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2 modal-btn-enhanced text-sm sm:text-base"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span className="hidden sm:inline">Save Changes</span>
+                      <span className="sm:hidden">Save</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => handleStartEdit(selectedCategory.id)}
+                      className="px-3 sm:px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium flex items-center space-x-2 modal-btn-enhanced text-sm sm:text-base"
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span className="hidden sm:inline">Edit All</span>
+                      <span className="sm:hidden">Edit</span>
+                    </button>
                   </div>
                 )}
+              </div>
+
+              {/* Skills Content - Enhanced Mobile Scrolling */}
+              <div 
+                className="flex-1 p-4 sm:p-6 modal-scroll-enhanced modal-category-content overflow-y-auto overscroll-contain" 
+                style={{ 
+                  maxHeight: 'calc(100vh - 20rem)',
+                  minHeight: '20vh'
+                }}
+              >
+                {renderSkillsForCategory(selectedCategory)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Individual Skill Modal */}
       {selectedSkill && renderIndividualSkillModal()}
