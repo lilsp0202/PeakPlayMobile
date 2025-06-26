@@ -274,18 +274,13 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
-      {/* Header */}
+      {/* Header - Remove duplicate title and improve layout */}
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-900 flex items-center">
-          <Trophy className="w-6 h-6 mr-2 text-indigo-600" />
-          Recent Match Scores
-        </h3>
-        
         {!isCoachView && (
-          <div className="relative">
+          <div className="relative ml-auto">
             <button
               onClick={() => setShowAddDropdown(!showAddDropdown)}
-              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Match
@@ -299,7 +294,7 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                     setIsAddModalOpen(true);
                     setShowAddDropdown(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center"
+                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-gray-700 font-medium"
                 >
                   <Plus className="w-4 h-4 mr-2 text-gray-600" />
                   Manual Entry
@@ -309,7 +304,7 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                     setIsScorecardModalOpen(true);
                     setShowAddDropdown(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center border-t"
+                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center border-t text-gray-700 font-medium"
                 >
                   <Camera className="w-4 h-4 mr-2 text-gray-600" />
                   Upload Scorecard
@@ -332,11 +327,11 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
         <div className="text-center py-12">
           <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h4 className="text-lg font-semibold text-gray-600 mb-2">No matches yet</h4>
-          <p className="text-gray-500 mb-4">Start tracking your cricket performance by adding your first match.</p>
+          <p className="text-gray-500 mb-6">Start tracking your cricket performance by adding your first match.</p>
           {!isCoachView && (
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Your First Match
@@ -350,14 +345,14 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
               key={performance.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow relative"
+              className="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all duration-200 relative bg-gray-50/30"
             >
               {/* Match Actions Dropdown */}
               {!isCoachView && (
                 <div className="absolute top-4 right-4">
                   <button
                     onClick={() => setActiveDropdown(activeDropdown === performance.id ? null : performance.id)}
-                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <MoreVertical className="w-4 h-4 text-gray-500" />
                   </button>
@@ -366,14 +361,14 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                     <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border z-10">
                       <button
                         onClick={() => openEditModal(performance)}
-                        className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center text-sm"
+                        className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center text-sm text-gray-700 font-medium"
                       >
                         <Edit className="w-3 h-3 mr-2 text-gray-600" />
                         Edit
                       </button>
                       <button
                         onClick={() => openDeleteConfirm(performance)}
-                        className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center text-sm text-red-600 border-t"
+                        className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center text-sm text-red-600 border-t font-medium"
                       >
                         <Trash2 className="w-3 h-3 mr-2" />
                         Delete
@@ -386,12 +381,12 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Match Info */}
                 <div className="md:col-span-2">
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">
+                      <h4 className="font-semibold text-gray-900 mb-1 text-lg">
                         {performance.match.matchName}
                       </h4>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-gray-600 mb-2 font-medium">
                         vs {performance.match.opponent}
                       </p>
                       <div className="flex items-center text-xs text-gray-500 space-x-4">
@@ -417,22 +412,22 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                         return (
                           <>
                             {stats.runs !== undefined && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">
                                 {stats.runs} runs
                               </span>
                             )}
                             {stats.balls !== undefined && (
-                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded">
+                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
                                 {stats.balls} balls
                               </span>
                             )}
                             {stats.fours !== undefined && (
-                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">
                                 {stats.fours} fours
                               </span>
                             )}
                             {stats.sixes !== undefined && (
-                              <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded">
+                              <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded font-medium">
                                 {stats.sixes} sixes
                               </span>
                             )}
@@ -444,17 +439,17 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                         return (
                           <>
                             {stats.wickets !== undefined && (
-                              <span className="px-2 py-1 bg-red-100 text-red-700 rounded">
+                              <span className="px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
                                 {stats.wickets} wickets
                               </span>
                             )}
                             {stats.overs !== undefined && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">
                                 {stats.overs} overs
                               </span>
                             )}
                             {stats.runsConceded !== undefined && (
-                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded">
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">
                                 {stats.runsConceded} runs
                               </span>
                             )}
@@ -465,12 +460,12 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                       return (
                         <>
                           {stats.catches !== undefined && (
-                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded">
+                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
                               {stats.catches} catches
                             </span>
                           )}
                           {stats.runOuts !== undefined && (
-                            <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                            <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">
                               {stats.runOuts} run outs
                             </span>
                           )}
@@ -482,14 +477,14 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
 
                 {/* Result & Rating */}
                 <div className="flex md:flex-col md:items-end justify-between md:justify-start">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getResultColor(performance.match.result)}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getResultColor(performance.match.result)}`}>
                     {performance.match.result}
                   </span>
                   
                   {performance.rating && (
                     <div className="flex items-center mt-2">
                       <Star className={`w-4 h-4 mr-1 ${getRatingColor(performance.rating)}`} />
-                      <span className={`text-sm font-medium ${getRatingColor(performance.rating)}`}>
+                      <span className={`text-sm font-semibold ${getRatingColor(performance.rating)}`}>
                         {performance.rating.toFixed(1)}
                       </span>
                     </div>

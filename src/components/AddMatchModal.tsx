@@ -227,13 +227,13 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
                     name="matchType"
                     value={formData.matchType}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 font-medium"
                   >
-                    <option value="PRACTICE">Practice</option>
-                    <option value="FRIENDLY">Friendly</option>
-                    <option value="LEAGUE">League</option>
-                    <option value="TOURNAMENT">Tournament</option>
-                    <option value="CHAMPIONSHIP">Championship</option>
+                    <option value="PRACTICE" className="text-gray-900 font-medium">Practice</option>
+                    <option value="FRIENDLY" className="text-gray-900 font-medium">Friendly</option>
+                    <option value="LEAGUE" className="text-gray-900 font-medium">League</option>
+                    <option value="TOURNAMENT" className="text-gray-900 font-medium">Tournament</option>
+                    <option value="CHAMPIONSHIP" className="text-gray-900 font-medium">Championship</option>
                   </select>
                 </div>
                 <div>
@@ -242,12 +242,12 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
                     name="result"
                     value={formData.result}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 font-medium"
                   >
-                    <option value="WIN">Win</option>
-                    <option value="LOSS">Loss</option>
-                    <option value="DRAW">Draw</option>
-                    <option value="ABANDONED">Abandoned</option>
+                    <option value="WIN" className="text-gray-900 font-medium">Win</option>
+                    <option value="LOSS" className="text-gray-900 font-medium">Loss</option>
+                    <option value="DRAW" className="text-gray-900 font-medium">Draw</option>
+                    <option value="ABANDONED" className="text-gray-900 font-medium">Abandoned</option>
                   </select>
                 </div>
               </div>
