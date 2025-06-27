@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Edit, Check, X } from "lucide-react";
+import { motion } from "framer-motion";
 
 // Types for skills and analytics
 interface SkillData {
@@ -501,49 +502,50 @@ const ProgressRing: React.FC<{ progress: number }> = ({ progress }) => {
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="flex items-center justify-center">
-      <div className="relative w-24 h-24">
+    <div className="relative">
       <svg
-          height={radius * 2}
-          width={radius * 2}
+        height={radius * 2}
+        width={radius * 2}
         className="transform -rotate-90"
       >
-        {/* Background circle */}
         <circle
-            stroke="#E5E7EB"
+          stroke="#e5e7eb"
           fill="transparent"
-            strokeWidth={strokeWidth}
-            r={normalizedRadius}
-            cx={radius}
-            cy={radius}
+          strokeWidth={strokeWidth}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
         />
-        {/* Progress circle */}
-        <circle
-            stroke="url(#progressGradient)"
+        <motion.circle
+          stroke="url(#gradient)"
           fill="transparent"
-            strokeWidth={strokeWidth}
+          strokeWidth={strokeWidth}
           strokeDasharray={strokeDasharray}
-            style={{ strokeDashoffset }}
-          strokeLinecap="round"
-            r={normalizedRadius}
-            cx={radius}
-            cy={radius}
-            className="transition-all duration-1000 ease-out"
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+          className="filter drop-shadow-lg"
         />
-          <defs>
-            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#6366F1" />
-              <stop offset="50%" stopColor="#8B5CF6" />
-              <stop offset="100%" stopColor="#EC4899" />
-            </linearGradient>
-          </defs>
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#3b82f6" />
+          </linearGradient>
+        </defs>
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            {progress}%
-          </span>
-        </div>
-      </div>
+      <motion.div 
+        className="absolute inset-0 flex items-center justify-center"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.5, type: "spring" }}
+      >
+        <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          {progress}%
+        </span>
+      </motion.div>
     </div>
   );
 };
@@ -553,43 +555,46 @@ const AggregateScoreDisplay: React.FC<{
   category: SkillCategory;
   aggregateScore: number;
 }> = ({ category, aggregateScore }) => {
-  const percentage = (aggregateScore / 10) * 100;
-  
+  const getScoreColor = (score: number) => {
+    if (score >= 8) return 'from-green-500 to-emerald-600';
+    if (score >= 6) return 'from-blue-500 to-indigo-600';
+    if (score >= 4) return 'from-yellow-500 to-orange-600';
+    return 'from-red-500 to-pink-600';
+  };
+
   return (
-    <div className={`mt-4 bg-gradient-to-r ${category.colorScheme.gradient} rounded-lg p-4 border border-gray-200`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className={`p-2 bg-${category.colorScheme.secondary} rounded-lg text-${category.colorScheme.primary}`}>
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900">{category.name} Average</h4>
-            <p className="text-sm text-gray-600">Aggregate performance score</p>
-          </div>
-        </div>
-        
-        <div className="text-right">
-          <div className="text-2xl font-bold text-gray-900">
-            {aggregateScore.toFixed(1)}/10
-          </div>
-          <div className="text-sm text-gray-600">
-            {percentage.toFixed(0)}%
-          </div>
-        </div>
-      </div>
-      
-      {/* Progress bar */}
-      <div className="mt-3">
-        <div className="w-full bg-white rounded-full h-2">
-          <div
-            className={`bg-${category.colorScheme.primary} h-2 rounded-full transition-all duration-500`}
-            style={{ width: `${percentage}%` }}
-          />
+    <motion.div 
+      className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl"
+      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className="flex items-center space-x-3">
+        <motion.div 
+          className={`w-12 h-12 rounded-xl bg-gradient-to-r ${getScoreColor(aggregateScore)} flex items-center justify-center shadow-lg`}
+          whileHover={{ rotate: 360 }}
+          transition={{ duration: 0.6 }}
+        >
+          <span className="text-white font-bold text-lg">{aggregateScore}</span>
+        </motion.div>
+        <div>
+          <p className="text-sm text-gray-600">Overall Score</p>
+          <p className="font-semibold text-gray-900">
+            {aggregateScore >= 8 ? 'Excellent' : 
+             aggregateScore >= 6 ? 'Good' : 
+             aggregateScore >= 4 ? 'Fair' : 'Needs Improvement'}
+          </p>
         </div>
       </div>
-    </div>
+      <motion.div 
+        className="text-3xl"
+        animate={{ rotate: [0, 10, -10, 0] }}
+        transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+      >
+        {aggregateScore >= 8 ? '🌟' : 
+         aggregateScore >= 6 ? '⭐' : 
+         aggregateScore >= 4 ? '💪' : '🎯'}
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -656,138 +661,122 @@ const SkillBar: React.FC<{
   personalizedTarget?: number; // For nutrition values
   onClick?: () => void; // New prop for click handling
 }> = ({ skill, userScore, averageScore, isEditing, onScoreChange, showComparison = true, personalizedTarget, onClick }) => {
-  // Fix: For 'score' type skills (e.g., moodScore, sleepScore), use 10 as max
-  let maxValue: number;
-  if (skill.type === "score") {
-    maxValue = 10;
-  } else if (personalizedTarget) {
-    maxValue = Math.max(userScore || 0, personalizedTarget, 100);
-  } else {
-    maxValue = Math.max(userScore || 0, averageScore || 0, 100);
-  }
+  const displayScore = userScore || 0;
+  const percentage = Math.min((displayScore / 10) * 100, 100);
+  const isAboveAverage = averageScore ? displayScore > averageScore : false;
 
-  const userPercentage = userScore ? (userScore / maxValue) * 100 : 0;
-  const avgPercentage = averageScore ? (averageScore / maxValue) * 100 : 0;
-  const targetPercentage = personalizedTarget ? (personalizedTarget / maxValue) * 100 : 0;
+  const getProgressColor = () => {
+    if (percentage >= 80) return 'from-green-500 to-emerald-600';
+    if (percentage >= 60) return 'from-blue-500 to-indigo-600';
+    if (percentage >= 40) return 'from-yellow-500 to-amber-600';
+    return 'from-red-500 to-pink-600';
+  };
 
   return (
-    <div 
-      className={`bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 shadow-lg border border-gray-100 transition-all duration-300 hover:border-indigo-200 ${
-        onClick ? 'cursor-pointer hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]' : ''
-      }`}
+    <motion.div 
+      className="card-modern p-4 hover:shadow-lg transition-all duration-300 cursor-pointer"
       onClick={onClick}
+      whileHover={{ y: -2 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
     >
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <div className={`p-3 bg-gradient-to-br ${
-            skill.colorScheme.primary === 'blue-600' ? 'from-blue-500 to-blue-600' :
-            skill.colorScheme.primary === 'green-600' ? 'from-green-500 to-green-600' :
-            skill.colorScheme.primary === 'orange-600' ? 'from-orange-500 to-orange-600' :
-            skill.colorScheme.primary === 'purple-600' ? 'from-purple-500 to-purple-600' :
-            'from-indigo-500 to-indigo-600'
-          } rounded-xl text-white shadow-lg hover:scale-110 transition-transform duration-200`}>
-            {skill.icon}
-          </div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-3">
+          <motion.div 
+            className={`w-10 h-10 rounded-lg bg-gradient-to-r ${getProgressColor()} flex items-center justify-center shadow-md`}
+            whileHover={{ rotate: 360 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="text-white">{skill.icon}</div>
+          </motion.div>
           <div>
-            <h3 className="font-bold text-gray-900 text-lg">{skill.name}</h3>
-            <p className="text-sm text-gray-600 mt-1">{skill.description}</p>
-            {onClick && !isEditing && (
-              <p className="text-xs text-indigo-600 mt-1 font-medium">Click to edit individually →</p>
+            <h4 className="font-semibold text-gray-900">{skill.name}</h4>
+            <p className="text-xs text-gray-500">{skill.description}</p>
+          </div>
+        </div>
+        {!isEditing && (
+          <motion.div 
+            className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", bounce: 0.5 }}
+          >
+            {displayScore}
+          </motion.div>
+        )}
+      </div>
+
+      {isEditing ? (
+        <div className="space-y-2">
+          <input
+            type="range"
+            min="0"
+            max="10"
+            step="0.5"
+            value={displayScore}
+            onChange={(e) => onScoreChange(skill.id, parseFloat(e.target.value))}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+            style={{
+              background: `linear-gradient(to right, #8b5cf6 0%, #3b82f6 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`
+            }}
+          />
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>0</span>
+            <span className="font-semibold text-purple-600">{displayScore}</span>
+            <span>10</span>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
+            <motion.div
+              className={`absolute inset-y-0 left-0 bg-gradient-to-r ${getProgressColor()} rounded-full`}
+              initial={{ width: 0 }}
+              animate={{ width: `${percentage}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            >
+              <div className="absolute inset-0 bg-white/20 animate-shimmer" />
+            </motion.div>
+            {showComparison && averageScore && (
+              <motion.div
+                className="absolute top-0 bottom-0 w-0.5 bg-gray-600"
+                style={{ left: `${(averageScore / 10) * 100}%` }}
+                initial={{ opacity: 0, scaleY: 0 }}
+                animate={{ opacity: 0.5, scaleY: 1 }}
+                transition={{ delay: 0.5 }}
+              />
             )}
           </div>
-        </div>
-        {isEditing ? (
-          <div className="relative">
-          <input
-            type="number"
-            value={userScore || ""}
-            onChange={(e) => onScoreChange(skill.id, Number(e.target.value))}
-            placeholder="0"
-              className="w-24 px-4 py-3 border-2 border-indigo-300 rounded-xl text-lg font-bold text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white shadow-lg transition-all duration-200"
-            min="0"
-            step={skill.type === "time" ? "0.1" : "1"}
-              onClick={(e) => e.stopPropagation()} // Prevent modal opening when clicking input
-          />
-            <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-500 font-medium">
-              {skill.unit}
-            </span>
-          </div>
-        ) : (
-          <div className="text-right">
-            <div className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            {userScore || "--"}
-            </div>
-            <span className="text-sm font-medium text-gray-600 block mt-1">
-              {skill.unit}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Enhanced Progress bars with animations */}
-      <div className="space-y-4">
-        <div>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-700 font-medium">Your Score</span>
-            <span className="font-bold text-indigo-600">
-              {userScore || 0} {skill.unit}
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full transition-all duration-700 ease-out shadow-lg"
-              style={{ 
-                width: `${userPercentage}%`,
-                transform: `scaleX(${userPercentage > 0 ? 1 : 0})`,
-                transformOrigin: 'left center'
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Show personalized target for nutrition */}
-        {personalizedTarget && (
-          <div>
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-700 font-medium">Recommended</span>
-              <span className="font-bold text-emerald-600">
-                {personalizedTarget} {skill.unit}
+          
+          {showComparison && averageScore && (
+            <motion.div 
+              className="mt-2 flex items-center justify-between text-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              <span className="text-gray-500">
+                Avg: <span className="font-medium text-gray-700">{averageScore.toFixed(1)}</span>
               </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-emerald-500 to-green-600 h-3 rounded-full transition-all duration-700 ease-out shadow-lg"
-                style={{ 
-                  width: `${targetPercentage}%`,
-                  animationDelay: '200ms'
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Show age group average only for physical skills and technique (when showComparison is true) */}
-        {showComparison && averageScore !== undefined && (
-          <div>
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-700 font-medium">Age Group Average</span>
-              <span className="font-bold text-gray-600">
-                {averageScore} {skill.unit}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-gray-400 to-gray-500 h-3 rounded-full transition-all duration-700 ease-out shadow-lg"
-                style={{ 
-                  width: `${avgPercentage}%`,
-                  animationDelay: '400ms'
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+              {isAboveAverage && (
+                <motion.span 
+                  className="text-green-600 font-medium flex items-center"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", bounce: 0.5, delay: 1 }}
+                >
+                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Above Average
+                </motion.span>
+              )}
+            </motion.div>
+          )}
+        </>
+      )}
+    </motion.div>
   );
 };
 
@@ -797,33 +786,92 @@ const CategoryCard: React.FC<{
   onOpen: () => void;
   skillData: SkillData | null;
 }> = ({ category, onOpen, skillData }) => {
-  const completedSkills = category.skills.filter(skill => {
-    const score = skillData?.[skill.id as keyof SkillData] as number;
-    return score && score > 0;
-  }).length;
+  const aggregateScore = calculateAggregateScore(category, skillData);
+  const progress = aggregateScore * 10;
 
   return (
-    <div 
+    <motion.div
       onClick={onOpen}
-      className={`bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer`}
+      className="card-gradient card-modern p-6 cursor-pointer group"
+      whileHover={{ y: -5, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4 }}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-4">
-          <div className={`p-3 rounded-lg bg-gradient-to-br ${category.colorScheme.gradient} text-${category.colorScheme.primary}`}>
-              {category.icon}
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-900">{category.name}</h3>
-            <p className="text-gray-600">{category.description}</p>
-            </div>
-          </div>
-        <div className="text-right">
-          <div className="text-sm font-medium text-gray-600">
-            {completedSkills} / {category.skills.length} skills
+          <motion.div 
+            className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${category.colorScheme.gradient} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow`}
+            whileHover={{ rotate: 360 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="text-white">{category.icon}</div>
+          </motion.div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">{category.name}</h3>
+            <p className="text-sm text-gray-600">{category.description}</p>
           </div>
         </div>
+        <motion.div
+          className="text-gray-400 group-hover:text-purple-600 transition-colors"
+          whileHover={{ x: 5 }}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </motion.div>
       </div>
-    </div>
+      
+      <div className="mt-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-gray-700">Progress</span>
+          <motion.span 
+            className="text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            {progress}%
+          </motion.span>
+        </div>
+        <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
+          <motion.div
+            className={`absolute inset-y-0 left-0 bg-gradient-to-r ${category.colorScheme.gradient} rounded-full`}
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+          >
+            <div className="absolute inset-0 bg-white/30 animate-shimmer" />
+          </motion.div>
+        </div>
+      </div>
+      
+      {aggregateScore > 0 && (
+        <motion.div 
+          className="mt-4 flex items-center justify-center"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="flex space-x-1">
+            {[...Array(5)].map((_, i) => (
+              <motion.svg
+                key={i}
+                className={`w-5 h-5 ${i < Math.round(aggregateScore / 2) ? 'text-yellow-400' : 'text-gray-300'}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 + i * 0.1, type: "spring", bounce: 0.5 }}
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </motion.svg>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
   );
 };
 

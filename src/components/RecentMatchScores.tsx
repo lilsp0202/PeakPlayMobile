@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Plus, MapPin, Camera, ChevronDown, Edit, Trash2, MoreVertical, AlertTriangle, Star, Trophy, Calendar, X, ChevronUp, Target, Shield, Users, BarChart2, TrendingUp } from 'lucide-react';
 import AddMatchModal from './AddMatchModal';
 import MatchDetailsModal from './MatchDetailsModal';
@@ -9,6 +10,8 @@ import ScorecardUploadModal from './ScorecardUploadModal';
 import EditMatchModal from './EditMatchModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MatchRatingAlgorithm } from "@/lib/matchRatingAlgorithm";
+import { FiChevronDown, FiChevronUp, FiCalendar, FiMapPin, FiUsers, FiTarget, FiTrendingUp, FiAward, FiEdit, FiTrash2, FiPlus } from "react-icons/fi";
+import { format, parseISO } from "date-fns";
 
 export interface MatchPerformance {
   id: string;
@@ -52,6 +55,25 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
   const { data: session } = useSession();
   const [playerRole, setPlayerRole] = useState("BATSMAN");
   const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
+  const router = useRouter();
+  const [isAddingMatch, setIsAddingMatch] = useState(false);
+  const [newMatch, setNewMatch] = useState({
+    matchDate: new Date().toISOString().split("T")[0],
+    matchType: "FRIENDLY",
+    venue: "",
+    result: "WON",
+    runsScored: 0,
+    ballsFaced: 0,
+    fours: 0,
+    sixes: 0,
+    wicketsTaken: 0,
+    oversBowled: 0,
+    runsConceded: 0,
+    catches: 0,
+    runOuts: 0,
+    stumpings: 0,
+    notes: "",
+  });
 
   const fetchPlayerRole = async () => {
     try {
@@ -285,6 +307,20 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
     return MatchRatingAlgorithm.getPerformanceInsights(stats, context);
   };
 
+  const getRatingEmoji = (rating: number) => {
+    if (rating >= 8.5) return "🌟";
+    if (rating >= 7) return "⭐";
+    if (rating >= 5) return "💪";
+    return "🎯";
+  };
+
+  const getRatingLabel = (rating: number) => {
+    if (rating >= 8.5) return "Outstanding";
+    if (rating >= 7) return "Excellent";
+    if (rating >= 5) return "Good";
+    return "Keep Practicing";
+  };
+
   if (loading) {
     return (
       <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -301,380 +337,590 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
-      {/* Header - Remove duplicate title and improve layout */}
-      <div className="flex justify-between items-center mb-6">
-        {!isCoachView && (
-          <div className="relative ml-auto">
-            <button
-              onClick={() => setShowAddDropdown(!showAddDropdown)}
-              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Match
-              <ChevronDown className="w-4 h-4 ml-2" />
-            </button>
-            
-            {showAddDropdown && (
-              <div className="absolute right-0 top-12 bg-white rounded-lg shadow-xl border z-10 min-w-48">
-                <button
-                  onClick={() => {
-                    setIsAddModalOpen(true);
-                    setShowAddDropdown(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center text-gray-700 border-b"
-                >
-                  <BarChart2 className="w-4 h-4 mr-3 text-indigo-500" />
-                  Manual Entry
-                </button>
-                <button
-                  onClick={() => {
-                    setIsScorecardModalOpen(true);
-                    setShowAddDropdown(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center text-gray-700"
-                >
-                  <Target className="w-4 h-4 mr-3 text-green-500" />
-                  Upload Scorecard
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+    <div className="space-y-6">
+      {/* Add Match Button */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <button
+          onClick={() => setIsAddingMatch(!isAddingMatch)}
+          className="btn-gradient btn-modern w-full flex items-center justify-center gap-2 text-white font-semibold"
+          disabled={loading}
+        >
+          <motion.div
+            animate={{ rotate: isAddingMatch ? 45 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <FiPlus className="w-5 h-5" />
+          </motion.div>
+          {isAddingMatch ? "Cancel" : "Add Match"}
+        </button>
+      </motion.div>
 
-      {/* Error Display */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Matches List */}
-      {performances.length === 0 ? (
-        <div className="text-center py-12">
-          <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h4 className="text-lg font-semibold text-gray-600 mb-2">No matches yet</h4>
-          <p className="text-gray-500 mb-6">Start tracking your cricket performance by adding your first match.</p>
-          {!isCoachView && (
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First Match
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {performances.map((performance, index) => {
-            const stats = parseStats(performance.stats);
-            const isExpanded = expandedMatch === performance.id;
-            const insights = getPerformanceInsights(performance);
-            const recalculatedRating = recalculateRating(performance);
-            
-            return (
-              <motion.div
-                key={performance.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-gray-50/30 border border-gray-100 rounded-xl p-4 hover:shadow-md transition-shadow"
-              >
-                {/* Main Match Info */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between">
-                  {/* Match Details */}
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {performance.match.matchName}
-                      </h3>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => toggleExpanded(performance.id)}
-                          className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
-                        >
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4 text-gray-500" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 text-gray-500" />
-                          )}
-                        </button>
-                        {!isCoachView && (
-                          <div className="relative">
-                            <button
-                              onClick={() => setActiveDropdown(activeDropdown === performance.id ? null : performance.id)}
-                              className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
-                            >
-                              <div className="w-1 h-1 bg-gray-400 rounded-full mb-1"></div>
-                              <div className="w-1 h-1 bg-gray-400 rounded-full mb-1"></div>
-                              <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                            </button>
-                            
-                            {activeDropdown === performance.id && (
-                              <div className="absolute right-0 top-8 bg-white rounded-lg shadow-xl border z-10 min-w-32">
-                                <button
-                                  onClick={() => openEditModal(performance)}
-                                  className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm text-gray-700 border-b"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => openDeleteConfirm(performance)}
-                                  className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm text-red-600"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                      <span className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        vs {performance.match.opponent}
-                      </span>
-                      <span className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {formatDate(performance.match.matchDate)}
-                      </span>
-                      <span className="flex items-center">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {performance.match.venue || "Unknown Venue"}
-                      </span>
-                    </div>
-
-                    {/* Key Stats Preview */}
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {(() => {
-                        if (playerRole === "BATSMAN" || playerRole === "ALL_ROUNDER") {
-                          return (
-                            <>
-                              {stats.runs !== undefined && (
-                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">
-                                  {stats.runs} runs
-                                </span>
-                              )}
-                              {stats.balls !== undefined && stats.balls > 0 && (
-                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
-                                  {((stats.runs / stats.balls) * 100).toFixed(1)} SR
-                                </span>
-                              )}
-                              {stats.fours !== undefined && (
-                                <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded font-medium">
-                                  {stats.fours} 4s
-                                </span>
-                              )}
-                              {stats.sixes !== undefined && (
-                                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">
-                                  {stats.sixes} 6s
-                                </span>
-                              )}
-                            </>
-                          );
-                        }
-                        
-                        if (playerRole === "BOWLER" || playerRole === "ALL_ROUNDER") {
-                          return (
-                            <>
-                              {stats.wickets !== undefined && (
-                                <span className="px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
-                                  {stats.wickets} wickets
-                                </span>
-                              )}
-                              {stats.overs !== undefined && (
-                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">
-                                  {stats.overs} overs
-                                </span>
-                              )}
-                              {stats.runsConceded !== undefined && (
-                                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">
-                                  {stats.runsConceded} runs
-                                </span>
-                              )}
-                            </>
-                          );
-                        }
-                        
-                        return (
-                          <>
-                            {stats.catches !== undefined && (
-                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
-                                {stats.catches} catches
-                              </span>
-                            )}
-                            {stats.runOuts !== undefined && (
-                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">
-                                {stats.runOuts} run outs
-                              </span>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-
-                  {/* Result & Rating */}
-                  <div className="flex md:flex-col md:items-end justify-between md:justify-start">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getResultColor(performance.match.result)}`}>
-                      {performance.match.result}
-                    </span>
-                    
-                    <div className="flex items-center mt-2">
-                      <Star className={`w-4 h-4 mr-1 ${getRatingColor(recalculatedRating)}`} />
-                      <span className={`text-sm font-semibold ${getRatingColor(recalculatedRating)}`}>
-                        {recalculatedRating.toFixed(1)}
-                      </span>
-                      {Math.abs(recalculatedRating - (performance.rating || 7.0)) > 0.1 && (
-                        <span className="ml-1 text-xs text-gray-500">
-                          (updated)
-                        </span>
-                      )}
-                    </div>
+      {/* Add Match Form */}
+      <AnimatePresence>
+        {isAddingMatch && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className="card-modern glass p-6 space-y-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">New Match Details</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Match Date
+                  </label>
+                  <div className="relative">
+                    <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="date"
+                      value={newMatch.matchDate}
+                      onChange={(e) => setNewMatch({ ...newMatch, matchDate: e.target.value })}
+                      className="input-modern pl-10"
+                    />
                   </div>
                 </div>
 
-                {/* Expanded Details */}
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="mt-4 pt-4 border-t border-gray-200"
-                    >
-                      {/* Performance Insights */}
-                      {insights.length > 0 && (
-                        <div className="mb-4">
-                          <h4 className="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                            <TrendingUp className="w-4 h-4 mr-1" />
-                            Performance Insights
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {insights.map((insight, idx) => (
-                              <span
-                                key={idx}
-                                className="px-2 py-1 bg-indigo-50 text-indigo-800 rounded text-xs font-medium"
-                              >
-                                {insight}
-                              </span>
-                            ))}
-                          </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Match Type
+                  </label>
+                  <select
+                    value={newMatch.matchType}
+                    onChange={(e) => setNewMatch({ ...newMatch, matchType: e.target.value })}
+                    className="input-modern select-modern"
+                  >
+                    <option value="FRIENDLY">Friendly</option>
+                    <option value="LEAGUE">League</option>
+                    <option value="TOURNAMENT">Tournament</option>
+                    <option value="PRACTICE">Practice</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Venue
+                  </label>
+                  <div className="relative">
+                    <FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      value={newMatch.venue}
+                      onChange={(e) => setNewMatch({ ...newMatch, venue: e.target.value })}
+                      placeholder="Enter venue"
+                      className="input-modern pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Result
+                  </label>
+                  <select
+                    value={newMatch.result}
+                    onChange={(e) => setNewMatch({ ...newMatch, result: e.target.value })}
+                    className="input-modern select-modern"
+                  >
+                    <option value="WON">Won</option>
+                    <option value="LOST">Lost</option>
+                    <option value="DRAW">Draw</option>
+                    <option value="NO_RESULT">No Result</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Batting Stats */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <FiTarget className="text-blue-600" />
+                  Batting Performance
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Runs Scored
+                    </label>
+                    <input
+                      type="number"
+                      value={newMatch.runsScored}
+                      onChange={(e) => setNewMatch({ ...newMatch, runsScored: parseInt(e.target.value) || 0 })}
+                      className="input-modern text-center"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Balls Faced
+                    </label>
+                    <input
+                      type="number"
+                      value={newMatch.ballsFaced}
+                      onChange={(e) => setNewMatch({ ...newMatch, ballsFaced: parseInt(e.target.value) || 0 })}
+                      className="input-modern text-center"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Fours
+                    </label>
+                    <input
+                      type="number"
+                      value={newMatch.fours}
+                      onChange={(e) => setNewMatch({ ...newMatch, fours: parseInt(e.target.value) || 0 })}
+                      className="input-modern text-center"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Sixes
+                    </label>
+                    <input
+                      type="number"
+                      value={newMatch.sixes}
+                      onChange={(e) => setNewMatch({ ...newMatch, sixes: parseInt(e.target.value) || 0 })}
+                      className="input-modern text-center"
+                      min="0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bowling Stats */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <FiTrendingUp className="text-green-600" />
+                  Bowling Performance
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Wickets Taken
+                    </label>
+                    <input
+                      type="number"
+                      value={newMatch.wicketsTaken}
+                      onChange={(e) => setNewMatch({ ...newMatch, wicketsTaken: parseInt(e.target.value) || 0 })}
+                      className="input-modern text-center"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Overs Bowled
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={newMatch.oversBowled}
+                      onChange={(e) => setNewMatch({ ...newMatch, oversBowled: parseFloat(e.target.value) || 0 })}
+                      className="input-modern text-center"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Runs Conceded
+                    </label>
+                    <input
+                      type="number"
+                      value={newMatch.runsConceded}
+                      onChange={(e) => setNewMatch({ ...newMatch, runsConceded: parseInt(e.target.value) || 0 })}
+                      className="input-modern text-center"
+                      min="0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Fielding Stats */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <FiUsers className="text-purple-600" />
+                  Fielding Performance
+                </h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Catches
+                    </label>
+                    <input
+                      type="number"
+                      value={newMatch.catches}
+                      onChange={(e) => setNewMatch({ ...newMatch, catches: parseInt(e.target.value) || 0 })}
+                      className="input-modern text-center"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Run Outs
+                    </label>
+                    <input
+                      type="number"
+                      value={newMatch.runOuts}
+                      onChange={(e) => setNewMatch({ ...newMatch, runOuts: parseInt(e.target.value) || 0 })}
+                      className="input-modern text-center"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Stumpings
+                    </label>
+                    <input
+                      type="number"
+                      value={newMatch.stumpings}
+                      onChange={(e) => setNewMatch({ ...newMatch, stumpings: parseInt(e.target.value) || 0 })}
+                      className="input-modern text-center"
+                      min="0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notes
+                </label>
+                <textarea
+                  value={newMatch.notes}
+                  onChange={(e) => setNewMatch({ ...newMatch, notes: e.target.value })}
+                  placeholder="Add any additional notes about your performance..."
+                  className="input-modern"
+                  rows={3}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleAddMatch}
+                  className="btn-modern bg-green-600 text-white hover:bg-green-700 flex-1"
+                >
+                  Save Match
+                </button>
+                <button
+                  onClick={() => {
+                    setIsAddingMatch(false);
+                    setNewMatch({
+                      matchDate: new Date().toISOString().split("T")[0],
+                      matchType: "FRIENDLY",
+                      venue: "",
+                      result: "WON",
+                      runsScored: 0,
+                      ballsFaced: 0,
+                      fours: 0,
+                      sixes: 0,
+                      wicketsTaken: 0,
+                      oversBowled: 0,
+                      runsConceded: 0,
+                      catches: 0,
+                      runOuts: 0,
+                      stumpings: 0,
+                      notes: "",
+                    });
+                  }}
+                  className="btn-modern bg-gray-200 text-gray-700 hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Matches List */}
+      <div className="space-y-4">
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <div className="spinner" />
+          </div>
+        ) : performances.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-12 card-modern"
+          >
+            <Trophy className="mx-auto h-16 w-16 text-gray-300 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No matches recorded yet</h3>
+            <p className="text-gray-600">Start tracking your match performances to see your progress!</p>
+          </motion.div>
+        ) : (
+          <AnimatePresence>
+            {performances.map((performance, index) => {
+              const stats = parseStats(performance.stats);
+              const isExpanded = expandedMatch === performance.id;
+              const insights = getPerformanceInsights(performance);
+              const recalculatedRating = recalculateRating(performance);
+              
+              return (
+                <motion.div
+                  key={performance.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="card-modern match-card"
+                >
+                  <div
+                    className="p-6 cursor-pointer"
+                    onClick={() => toggleExpanded(performance.id)}
+                  >
+                    {/* Match Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-2">
+                          <motion.div
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              performance.match.result === "WON"
+                                ? "bg-green-100 text-green-800"
+                                : performance.match.result === "LOST"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            {performance.match.result}
+                          </motion.div>
+                          <span className="text-sm text-gray-600">
+                            {format(parseISO(performance.match.matchDate), "MMM dd, yyyy")}
+                          </span>
+                          <span className="text-sm text-gray-600">•</span>
+                          <span className="text-sm text-gray-600">{performance.match.matchType}</span>
                         </div>
-                      )}
-
-                      {/* Detailed Stats */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        {/* Batting Stats */}
-                        {(playerRole === "BATSMAN" || playerRole === "ALL_ROUNDER" || playerRole === "KEEPER") && (
-                          <div className="bg-white rounded-lg p-3 border">
-                            <h4 className="text-sm font-medium text-gray-800 mb-2">Batting</h4>
-                            <div className="space-y-1 text-xs">
-                              <div className="flex justify-between">
-                                <span className="text-gray-700">Runs:</span>
-                                <span className="font-medium text-gray-900">{stats.runs || 0}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-700">Balls:</span>
-                                <span className="font-medium text-gray-900">{stats.balls || 0}</span>
-                              </div>
-                              {stats.balls > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-700">Strike Rate:</span>
-                                  <span className="font-medium text-gray-900">{((stats.runs / stats.balls) * 100).toFixed(1)}</span>
-                                </div>
-                              )}
-                              <div className="flex justify-between">
-                                <span className="text-gray-700">Boundaries:</span>
-                                <span className="font-medium text-gray-900">{(stats.fours || 0) + (stats.sixes || 0)}</span>
-                              </div>
-                              {stats.notOut && (
-                                <div className="text-green-600 font-medium">Not Out</div>
-                              )}
-                            </div>
+                        
+                        <div className="flex items-center gap-6">
+                          <div className="flex items-center gap-2">
+                            <FiMapPin className="text-gray-400 w-4 h-4" />
+                            <span className="text-sm text-gray-700">{performance.match.venue || "Not specified"}</span>
                           </div>
-                        )}
-
-                        {/* Bowling Stats */}
-                        {(playerRole === "BOWLER" || playerRole === "ALL_ROUNDER") && (
-                          <div className="bg-white rounded-lg p-3 border">
-                            <h4 className="text-sm font-medium text-gray-800 mb-2">Bowling</h4>
-                            <div className="space-y-1 text-xs">
-                              <div className="flex justify-between">
-                                <span className="text-gray-700">Wickets:</span>
-                                <span className="font-medium text-gray-900">{stats.wickets || 0}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-700">Overs:</span>
-                                <span className="font-medium text-gray-900">{stats.overs || 0}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-700">Runs:</span>
-                                <span className="font-medium text-gray-900">{stats.runsConceded || 0}</span>
-                              </div>
-                              {stats.overs > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-700">Economy:</span>
-                                  <span className="font-medium text-gray-900">{((stats.runsConceded || 0) / stats.overs).toFixed(2)}</span>
-                                </div>
-                              )}
-                              <div className="flex justify-between">
-                                <span className="text-gray-700">Maidens:</span>
-                                <span className="font-medium text-gray-900">{stats.maidens || 0}</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Fielding Stats */}
-                        <div className="bg-white rounded-lg p-3 border">
-                          <h4 className="text-sm font-medium text-gray-800 mb-2">Fielding</h4>
-                          <div className="space-y-1 text-xs">
-                            <div className="flex justify-between">
-                              <span className="text-gray-700">Catches:</span>
-                              <span className="font-medium text-gray-900">{stats.catches || 0}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-700">Run Outs:</span>
-                              <span className="font-medium text-gray-900">{stats.runOuts || 0}</span>
-                            </div>
-                            {playerRole === "KEEPER" && (
-                              <div className="flex justify-between">
-                                <span className="text-gray-700">Stumpings:</span>
-                                <span className="font-medium text-gray-900">{stats.stumpings || 0}</span>
-                              </div>
+                          
+                          {/* Key Stats Preview */}
+                          <div className="flex items-center gap-4 text-sm">
+                            {stats.runs !== undefined && (
+                              <span className="text-gray-700">
+                                <span className="font-semibold">{stats.runs}</span> runs
+                              </span>
+                            )}
+                            {stats.wickets !== undefined && (
+                              <span className="text-gray-700">
+                                <span className="font-semibold">{stats.wickets}</span> wickets
+                              </span>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      {/* Notes */}
-                      {performance.notes && (
-                        <div className="bg-gray-50 rounded-lg p-3">
-                          <h4 className="text-sm font-medium text-gray-800 mb-1">Notes</h4>
-                          <p className="text-sm text-gray-700">{performance.notes}</p>
+                      {/* Rating Display */}
+                      <div className="flex items-center gap-4">
+                        <motion.div
+                          className="text-center"
+                          whileHover={{ scale: 1.1 }}
+                          transition={{ type: "spring", bounce: 0.5 }}
+                        >
+                          <div className={`text-4xl font-bold bg-gradient-to-r ${getRatingColor(recalculatedRating)} bg-clip-text text-transparent`}>
+                            {recalculatedRating.toFixed(1)}
+                          </div>
+                          <div className="text-xs text-gray-600 font-medium">{getRatingLabel(recalculatedRating)}</div>
+                        </motion.div>
+                        
+                        <motion.div
+                          animate={{ rotate: isExpanded ? 180 : 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="text-gray-400"
+                        >
+                          <FiChevronDown className="w-5 h-5" />
+                        </motion.div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expanded Content */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-6 pb-6 space-y-4 border-t border-gray-100 pt-4">
+                          {/* Performance Summary */}
+                          {insights.length > 0 && (
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
+                              <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                <FiAward className="text-blue-600" />
+                                Performance Summary
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {insights.map((insight: string, idx: number) => (
+                                  <motion.span
+                                    key={idx}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    className="badge-modern badge-gradient text-xs"
+                                  >
+                                    {insight}
+                                  </motion.span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Detailed Stats */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Batting Stats */}
+                            {(stats.runs !== undefined && stats.balls !== undefined) && (
+                              <div className="bg-blue-50 rounded-xl p-4">
+                                <h5 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                                  <FiTarget className="w-4 h-4" />
+                                  Batting
+                                </h5>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-700">Runs</span>
+                                    <span className="font-semibold text-gray-900">{stats.runs}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-700">Balls</span>
+                                    <span className="font-semibold text-gray-900">{stats.balls}</span>
+                                  </div>
+                                  {stats.balls > 0 && (
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-700">Strike Rate</span>
+                                      <span className="font-semibold text-gray-900">
+                                        {((stats.runs / stats.balls) * 100).toFixed(1)}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-700">Boundaries</span>
+                                    <span className="font-semibold text-gray-900">
+                                      {stats.fours}×4, {stats.sixes}×6
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Bowling Stats */}
+                            {(stats.wickets !== undefined && stats.overs !== undefined) && (
+                              <div className="bg-green-50 rounded-xl p-4">
+                                <h5 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
+                                  <FiTrendingUp className="w-4 h-4" />
+                                  Bowling
+                                </h5>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-700">Wickets</span>
+                                    <span className="font-semibold text-gray-900">{stats.wickets}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-700">Overs</span>
+                                    <span className="font-semibold text-gray-900">{stats.overs}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-700">Runs</span>
+                                    <span className="font-semibold text-gray-900">{stats.runsConceded}</span>
+                                  </div>
+                                  {stats.overs > 0 && (
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-700">Economy</span>
+                                      <span className="font-semibold text-gray-900">
+                                        {(stats.runsConceded / stats.overs).toFixed(2)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Fielding Stats */}
+                            {(stats.catches !== undefined || stats.runOuts !== undefined) && (
+                              <div className="bg-purple-50 rounded-xl p-4">
+                                <h5 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                                  <FiUsers className="w-4 h-4" />
+                                  Fielding
+                                </h5>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-700">Catches</span>
+                                    <span className="font-semibold text-gray-900">{stats.catches}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-700">Run Outs</span>
+                                    <span className="font-semibold text-gray-900">{stats.runOuts}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Performance Insights */}
+                          {insights.length > 0 && (
+                            <div className="space-y-2">
+                              <h5 className="font-semibold text-gray-900">Key Insights</h5>
+                              <div className="flex flex-wrap gap-2">
+                                {insights.map((insight: string, idx: number) => (
+                                  <motion.span
+                                    key={idx}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    className="badge-modern badge-gradient text-xs"
+                                  >
+                                    {insight}
+                                  </motion.span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Notes */}
+                          {performance.notes && (
+                            <div className="bg-gray-50 rounded-xl p-4">
+                              <h5 className="font-semibold text-gray-900 mb-2">Notes</h5>
+                              <p className="text-sm text-gray-700">{performance.notes}</p>
+                            </div>
+                          )}
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-2 pt-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDeleteConfirm(performance);
+                              }}
+                              className="btn-modern bg-red-100 text-red-700 hover:bg-red-200 flex items-center gap-2"
+                            >
+                              <FiTrash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                          </div>
                         </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        )}
+      </div>
 
       {/* Modals */}
       <AddMatchModal

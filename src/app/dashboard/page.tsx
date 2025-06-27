@@ -3,7 +3,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart } from "react-icons/fi";
+import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight } from "react-icons/fi";
 import { Check } from "lucide-react";
 import { Badge, Student } from "@prisma/client";
 
@@ -30,11 +30,18 @@ interface ProfileData {
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-      className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full"
-    />
+    <div className="relative">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full"
+      />
+      <motion.div
+        animate={{ scale: [1, 1.2, 1] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-blue-600 rounded-full opacity-30"
+      />
+    </div>
   </div>
 );
 
@@ -43,16 +50,23 @@ const TabButton = ({ text, icon, active, onClick }: { text: string, icon: React.
     onClick={onClick}
     whileHover={{ scale: 1.05 }}
     whileTap={{ scale: 0.95 }}
-    className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-300 ${
+    className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-300 ${
       active 
-        ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25' 
-        : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+        ? 'text-white' 
+        : 'text-gray-600 hover:text-purple-600'
     }`}
   >
-    <div className="mb-1">
+    {active && (
+      <motion.div
+        layoutId="activeTab"
+        className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg shadow-purple-500/25"
+        transition={{ type: "spring", bounce: 0.25, duration: 0.6 }}
+      />
+    )}
+    <div className={`relative mb-1 ${active ? 'animate-bounce' : ''}`}>
       {icon}
     </div>
-    <span className="text-xs font-medium">{text}</span>
+    <span className="relative text-xs font-medium">{text}</span>
   </motion.button>
 );
 
@@ -341,11 +355,11 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center"
+          className="text-center glass p-8 rounded-3xl max-w-md"
         >
           <PeakPlayLogo size="large" variant="gradient" className="mb-8" />
           <motion.h2 
-            className="text-3xl font-bold text-gray-900 mb-4"
+            className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -367,7 +381,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
-            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+            className="btn-gradient btn-modern text-white font-semibold"
           >
             Complete Profile
           </motion.button>
@@ -378,91 +392,152 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md mx-auto text-center">
-          <h2 className="text-3xl font-bold text-red-600">Error</h2>
-          <p className="mt-2 text-sm text-gray-600">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md mx-auto text-center glass p-8 rounded-3xl"
+        >
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 0.5 }}
+            className="text-6xl mb-4"
+          >
+            ⚠️
+          </motion.div>
+          <h2 className="text-3xl font-bold text-red-600 mb-2">Error</h2>
+          <p className="text-sm text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="btn-modern bg-red-600 text-white hover:bg-red-700"
           >
             Try Again
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   const renderAthleteContent = () => {
   return (
-      <div className="space-y-6">
+      <div className="space-y-6 stagger-children">
         {(() => {
           switch(activeTab) {
             case 'skillsnap':
               return (
                 <motion.div 
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-purple-100"
+                  className="card-modern glass"
                   whileHover={{ y: -5 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-4">
-                      <FiActivity className="w-6 h-6 text-white" />
+                  <div className="p-6">
+                    <div className="flex items-center mb-6">
+                      <motion.div 
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.6 }}
+                        className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"
+                      >
+                        <FiActivity className="w-6 h-6 text-white" />
+                      </motion.div>
+                      <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                        Skill Tracking
+                      </h2>
                     </div>
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                      Skill Tracking
-                    </h2>
+                    <SkillSnap />
                   </div>
-                  <SkillSnap />
                 </motion.div>
               );
             case 'matches':
               return (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                    <FiTarget className="mr-2 text-green-600" />
-                    Recent Match Scores
-                  </h2>
-                  <RecentMatchScores />
-            </div>
+                <motion.div 
+                  className="card-modern"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div className="p-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                      <motion.div
+                        whileHover={{ scale: 1.2 }}
+                        className="mr-2"
+                      >
+                        <FiTarget className="text-green-600" />
+                      </motion.div>
+                      Recent Match Scores
+                    </h2>
+                    <RecentMatchScores />
+                  </div>
+                </motion.div>
               );
             case 'badges':
               return (
                 <motion.div 
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-purple-100"
+                  className="card-modern glass"
                   whileHover={{ y: -5 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mr-4">
-                      <FiAward className="w-6 h-6 text-white" />
+                  <div className="p-6">
+                    <div className="flex items-center mb-6">
+                      <motion.div 
+                        animate={{ rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"
+                      >
+                        <FiAward className="w-6 h-6 text-white" />
+                      </motion.div>
+                      <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                        Your Badges
+                      </h2>
                     </div>
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
-                      Your Badges
-                    </h2>
+                    <BadgeDisplay />
                   </div>
-                  <BadgeDisplay />
                 </motion.div>
               );
             case 'feedback':
               return (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                    <FiMessageSquare className="mr-2 text-blue-600" />
-                    Coach Feedback
-                  </h2>
-                  <CoachFeedback />
-                </div>
+                <motion.div 
+                  className="card-modern"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div className="p-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                      <motion.div
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="mr-2"
+                      >
+                        <FiMessageSquare className="text-blue-600" />
+                      </motion.div>
+                      Coach Feedback
+                    </h2>
+                    <CoachFeedback />
+                  </div>
+                </motion.div>
               );
             case 'todo':
               return (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                    <FiCheckSquare className="mr-2 text-indigo-600" />
-                    Training To-Do
-                  </h2>
-                  <SessionTodoStudent studentId={profileData?.id || ''} coachName={profileData?.name || ''} />
-              </div>
+                <motion.div 
+                  className="card-modern"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div className="p-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                      <motion.div
+                        whileHover={{ rotate: 180 }}
+                        transition={{ duration: 0.3 }}
+                        className="mr-2"
+                      >
+                        <FiCheckSquare className="text-indigo-600" />
+                      </motion.div>
+                      Training To-Do
+                    </h2>
+                    <SessionTodoStudent studentId={profileData?.id || ''} coachName={profileData?.name || ''} />
+                  </div>
+                </motion.div>
               );
             default:
               return null;
@@ -475,6 +550,219 @@ export default function Dashboard() {
   const renderCoachContent = () => {
     switch(activeTab) {
       case 'overview':
+        return (
+          <div className="space-y-6 stagger-children">
+            {/* Success/Error Messages */}
+            <AnimatePresence>
+              {successMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="glass bg-green-50/80 border border-green-200 rounded-2xl p-4"
+                >
+                  <div className="flex items-center">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", bounce: 0.5 }}
+                      className="flex-shrink-0"
+                    >
+                      <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-green-800">{successMessage}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="glass bg-red-50/80 border border-red-200 rounded-2xl p-4"
+                >
+                  <div className="flex items-center">
+                    <motion.div
+                      animate={{ rotate: [0, 10, -10, 0] }}
+                      transition={{ duration: 0.5 }}
+                      className="flex-shrink-0"
+                    >
+                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-red-800">{error}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <motion.div 
+                className="card-gradient card-modern"
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Students</p>
+                      <motion.p 
+                        className="text-3xl font-bold text-gray-900 mt-1"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", bounce: 0.5 }}
+                      >
+                        {assignedStudents.length}
+                      </motion.p>
+                    </div>
+                    <motion.div
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
+                      className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center"
+                    >
+                      <FiUsers className="w-6 h-6 text-white" />
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="card-gradient card-modern"
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Active Sessions</p>
+                      <motion.p 
+                        className="text-3xl font-bold text-gray-900 mt-1"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", bounce: 0.5, delay: 0.1 }}
+                      >
+                        {assignedStudents.length * 2}
+                      </motion.p>
+                    </div>
+                    <motion.div
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center"
+                    >
+                      <FiActivity className="w-6 h-6 text-white" />
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="card-gradient card-modern"
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Badges Awarded</p>
+                      <motion.p 
+                        className="text-3xl font-bold text-gray-900 mt-1"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
+                      >
+                        {badges.length}
+                      </motion.p>
+                    </div>
+                    <motion.div
+                      animate={{ rotate: [0, 10, -10, 0] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center"
+                    >
+                      <FiAward className="w-6 h-6 text-white" />
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Quick Actions */}
+            <motion.div 
+              className="card-modern p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <motion.button
+                  onClick={() => setActiveTab('students')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all duration-300"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                      <FiUsers className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="font-semibold text-gray-900">Manage Students</h4>
+                      <p className="text-sm text-gray-600">View and assign students</p>
+                    </div>
+                  </div>
+                  <FiChevronRight className="w-5 h-5 text-gray-400" />
+                </motion.button>
+
+                <motion.button
+                  onClick={() => setActiveTab('badges')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl hover:from-yellow-100 hover:to-orange-100 transition-all duration-300"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-500 to-orange-600 flex items-center justify-center">
+                      <FiAward className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="font-semibold text-gray-900">Badge Manager</h4>
+                      <p className="text-sm text-gray-600">Create and award badges</p>
+                    </div>
+                  </div>
+                  <FiChevronRight className="w-5 h-5 text-gray-400" />
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl hover:from-green-100 hover:to-emerald-100 transition-all duration-300"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center">
+                      <FiCalendar className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="font-semibold text-gray-900">Schedule Session</h4>
+                      <p className="text-sm text-gray-600">Plan training sessions</p>
+                    </div>
+                  </div>
+                  <FiChevronRight className="w-5 h-5 text-gray-400" />
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        );
+
+      case 'students':
         return (
           <div className="space-y-6">
             {/* Success/Error Messages */}
@@ -506,241 +794,6 @@ export default function Dashboard() {
               </div>
             </div>
                         </div>
-            )}
-            
-            {/* Welcome Section */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
-              <div className="flex items-center justify-between">
-                        <div>
-                  <h1 className="text-3xl font-bold mb-2">Welcome back, Coach {profileData?.name}!</h1>
-                  <p className="text-blue-100">
-                    {profileData?.academy ? `${profileData.academy} Academy` : 'Your coaching dashboard'}
-                  </p>
-                        </div>
-                <div className="hidden md:block">
-                  <FiActivity className="w-16 h-16 text-blue-200" />
-                      </div>
-                            </div>
-                        </div>
-                        
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                      <FiUsers className="w-6 h-6 text-blue-600" />
-                            </div>
-                          </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Assigned Students</p>
-                    <p className="text-2xl font-bold text-gray-900">{assignedStudents?.length || 0}</p>
-                        </div>
-                            </div>
-                          </div>
-
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                      <FiPlusCircle className="w-6 h-6 text-green-600" />
-                        </div>
-                      </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Available Students</p>
-                    <p className="text-2xl font-bold text-gray-900">{availableStudents?.length || 0}</p>
-                  </div>
-                    </div>
-                  </div>
-
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                      <FiAward className="w-6 h-6 text-yellow-600" />
-                            </div>
-                            </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Badges Created</p>
-                    <p className="text-2xl font-bold text-gray-900">{badges?.length || 0}</p>
-                          </div>
-                        </div>
-                      </div>
-
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                      <FiTarget className="w-6 h-6 text-purple-600" />
-                            </div>
-                            </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Academy</p>
-                    <p className="text-lg font-bold text-gray-900">{profileData?.academy || 'Not Set'}</p>
-                          </div>
-                        </div>
-                        </div>
-                      </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <FiActivity className="mr-2 text-blue-600" />
-                Quick Actions
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <button
-                  onClick={() => setActiveTab('students')}
-                  className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors group"
-                >
-                  <FiUsers className="w-8 h-8 text-blue-600 mr-3" />
-                  <div className="text-left">
-                    <h3 className="font-semibold text-gray-900 group-hover:text-blue-700">Manage Students</h3>
-                    <p className="text-sm text-gray-600">Assign and view students</p>
-                    </div>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('badges')}
-                  className="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors group"
-                >
-                  <FiAward className="w-8 h-8 text-yellow-600 mr-3" />
-                  <div className="text-left">
-                    <h3 className="font-semibold text-gray-900 group-hover:text-yellow-700">Badge System</h3>
-                    <p className="text-sm text-gray-600">Create and manage badges</p>
-                          </div>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('skillsnap')}
-                  className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group"
-                >
-                  <FiTrendingUp className="w-8 h-8 text-green-600 mr-3" />
-                  <div className="text-left">
-                    <h3 className="font-semibold text-gray-900 group-hover:text-green-700">SkillSnap</h3>
-                    <p className="text-sm text-gray-600">Track student progress</p>
-                          </div>
-                </button>
-                        </div>
-                      </div>
-
-            {/* Recent Activity Summary */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <FiActivity className="mr-2 text-blue-600" />
-                Recent Activity
-              </h2>
-              <div className="space-y-4">
-                {assignedStudents?.length > 0 ? (
-                  <>
-                    <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <FiUsers className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <div>
-                          <h3 className="font-semibold text-gray-900">Student Management</h3>
-                          <p className="text-sm text-gray-600">You have {assignedStudents.length} students assigned</p>
-                            </div>
-                          </div>
-                      <button
-                        onClick={() => setActiveTab('students')}
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                      >
-                        Manage →
-                      </button>
-                        </div>
-                    
-                    <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
-                          <FiAward className="w-6 h-6 text-yellow-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">Badge System</h3>
-                          <p className="text-sm text-gray-600">Track and reward student achievements</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setActiveTab('badges')}
-                        className="text-yellow-600 hover:text-yellow-800 font-medium text-sm"
-                      >
-                        Create →
-                      </button>
-                      </div>
-
-                    <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                          <FiTrendingUp className="w-6 h-6 text-green-600" />
-                      </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">SkillSnap Analytics</h3>
-                          <p className="text-sm text-gray-600">Monitor student progress and performance</p>
-                    </div>
-                  </div>
-                      <button
-                        onClick={() => setActiveTab('skillsnap')}
-                        className="text-green-600 hover:text-green-800 font-medium text-sm"
-                      >
-                        View →
-                      </button>
-                    </div>
-
-
-                  </>
-                ) : (
-                  <div className="text-center py-8">
-                    <FiActivity className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-lg font-medium text-gray-900">Get Started</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Assign students and start tracking their progress
-                    </p>
-                            <button
-                      onClick={() => setActiveTab('students')}
-                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                      Manage Students
-                            </button>
-                          </div>
-                )}
-                        </div>
-                      </div>
-                    </div>
-        );
-
-      case 'students':
-        return (
-          <div className="space-y-6">
-            {/* Success/Error Messages */}
-            {successMessage && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-green-800">{successMessage}</p>
-                      </div>
-                    </div>
-                      </div>
-            )}
-            
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                      </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-red-800">{error}</p>
-                    </div>
-                  </div>
-              </div>
             )}
             
             {/* Assigned Students */}
