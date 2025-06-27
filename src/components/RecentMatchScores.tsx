@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { Plus, MapPin, Camera, ChevronDown, Edit, Trash2, MoreVertical, AlertTriangle, Star, Trophy, Calendar } from 'lucide-react';
+import { Plus, MapPin, Camera, ChevronDown, Edit, Trash2, MoreVertical, AlertTriangle, Star, Trophy, Calendar, X, ChevronUp, Target, Shield, Users, BarChart2, TrendingUp } from 'lucide-react';
 import AddMatchModal from './AddMatchModal';
 import MatchDetailsModal from './MatchDetailsModal';
 import ScorecardUploadModal from './ScorecardUploadModal';
 import EditMatchModal from './EditMatchModal';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MatchRatingAlgorithm } from "@/lib/matchRatingAlgorithm";
 
 export interface MatchPerformance {
   id: string;
@@ -50,6 +51,7 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const { data: session } = useSession();
   const [playerRole, setPlayerRole] = useState("BATSMAN");
+  const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
 
   const fetchPlayerRole = async () => {
     try {
@@ -257,6 +259,32 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
     }
   };
 
+  const toggleExpanded = (matchId: string) => {
+    setExpandedMatch(expandedMatch === matchId ? null : matchId);
+  };
+
+  const recalculateRating = (performance: MatchPerformance) => {
+    const stats = parseStats(performance.stats);
+    const context = {
+      matchType: performance.match.matchType,
+      result: performance.match.result,
+      role: performance.student?.role || playerRole || "BATSMAN"
+    };
+    
+    return MatchRatingAlgorithm.calculateRating(stats, context);
+  };
+
+  const getPerformanceInsights = (performance: MatchPerformance) => {
+    const stats = parseStats(performance.stats);
+    const context = {
+      matchType: performance.match.matchType,
+      result: performance.match.result,
+      role: performance.student?.role || playerRole || "BATSMAN"
+    };
+    
+    return MatchRatingAlgorithm.getPerformanceInsights(stats, context);
+  };
+
   if (loading) {
     return (
       <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -288,15 +316,15 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
             </button>
             
             {showAddDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-10">
+              <div className="absolute right-0 top-12 bg-white rounded-lg shadow-xl border z-10 min-w-48">
                 <button
                   onClick={() => {
                     setIsAddModalOpen(true);
                     setShowAddDropdown(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-gray-700 font-medium"
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center text-gray-700 border-b"
                 >
-                  <Plus className="w-4 h-4 mr-2 text-gray-600" />
+                  <BarChart2 className="w-4 h-4 mr-3 text-indigo-500" />
                   Manual Entry
                 </button>
                 <button
@@ -304,9 +332,9 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                     setIsScorecardModalOpen(true);
                     setShowAddDropdown(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center border-t text-gray-700 font-medium"
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center text-gray-700"
                 >
-                  <Camera className="w-4 h-4 mr-2 text-gray-600" />
+                  <Target className="w-4 h-4 mr-3 text-green-500" />
                   Upload Scorecard
                 </button>
               </div>
@@ -317,8 +345,15 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
 
       {/* Error Display */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-600 text-sm">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -340,159 +375,304 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
         </div>
       ) : (
         <div className="space-y-4">
-          {performances.map((performance) => (
-            <motion.div
-              key={performance.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all duration-200 relative bg-gray-50/30"
-            >
-              {/* Match Actions Dropdown */}
-              {!isCoachView && (
-                <div className="absolute top-4 right-4">
-                  <button
-                    onClick={() => setActiveDropdown(activeDropdown === performance.id ? null : performance.id)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <MoreVertical className="w-4 h-4 text-gray-500" />
-                  </button>
-                  
-                  {activeDropdown === performance.id && (
-                    <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border z-10">
-                      <button
-                        onClick={() => openEditModal(performance)}
-                        className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center text-sm text-gray-700 font-medium"
-                      >
-                        <Edit className="w-3 h-3 mr-2 text-gray-600" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => openDeleteConfirm(performance)}
-                        className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center text-sm text-red-600 border-t font-medium"
-                      >
-                        <Trash2 className="w-3 h-3 mr-2" />
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Match Info */}
-                <div className="md:col-span-2">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-1 text-lg">
+          {performances.map((performance, index) => {
+            const stats = parseStats(performance.stats);
+            const isExpanded = expandedMatch === performance.id;
+            const insights = getPerformanceInsights(performance);
+            const recalculatedRating = recalculateRating(performance);
+            
+            return (
+              <motion.div
+                key={performance.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-gray-50/30 border border-gray-100 rounded-xl p-4 hover:shadow-md transition-shadow"
+              >
+                {/* Main Match Info */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between">
+                  {/* Match Details */}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">
                         {performance.match.matchName}
-                      </h4>
-                      <p className="text-sm text-gray-600 mb-2 font-medium">
-                        vs {performance.match.opponent}
-                      </p>
-                      <div className="flex items-center text-xs text-gray-500 space-x-4">
-                        <span className="flex items-center">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          {formatDate(performance.match.matchDate)}
-                        </span>
-                        {performance.match.venue && (
-                          <span className="flex items-center">
-                            <MapPin className="w-3 h-3 mr-1" />
-                            {performance.match.venue}
-                          </span>
+                      </h3>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => toggleExpanded(performance.id)}
+                          className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                          )}
+                        </button>
+                        {!isCoachView && (
+                          <div className="relative">
+                            <button
+                              onClick={() => setActiveDropdown(activeDropdown === performance.id ? null : performance.id)}
+                              className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
+                            >
+                              <div className="w-1 h-1 bg-gray-400 rounded-full mb-1"></div>
+                              <div className="w-1 h-1 bg-gray-400 rounded-full mb-1"></div>
+                              <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                            </button>
+                            
+                            {activeDropdown === performance.id && (
+                              <div className="absolute right-0 top-8 bg-white rounded-lg shadow-xl border z-10 min-w-32">
+                                <button
+                                  onClick={() => openEditModal(performance)}
+                                  className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm text-gray-700 border-b"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => openDeleteConfirm(performance)}
+                                  className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm text-red-600"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Stats */}
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    {(() => {
-                      const stats = parseStats(performance.stats);
-                      if (playerRole === "BATSMAN" || playerRole === "ALL_ROUNDER") {
+                    
+                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                      <span className="flex items-center">
+                        <Users className="w-4 h-4 mr-1" />
+                        vs {performance.match.opponent}
+                      </span>
+                      <span className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {formatDate(performance.match.matchDate)}
+                      </span>
+                      <span className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        {performance.match.venue || "Unknown Venue"}
+                      </span>
+                    </div>
+
+                    {/* Key Stats Preview */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {(() => {
+                        if (playerRole === "BATSMAN" || playerRole === "ALL_ROUNDER") {
+                          return (
+                            <>
+                              {stats.runs !== undefined && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">
+                                  {stats.runs} runs
+                                </span>
+                              )}
+                              {stats.balls !== undefined && stats.balls > 0 && (
+                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
+                                  {((stats.runs / stats.balls) * 100).toFixed(1)} SR
+                                </span>
+                              )}
+                              {stats.fours !== undefined && (
+                                <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded font-medium">
+                                  {stats.fours} 4s
+                                </span>
+                              )}
+                              {stats.sixes !== undefined && (
+                                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">
+                                  {stats.sixes} 6s
+                                </span>
+                              )}
+                            </>
+                          );
+                        }
+                        
+                        if (playerRole === "BOWLER" || playerRole === "ALL_ROUNDER") {
+                          return (
+                            <>
+                              {stats.wickets !== undefined && (
+                                <span className="px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
+                                  {stats.wickets} wickets
+                                </span>
+                              )}
+                              {stats.overs !== undefined && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">
+                                  {stats.overs} overs
+                                </span>
+                              )}
+                              {stats.runsConceded !== undefined && (
+                                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">
+                                  {stats.runsConceded} runs
+                                </span>
+                              )}
+                            </>
+                          );
+                        }
+                        
                         return (
                           <>
-                            {stats.runs !== undefined && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">
-                                {stats.runs} runs
-                              </span>
-                            )}
-                            {stats.balls !== undefined && (
+                            {stats.catches !== undefined && (
                               <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
-                                {stats.balls} balls
+                                {stats.catches} catches
                               </span>
                             )}
-                            {stats.fours !== undefined && (
+                            {stats.runOuts !== undefined && (
                               <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">
-                                {stats.fours} fours
-                              </span>
-                            )}
-                            {stats.sixes !== undefined && (
-                              <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded font-medium">
-                                {stats.sixes} sixes
+                                {stats.runOuts} run outs
                               </span>
                             )}
                           </>
                         );
-                      }
-                      
-                      if (playerRole === "BOWLER" || playerRole === "ALL_ROUNDER") {
-                        return (
-                          <>
-                            {stats.wickets !== undefined && (
-                              <span className="px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
-                                {stats.wickets} wickets
-                              </span>
-                            )}
-                            {stats.overs !== undefined && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">
-                                {stats.overs} overs
-                              </span>
-                            )}
-                            {stats.runsConceded !== undefined && (
-                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">
-                                {stats.runsConceded} runs
-                              </span>
-                            )}
-                          </>
-                        );
-                      }
-                      
-                      return (
-                        <>
-                          {stats.catches !== undefined && (
-                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
-                              {stats.catches} catches
-                            </span>
-                          )}
-                          {stats.runOuts !== undefined && (
-                            <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">
-                              {stats.runOuts} run outs
-                            </span>
-                          )}
-                        </>
-                      );
-                    })()}
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Result & Rating */}
+                  <div className="flex md:flex-col md:items-end justify-between md:justify-start">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getResultColor(performance.match.result)}`}>
+                      {performance.match.result}
+                    </span>
+                    
+                    <div className="flex items-center mt-2">
+                      <Star className={`w-4 h-4 mr-1 ${getRatingColor(recalculatedRating)}`} />
+                      <span className={`text-sm font-semibold ${getRatingColor(recalculatedRating)}`}>
+                        {recalculatedRating.toFixed(1)}
+                      </span>
+                      {Math.abs(recalculatedRating - (performance.rating || 7.0)) > 0.1 && (
+                        <span className="ml-1 text-xs text-gray-500">
+                          (updated)
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Result & Rating */}
-                <div className="flex md:flex-col md:items-end justify-between md:justify-start">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getResultColor(performance.match.result)}`}>
-                    {performance.match.result}
-                  </span>
-                  
-                  {performance.rating && (
-                    <div className="flex items-center mt-2">
-                      <Star className={`w-4 h-4 mr-1 ${getRatingColor(performance.rating)}`} />
-                      <span className={`text-sm font-semibold ${getRatingColor(performance.rating)}`}>
-                        {performance.rating.toFixed(1)}
-                      </span>
-                    </div>
+                {/* Expanded Details */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-4 pt-4 border-t border-gray-200"
+                    >
+                      {/* Performance Insights */}
+                      {insights.length > 0 && (
+                        <div className="mb-4">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <TrendingUp className="w-4 h-4 mr-1" />
+                            Performance Insights
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {insights.map((insight, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs"
+                              >
+                                {insight}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Detailed Stats */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        {/* Batting Stats */}
+                        {(playerRole === "BATSMAN" || playerRole === "ALL_ROUNDER" || playerRole === "KEEPER") && (
+                          <div className="bg-white rounded-lg p-3 border">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Batting</h4>
+                            <div className="space-y-1 text-xs">
+                              <div className="flex justify-between">
+                                <span>Runs:</span>
+                                <span className="font-medium">{stats.runs || 0}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Balls:</span>
+                                <span className="font-medium">{stats.balls || 0}</span>
+                              </div>
+                              {stats.balls > 0 && (
+                                <div className="flex justify-between">
+                                  <span>Strike Rate:</span>
+                                  <span className="font-medium">{((stats.runs / stats.balls) * 100).toFixed(1)}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between">
+                                <span>Boundaries:</span>
+                                <span className="font-medium">{(stats.fours || 0) + (stats.sixes || 0)}</span>
+                              </div>
+                              {stats.notOut && (
+                                <div className="text-green-600 font-medium">Not Out</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Bowling Stats */}
+                        {(playerRole === "BOWLER" || playerRole === "ALL_ROUNDER") && (
+                          <div className="bg-white rounded-lg p-3 border">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Bowling</h4>
+                            <div className="space-y-1 text-xs">
+                              <div className="flex justify-between">
+                                <span>Wickets:</span>
+                                <span className="font-medium">{stats.wickets || 0}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Overs:</span>
+                                <span className="font-medium">{stats.overs || 0}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Runs:</span>
+                                <span className="font-medium">{stats.runsConceded || 0}</span>
+                              </div>
+                              {stats.overs > 0 && (
+                                <div className="flex justify-between">
+                                  <span>Economy:</span>
+                                  <span className="font-medium">{((stats.runsConceded || 0) / stats.overs).toFixed(2)}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between">
+                                <span>Maidens:</span>
+                                <span className="font-medium">{stats.maidens || 0}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Fielding Stats */}
+                        <div className="bg-white rounded-lg p-3 border">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Fielding</h4>
+                          <div className="space-y-1 text-xs">
+                            <div className="flex justify-between">
+                              <span>Catches:</span>
+                              <span className="font-medium">{stats.catches || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Run Outs:</span>
+                              <span className="font-medium">{stats.runOuts || 0}</span>
+                            </div>
+                            {playerRole === "KEEPER" && (
+                              <div className="flex justify-between">
+                                <span>Stumpings:</span>
+                                <span className="font-medium">{stats.stumpings || 0}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Notes */}
+                      {performance.notes && (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <h4 className="text-sm font-medium text-gray-700 mb-1">Notes</h4>
+                          <p className="text-sm text-gray-600">{performance.notes}</p>
+                        </div>
+                      )}
+                    </motion.div>
                   )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </div>
       )}
 
@@ -525,50 +705,37 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
       )}
 
       {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {showDeleteConfirm && deletingMatch && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
-            >
-              <div className="flex items-center mb-4">
-                <div className="p-2 bg-red-100 rounded-lg mr-3">
-                  <AlertTriangle className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">Delete Match</h3>
-                  <p className="text-sm text-gray-600">This action cannot be undone</p>
-                </div>
-              </div>
-              
-              <p className="text-gray-700 mb-6">
-                Are you sure you want to delete the match "{deletingMatch.match.matchName}" vs {deletingMatch.match.opponent}?
-              </p>
-              
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setShowDeleteConfirm(false);
-                    setDeletingMatch(null);
-                  }}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteMatch(deletingMatch)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Delete Match
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {showDeleteConfirm && deletingMatch && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-xl p-6 max-w-md mx-4"
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Match</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{deletingMatch.match.matchName}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeletingMatch(null);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteMatch(deletingMatch)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Click outside to close dropdowns */}
       {(showAddDropdown || activeDropdown) && (

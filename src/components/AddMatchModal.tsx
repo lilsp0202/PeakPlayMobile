@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Calendar, MapPin, Trophy, Star, Target, Plus, Shield, Users, BarChart2 } from "lucide-react";
+import { MatchRatingAlgorithm } from "@/lib/matchRatingAlgorithm";
 
 interface AddMatchModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ interface MatchStats {
   catches: number;
   runOuts: number;
   stumpings: number;
+  runsConceded: number;
 }
 
 export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSMAN" }: AddMatchModalProps) {
@@ -59,6 +61,7 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
       catches: 0,
       runOuts: 0,
       stumpings: 0,
+      runsConceded: 0,
     } as MatchStats,
   });
 
@@ -76,8 +79,15 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
       
       // Calculate bowling stats
       if (stats.overs > 0) {
-        stats.economyRate = Number((stats.runs / stats.overs).toFixed(2));
+        stats.economyRate = Number((stats.runsConceded / stats.overs).toFixed(2));
       }
+      
+      // Calculate intelligent rating using the algorithm
+      const calculatedRating = MatchRatingAlgorithm.calculateRating(stats, {
+        matchType: formData.matchType,
+        result: formData.result,
+        role: role || "BATSMAN"
+      });
       
       const matchData = {
         matchName: formData.matchName,
@@ -89,7 +99,7 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
         result: formData.result,
         position: role || "Player",
         stats: stats,
-        rating: 7.0, // Default rating
+        rating: calculatedRating, // Use calculated rating instead of 7.0
         notes: `Performance in ${formData.matchName} vs ${formData.opponent}`
       };
       
@@ -116,6 +126,7 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
           maidens: 0,
           wides: 0,
           noBalls: 0,
+          runsConceded: 0,
           catches: 0,
           runOuts: 0,
           stumpings: 0,
@@ -391,6 +402,17 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
                         type="number"
                         name="stats.noBalls"
                         value={formData.stats.noBalls}
+                        onChange={handleChange}
+                        min="0"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Runs Conceded</label>
+                      <input
+                        type="number"
+                        name="stats.runsConceded"
+                        value={formData.stats.runsConceded}
                         onChange={handleChange}
                         min="0"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
