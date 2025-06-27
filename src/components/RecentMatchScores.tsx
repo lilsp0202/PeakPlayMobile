@@ -558,7 +558,7 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                       {/* Performance Insights */}
                       {insights.length > 0 && (
                         <div className="mb-4">
-                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                          <h4 className="text-sm font-medium text-gray-800 mb-2 flex items-center">
                             <TrendingUp className="w-4 h-4 mr-1" />
                             Performance Insights
                           </h4>
@@ -566,7 +566,7 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                             {insights.map((insight, idx) => (
                               <span
                                 key={idx}
-                                className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs"
+                                className="px-2 py-1 bg-indigo-50 text-indigo-800 rounded text-xs font-medium"
                               >
                                 {insight}
                               </span>
@@ -580,25 +580,25 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                         {/* Batting Stats */}
                         {(playerRole === "BATSMAN" || playerRole === "ALL_ROUNDER" || playerRole === "KEEPER") && (
                           <div className="bg-white rounded-lg p-3 border">
-                            <h4 className="text-sm font-medium text-gray-700 mb-2">Batting</h4>
+                            <h4 className="text-sm font-medium text-gray-800 mb-2">Batting</h4>
                             <div className="space-y-1 text-xs">
                               <div className="flex justify-between">
-                                <span>Runs:</span>
-                                <span className="font-medium">{stats.runs || 0}</span>
+                                <span className="text-gray-700">Runs:</span>
+                                <span className="font-medium text-gray-900">{stats.runs || 0}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span>Balls:</span>
-                                <span className="font-medium">{stats.balls || 0}</span>
+                                <span className="text-gray-700">Balls:</span>
+                                <span className="font-medium text-gray-900">{stats.balls || 0}</span>
                               </div>
                               {stats.balls > 0 && (
                                 <div className="flex justify-between">
-                                  <span>Strike Rate:</span>
-                                  <span className="font-medium">{((stats.runs / stats.balls) * 100).toFixed(1)}</span>
+                                  <span className="text-gray-700">Strike Rate:</span>
+                                  <span className="font-medium text-gray-900">{((stats.runs / stats.balls) * 100).toFixed(1)}</span>
                                 </div>
                               )}
                               <div className="flex justify-between">
-                                <span>Boundaries:</span>
-                                <span className="font-medium">{(stats.fours || 0) + (stats.sixes || 0)}</span>
+                                <span className="text-gray-700">Boundaries:</span>
+                                <span className="font-medium text-gray-900">{(stats.fours || 0) + (stats.sixes || 0)}</span>
                               </div>
                               {stats.notOut && (
                                 <div className="text-green-600 font-medium">Not Out</div>
@@ -610,29 +610,29 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                         {/* Bowling Stats */}
                         {(playerRole === "BOWLER" || playerRole === "ALL_ROUNDER") && (
                           <div className="bg-white rounded-lg p-3 border">
-                            <h4 className="text-sm font-medium text-gray-700 mb-2">Bowling</h4>
+                            <h4 className="text-sm font-medium text-gray-800 mb-2">Bowling</h4>
                             <div className="space-y-1 text-xs">
                               <div className="flex justify-between">
-                                <span>Wickets:</span>
-                                <span className="font-medium">{stats.wickets || 0}</span>
+                                <span className="text-gray-700">Wickets:</span>
+                                <span className="font-medium text-gray-900">{stats.wickets || 0}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span>Overs:</span>
-                                <span className="font-medium">{stats.overs || 0}</span>
+                                <span className="text-gray-700">Overs:</span>
+                                <span className="font-medium text-gray-900">{stats.overs || 0}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span>Runs:</span>
-                                <span className="font-medium">{stats.runsConceded || 0}</span>
+                                <span className="text-gray-700">Runs:</span>
+                                <span className="font-medium text-gray-900">{stats.runsConceded || 0}</span>
                               </div>
                               {stats.overs > 0 && (
                                 <div className="flex justify-between">
-                                  <span>Economy:</span>
-                                  <span className="font-medium">{((stats.runsConceded || 0) / stats.overs).toFixed(2)}</span>
+                                  <span className="text-gray-700">Economy:</span>
+                                  <span className="font-medium text-gray-900">{((stats.runsConceded || 0) / stats.overs).toFixed(2)}</span>
                                 </div>
                               )}
                               <div className="flex justify-between">
-                                <span>Maidens:</span>
-                                <span className="font-medium">{stats.maidens || 0}</span>
+                                <span className="text-gray-700">Maidens:</span>
+                                <span className="font-medium text-gray-900">{stats.maidens || 0}</span>
                               </div>
                             </div>
                           </div>
@@ -640,20 +640,20 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
 
                         {/* Fielding Stats */}
                         <div className="bg-white rounded-lg p-3 border">
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">Fielding</h4>
+                          <h4 className="text-sm font-medium text-gray-800 mb-2">Fielding</h4>
                           <div className="space-y-1 text-xs">
                             <div className="flex justify-between">
-                              <span>Catches:</span>
-                              <span className="font-medium">{stats.catches || 0}</span>
+                              <span className="text-gray-700">Catches:</span>
+                              <span className="font-medium text-gray-900">{stats.catches || 0}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Run Outs:</span>
-                              <span className="font-medium">{stats.runOuts || 0}</span>
+                              <span className="text-gray-700">Run Outs:</span>
+                              <span className="font-medium text-gray-900">{stats.runOuts || 0}</span>
                             </div>
                             {playerRole === "KEEPER" && (
                               <div className="flex justify-between">
-                                <span>Stumpings:</span>
-                                <span className="font-medium">{stats.stumpings || 0}</span>
+                                <span className="text-gray-700">Stumpings:</span>
+                                <span className="font-medium text-gray-900">{stats.stumpings || 0}</span>
                               </div>
                             )}
                           </div>
@@ -663,8 +663,8 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
                       {/* Notes */}
                       {performance.notes && (
                         <div className="bg-gray-50 rounded-lg p-3">
-                          <h4 className="text-sm font-medium text-gray-700 mb-1">Notes</h4>
-                          <p className="text-sm text-gray-600">{performance.notes}</p>
+                          <h4 className="text-sm font-medium text-gray-800 mb-1">Notes</h4>
+                          <p className="text-sm text-gray-700">{performance.notes}</p>
                         </div>
                       )}
                     </motion.div>
