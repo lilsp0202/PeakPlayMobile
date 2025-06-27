@@ -3,7 +3,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiShoppingCart, FiX, FiCalendar, FiBarChart } from "react-icons/fi";
+import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart } from "react-icons/fi";
 import { Check } from "lucide-react";
 import { Badge, Student } from "@prisma/client";
 
@@ -300,7 +300,6 @@ export default function Dashboard() {
     { id: 'badges', label: 'Badges', icon: <FiAward className="w-5 h-5" /> },
     { id: 'feedback', label: 'Feedback', icon: <FiMessageSquare className="w-5 h-5" /> },
     { id: 'todo', label: 'To-Do', icon: <FiCheckSquare className="w-5 h-5" /> },
-    { id: 'marketplace', label: 'Marketplace', icon: <FiShoppingCart className="w-5 h-5" /> },
   ];
 
   const coachTabs = [
@@ -464,28 +463,6 @@ export default function Dashboard() {
                   </h2>
                   <SessionTodoStudent studentId={profileData?.id || ''} coachName={profileData?.name || ''} />
               </div>
-              );
-            case 'marketplace':
-              return (
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg p-6 text-white">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-3xl font-bold mb-2 flex items-center">
-                        <FiShoppingCart className="mr-3 text-purple-200" />
-                        Coach Marketplace
-                      </h2>
-                      <p className="text-purple-100">
-                        {profileData?.role === 'ATHLETE' 
-                          ? 'Find specialized coaches and book training sessions'
-                          : 'Manage your coaching services and bookings'
-                        }
-                      </p>
-                </div>
-                    <div className="hidden md:block">
-                      <FiShoppingCart className="w-16 h-16 text-purple-200" />
-            </div>
-          </div>
-        </div>
               );
             default:
               return null;
@@ -710,23 +687,7 @@ export default function Dashboard() {
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                          <FiShoppingCart className="w-6 h-6 text-purple-600" />
-                            </div>
-                            <div>
-                          <h3 className="font-semibold text-gray-900">Coach Marketplace</h3>
-                          <p className="text-sm text-gray-600">Find specialized coaches and book sessions</p>
-                            </div>
-                          </div>
-                            <button
-                        onClick={() => setActiveTab('marketplace')}
-                        className="text-purple-600 hover:text-purple-800 font-medium text-sm"
-                            >
-                        Browse →
-                            </button>
-                    </div>
+
                   </>
                 ) : (
                   <div className="text-center py-8">
