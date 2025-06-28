@@ -85,7 +85,21 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000', '192.168.1.75:3000'],
       bodySizeLimit: '2mb',
+    },
+    instrumentationHook: false // Disable OpenTelemetry instrumentation
+  },
+  webpack: (config, { isServer }) => {
+    // Fixes npm packages that depend on `fs` module
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      };
     }
+    return config;
   },
   serverExternalPackages: ['bcryptjs'],
   images: {
@@ -174,6 +188,7 @@ const sentryWebpackPluginOptions = {
   silent: true,
   hideSourceMaps: true,
   widenClientFileUpload: true,
+  transpileClientSDK: true,
 };
 
 module.exports = process.env.NODE_ENV === 'production' 

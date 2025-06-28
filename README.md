@@ -4,37 +4,11 @@ A Next.js + Prisma + TypeScript PWA for athlete development.
 
 ## Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - PostgreSQL 14+
 - npm or yarn
 
-## Environment Setup
-
-Create a `.env` file in the root directory with the following variables:
-
-```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/peakplay?schema=public"
-
-# NextAuth.js
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-key"
-
-# JWT
-JWT_SECRET="your-jwt-secret"
-
-# Email (optional)
-EMAIL_SERVER_HOST="smtp.example.com"
-EMAIL_SERVER_PORT=587
-EMAIL_SERVER_USER="user@example.com"
-EMAIL_SERVER_PASSWORD="password"
-EMAIL_FROM="noreply@example.com"
-
-# PWA
-NEXT_PUBLIC_PWA_URL="http://192.168.1.75:3000"
-```
-
-## Installation
+## Quick Start
 
 1. Clone the repository:
    ```bash
@@ -47,44 +21,73 @@ NEXT_PUBLIC_PWA_URL="http://192.168.1.75:3000"
    npm install
    ```
 
-3. Set up the database:
+3. Set up environment variables:
    ```bash
-   npx prisma migrate dev
-   npx prisma generate
+   node scripts/setup-env.js
    ```
 
-4. Run the development server:
+4. Update the `.env` file with your PostgreSQL credentials:
+   ```
+   DATABASE_URL="postgresql://username:password@localhost:5432/peakplay?schema=public"
+   DIRECT_URL="postgresql://username:password@localhost:5432/peakplay?schema=public"
+   ```
+
+5. Initialize the database:
+   ```bash
+   npx prisma generate
+   npx prisma migrate dev
+   ```
+
+6. Start the development server:
    ```bash
    npm run dev
    ```
 
-The application will be available at:
+The app will be available at:
 - Web: http://localhost:3000
-- PWA: http://192.168.1.75:3000
 - Prisma Studio: http://localhost:5555
+- PWA: http://192.168.1.75:3000
+
+## Environment Variables
+
+Required environment variables:
+
+- `DATABASE_URL`: PostgreSQL connection URL
+- `DIRECT_URL`: Direct PostgreSQL connection URL (same as DATABASE_URL for local development)
+- `NEXTAUTH_URL`: Authentication callback URL
+- `NEXTAUTH_SECRET`: Secret for NextAuth.js
+- `JWT_SECRET`: Secret for JWT tokens
+
+Optional environment variables:
+
+- `EMAIL_*`: Email server configuration
+- `SENTRY_*`: Sentry error tracking configuration
+
+See `.env.example` for all available options.
 
 ## Features
 
-- Athlete Development Tracking
-- Skill Assessment
-- Badge System
-- Real-time Progress Monitoring
-- PWA Support
-- Offline Capabilities
+- 🏃‍♂️ Athlete Performance Tracking
+- 📊 Skill Analytics
+- 🎯 Goal Setting
+- 🏆 Achievement Badges
+- 👥 Coach-Student Interaction
+- 📱 Progressive Web App (PWA)
+- 🔒 Secure Authentication
+- 📈 Real-time Progress Monitoring
 
 ## Development
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npx prisma studio` - Open Prisma Studio
+- `npm run dev`: Start development server
+- `npm run build`: Build for production
+- `npm start`: Start production server
+- `npx prisma studio`: Open Prisma database GUI
 
 ## Testing
 
-```bash
-npm run test
-npm run test:e2e
-```
+- `npm test`: Run unit tests
+- `npm run test:e2e`: Run end-to-end tests
+- `npm run test:coverage`: Generate test coverage report
 
 ## Contributing
 
@@ -96,7 +99,7 @@ npm run test:e2e
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🎯 Test Accounts
 
