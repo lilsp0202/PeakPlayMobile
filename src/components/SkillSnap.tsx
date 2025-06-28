@@ -831,28 +831,28 @@ const SkillBar: React.FC<{
 
   return (
     <div 
-      className={`bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 ${onClick ? 'cursor-pointer' : ''}`}
+      className={`bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 ${onClick ? 'cursor-pointer hover:border-gray-300' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className={`p-3 rounded-lg ${skill.colorScheme.background}`}>
+        <div className="flex items-center space-x-4">
+          <div className={`p-3 rounded-xl ${skill.colorScheme.background} shadow-sm`}>
             {skill.icon}
           </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 text-lg">{skill.name}</h4>
-            <p className="text-sm text-gray-500">{skill.description}</p>
+          <div className="flex-1">
+            <h4 className="font-bold text-gray-900 text-lg mb-1">{skill.name}</h4>
+            <p className="text-sm text-gray-600 leading-relaxed">{skill.description}</p>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-purple-600">
+        <div className="text-right ml-4">
+          <div className="text-2xl font-bold text-purple-700">
             {formatValue(score)}
           </div>
         </div>
       </div>
 
       {isEditing ? (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <input
             type="range"
             min={range.min}
@@ -860,38 +860,41 @@ const SkillBar: React.FC<{
             step={range.step}
             value={score}
             onChange={(e) => onScoreChange(skill.id, parseFloat(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+            style={{
+              background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${getPercentage()}%, #e5e7eb ${getPercentage()}%, #e5e7eb 100%)`
+            }}
           />
-          <div className="flex justify-between text-xs text-gray-500">
+          <div className="flex justify-between text-sm font-medium text-gray-600">
             <span>{range.min}</span>
-            <span>{formatValue(score)}</span>
+            <span className="text-purple-700 font-bold">{formatValue(score)}</span>
             <span>{range.max}</span>
           </div>
         </div>
       ) : (
         <div className="space-y-3">
           <div className="relative">
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
               <div
-                className={`h-full ${getProgressColor()} transition-all duration-500 rounded-full relative`}
+                className={`h-full ${getProgressColor()} transition-all duration-500 rounded-full relative shadow-sm`}
                 style={{ width: `${getPercentage()}%` }}
               >
-                <div className="absolute inset-0 bg-white opacity-20"></div>
+                <div className="absolute inset-0 bg-white opacity-20 rounded-full"></div>
               </div>
             </div>
             {showComparison && average > 0 && (
               <div
-                className="absolute top-0 h-3 w-1 bg-gray-600 rounded-full shadow-sm"
+                className="absolute top-0 h-4 w-1 bg-gray-700 rounded-full shadow-sm"
                 style={{ left: `${getAveragePercentage()}%`, transform: 'translateX(-50%)' }}
                 title={`Average: ${formatValue(average)}`}
               />
             )}
           </div>
           {showComparison && average > 0 && (
-            <div className="flex justify-between text-xs text-gray-600">
-              <span>Avg: {formatValue(average)}</span>
+            <div className="flex justify-between text-sm font-medium text-gray-700">
+              <span>Avg: <span className="font-bold">{formatValue(average)}</span></span>
               {personalizedTarget && (
-                <span className="text-blue-600">Target: {formatValue(personalizedTarget)}</span>
+                <span className="text-blue-700 font-bold">Target: {formatValue(personalizedTarget)}</span>
               )}
             </div>
           )}
@@ -1785,38 +1788,40 @@ export default function SkillSnap({
     if (!selectedSkill || !selectedCategory) return null;
 
     return (
-      <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="fixed inset-0 z-[9999] overflow-y-auto backdrop-blur-sm">
         <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
           {/* Background overlay */}
           <div
-            className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"
+            className="fixed inset-0 bg-black bg-opacity-80 transition-opacity duration-300"
             onClick={closeModal}
+            aria-hidden="true"
           />
 
           {/* Modal content */}
           <div
-            className="inline-block w-full max-w-6xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl relative"
+            className="inline-block w-full max-w-6xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
               onClick={closeModal}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
+              className="absolute top-4 right-4 p-3 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-all duration-200 z-20 shadow-lg"
+              aria-label="Close modal"
             >
               <X className="w-6 h-6" />
             </button>
 
             {/* Modal header */}
-            <div className="mb-6">
-              <div className="flex items-center space-x-3">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center`}>
+            <div className="mb-8">
+              <div className="flex items-center space-x-4">
+                <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg`}>
                   {selectedSkill.icon}
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-3xl font-bold text-gray-900 mb-2">
                     {selectedSkill.name}
                   </h3>
-                  <p className="text-sm text-gray-600 capitalize">
+                  <p className="text-base text-gray-600 capitalize">
                     {selectedSkill.description}
                   </p>
                 </div>
@@ -1824,21 +1829,21 @@ export default function SkillSnap({
             </div>
 
             {/* Action Buttons */}
-            <div className="mb-6">
+            <div className="mb-8">
               {isEditing === selectedCategory.id ? (
                 <div className="flex justify-end space-x-4">
                   <button
                     onClick={() => handleCancel(selectedCategory.id)}
-                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium flex items-center space-x-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="px-6 py-3 text-gray-700 hover:text-gray-900 font-semibold flex items-center space-x-2 hover:bg-gray-100 rounded-xl transition-all duration-200 border border-gray-300"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                     <span>Cancel</span>
                   </button>
                   <button
                     onClick={() => handleSave(selectedCategory.id)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2 transition-colors"
+                    className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold flex items-center space-x-2 transition-all duration-200 shadow-lg"
                   >
-                    <Check className="w-4 h-4" />
+                    <Check className="w-5 h-5" />
                     <span>Save Changes</span>
                   </button>
                 </div>
@@ -1846,9 +1851,9 @@ export default function SkillSnap({
                 <div className="flex justify-end">
                   <button
                     onClick={() => handleStartEdit(selectedCategory.id)}
-                    className="px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium flex items-center space-x-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                    className="px-6 py-3 text-indigo-600 hover:text-indigo-700 font-semibold flex items-center space-x-2 hover:bg-indigo-50 rounded-xl transition-all duration-200 border border-indigo-200"
                   >
-                    <Edit className="w-4 h-4" />
+                    <Edit className="w-5 h-5" />
                     <span>Edit</span>
                   </button>
                 </div>
@@ -1856,14 +1861,14 @@ export default function SkillSnap({
             </div>
 
             {/* Modal content */}
-            <div className="max-h-[70vh] overflow-y-auto">
+            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
               <div className="space-y-6">
-                <div className={`bg-gradient-to-r ${selectedCategory.colorScheme.gradient} rounded-xl p-6 border border-${selectedCategory.colorScheme.primary}-200`}>
-                  <h4 className={`text-lg font-semibold text-${selectedCategory.colorScheme.primary}-900 mb-2 flex items-center`}>
-                    <FiActivity className="mr-2" />
+                <div className={`bg-gradient-to-r ${selectedCategory.colorScheme.gradient} rounded-xl p-6 border border-${selectedCategory.colorScheme.primary}-200 shadow-lg`}>
+                  <h4 className={`text-xl font-bold text-${selectedCategory.colorScheme.primary}-900 mb-3 flex items-center`}>
+                    <FiActivity className="mr-3 w-6 h-6" />
                     Skill Development Tracking
                   </h4>
-                  <p className={`text-${selectedCategory.colorScheme.primary}-700 text-sm mb-4`}>
+                  <p className={`text-${selectedCategory.colorScheme.primary}-700 text-base mb-4`}>
                     Track and monitor your {selectedSkill.name.toLowerCase()} progress.
                   </p>
                 </div>
@@ -1935,38 +1940,40 @@ export default function SkillSnap({
 
       {/* Category Modal */}
       {selectedCategory && !selectedSkill && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] overflow-y-auto backdrop-blur-sm">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Background overlay */}
             <div
-              className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"
+              className="fixed inset-0 bg-black bg-opacity-80 transition-opacity duration-300"
               onClick={closeModal}
+              aria-hidden="true"
             />
 
             {/* Modal content */}
             <div
-              className="inline-block w-full max-w-6xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl relative"
+              className="inline-block w-full max-w-6xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl relative z-10"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close button */}
               <button
                 onClick={closeModal}
-                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
+                className="absolute top-4 right-4 p-3 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-all duration-200 z-20 shadow-lg"
+                aria-label="Close modal"
               >
                 <X className="w-6 h-6" />
               </button>
 
               {/* Modal header */}
-              <div className="mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center`}>
+              <div className="mb-8">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg`}>
                     {selectedCategory.icon}
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">
+                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
                       {selectedCategory.name}
                     </h3>
-                    <p className="text-sm text-gray-600 capitalize">
+                    <p className="text-base text-gray-600 capitalize">
                       {selectedCategory.description}
                     </p>
                   </div>
@@ -1974,21 +1981,21 @@ export default function SkillSnap({
               </div>
 
               {/* Action Buttons */}
-              <div className="mb-6">
+              <div className="mb-8">
                 {isEditing === selectedCategory.id ? (
                   <div className="flex justify-end space-x-4">
                     <button
                       onClick={() => handleCancel(selectedCategory.id)}
-                      className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium flex items-center space-x-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="px-6 py-3 text-gray-700 hover:text-gray-900 font-semibold flex items-center space-x-2 hover:bg-gray-100 rounded-xl transition-all duration-200 border border-gray-300"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-5 h-5" />
                       <span>Cancel</span>
                     </button>
                     <button
                       onClick={() => handleSave(selectedCategory.id)}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2 transition-colors"
+                      className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold flex items-center space-x-2 transition-all duration-200 shadow-lg"
                     >
-                      <Check className="w-4 h-4" />
+                      <Check className="w-5 h-5" />
                       <span>Save Changes</span>
                     </button>
                   </div>
@@ -1996,9 +2003,9 @@ export default function SkillSnap({
                   <div className="flex justify-end">
                     <button
                       onClick={() => handleStartEdit(selectedCategory.id)}
-                      className="px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium flex items-center space-x-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                      className="px-6 py-3 text-indigo-600 hover:text-indigo-700 font-semibold flex items-center space-x-2 hover:bg-indigo-50 rounded-xl transition-all duration-200 border border-indigo-200"
                     >
-                      <Edit className="w-4 h-4" />
+                      <Edit className="w-5 h-5" />
                       <span>Edit All</span>
                     </button>
                   </div>
@@ -2006,14 +2013,14 @@ export default function SkillSnap({
               </div>
 
               {/* Modal content */}
-              <div className="max-h-[70vh] overflow-y-auto">
+              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
                 <div className="space-y-6">
-                  <div className={`bg-gradient-to-r ${selectedCategory.colorScheme.gradient} rounded-xl p-6 border border-${selectedCategory.colorScheme.primary}-200`}>
-                    <h4 className={`text-lg font-semibold text-${selectedCategory.colorScheme.primary}-900 mb-2 flex items-center`}>
-                      <FiActivity className="mr-2" />
+                  <div className={`bg-gradient-to-r ${selectedCategory.colorScheme.gradient} rounded-xl p-6 border border-${selectedCategory.colorScheme.primary}-200 shadow-lg`}>
+                    <h4 className={`text-xl font-bold text-${selectedCategory.colorScheme.primary}-900 mb-3 flex items-center`}>
+                      <FiActivity className="mr-3 w-6 h-6" />
                       {selectedCategory.name} Skills Tracking
                     </h4>
-                    <p className={`text-${selectedCategory.colorScheme.primary}-700 text-sm mb-4`}>
+                    <p className={`text-${selectedCategory.colorScheme.primary}-700 text-base mb-4`}>
                       Track and monitor your {selectedCategory.name.toLowerCase()} skill development progress.
                     </p>
                   </div>
