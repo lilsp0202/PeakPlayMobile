@@ -1811,66 +1811,77 @@ export default function SkillSnap({
 
       {/* Category Modal */}
       {selectedCategory && !selectedSkill && (
-        <div className="fixed inset-0 z-[9999] bg-black bg-opacity-80">
-          <div className="fixed top-0 left-0 w-full h-full bg-white overflow-y-auto custom-scrollbar">
-            {/* Close button */}
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-20 shadow-lg"
-              aria-label="Close modal"
-            >
-              <X className="w-6 h-6" />
-            </button>
+        <div className="fixed inset-0 z-[9999] overflow-hidden">
+          {/* Background overlay */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-80 backdrop-blur-sm"
+            onClick={closeModal}
+          />
+          
+          {/* Modal container - centered on viewport */}
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <div className="relative bg-white w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden">
+              {/* Close button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-20 shadow-lg"
+                aria-label="Close modal"
+              >
+                <X className="w-6 h-6" />
+              </button>
 
-            {/* Modal content */}
-            <div className="p-6 pt-16 max-w-5xl mx-auto">
-              {/* Modal header */}
-              <div className="mb-8">
-                <div className="flex items-center space-x-4">
-                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg`}>
-                    {selectedCategory.icon}
+              {/* Modal content with scroll */}
+              <div className="h-full overflow-y-auto custom-scrollbar">
+                <div className="p-6 pt-16">
+                  {/* Modal header */}
+                  <div className="mb-8">
+                    <div className="flex items-center space-x-4">
+                      <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg`}>
+                        {selectedCategory.icon}
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedCategory.name}</h2>
+                        <p className="text-base text-gray-700 leading-relaxed">{selectedCategory.description}</p>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Action Buttons */}
+                  <div className="mb-8">
+                    {isEditing === selectedCategory.id ? (
+                      <div className="flex space-x-4">
+                        <button
+                          onClick={() => handleSave(selectedCategory.id)}
+                          disabled={isSaving}
+                          className="flex items-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
+                        >
+                          <FiSave className="mr-2" />
+                          {isSaving ? 'Saving...' : 'Save Changes'}
+                        </button>
+                        <button
+                          onClick={() => handleCancel(selectedCategory.id)}
+                          className="flex items-center px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                        >
+                          <FiX className="mr-2" />
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleStartEdit(selectedCategory.id)}
+                        className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                      >
+                        <FiEdit className="mr-2" />
+                        Edit All Skills
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Skills content */}
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedCategory.name}</h2>
-                    <p className="text-base text-gray-700 leading-relaxed">{selectedCategory.description}</p>
+                    {renderSkillsForCategory(selectedCategory)}
                   </div>
                 </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="mb-8">
-                {isEditing === selectedCategory.id ? (
-                  <div className="flex space-x-4">
-                    <button
-                      onClick={() => handleSave(selectedCategory.id)}
-                      disabled={isSaving}
-                      className="flex items-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
-                    >
-                      <FiSave className="mr-2" />
-                      {isSaving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                    <button
-                      onClick={() => handleCancel(selectedCategory.id)}
-                      className="flex items-center px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
-                    >
-                      <FiX className="mr-2" />
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleStartEdit(selectedCategory.id)}
-                    className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
-                  >
-                    <FiEdit className="mr-2" />
-                    Edit All Skills
-                  </button>
-                )}
-              </div>
-
-              {/* Skills content */}
-              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
-                {renderSkillsForCategory(selectedCategory)}
               </div>
             </div>
           </div>
@@ -1879,106 +1890,117 @@ export default function SkillSnap({
 
       {/* Individual Skill Modal */}
       {selectedSkill && (
-        <div className="fixed inset-0 z-[9999] bg-black bg-opacity-80">
-          <div className="fixed top-0 left-0 w-full h-full bg-white overflow-y-auto">
-            {/* Close button */}
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 p-3 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-all duration-200 z-20 shadow-lg"
-              aria-label="Close modal"
-            >
-              <X className="w-6 h-6" />
-            </button>
+        <div className="fixed inset-0 z-[9999] overflow-hidden">
+          {/* Background overlay */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-80 backdrop-blur-sm"
+            onClick={closeModal}
+          />
+          
+          {/* Modal container - centered on viewport */}
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <div className="relative bg-white w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden">
+              {/* Close button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-20 shadow-lg"
+                aria-label="Close modal"
+              >
+                <X className="w-6 h-6" />
+              </button>
 
-            {/* Modal content */}
-            <div className="p-6 pt-16">
-              {/* Modal header */}
-              <div className="mb-8">
-                <div className="flex items-center space-x-4">
-                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg`}>
-                    {selectedSkill.icon}
+              {/* Modal content with scroll */}
+              <div className="h-full overflow-y-auto custom-scrollbar">
+                <div className="p-6 pt-16">
+                  {/* Modal header */}
+                  <div className="mb-8">
+                    <div className="flex items-center space-x-4">
+                      <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg`}>
+                        {selectedSkill.icon}
+                      </div>
+                      <div>
+                        <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                          {selectedSkill.name}
+                        </h3>
+                        <p className="text-base text-gray-700 capitalize">
+                          {selectedSkill.description}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {selectedSkill.name}
-                    </h3>
-                    <p className="text-base text-gray-600 capitalize">
-                      {selectedSkill.description}
-                    </p>
-                  </div>
-                </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="mb-8">
-                {isEditing === selectedCategory.id ? (
-                  <div className="flex justify-end space-x-4">
-                    <button
-                      onClick={() => handleCancel(selectedCategory.id)}
-                      className="px-6 py-3 text-gray-700 hover:text-gray-900 font-semibold flex items-center space-x-2 hover:bg-gray-100 rounded-xl transition-all duration-200 border border-gray-300"
-                    >
-                      <X className="w-5 h-5" />
-                      <span>Cancel</span>
-                    </button>
-                    <button
-                      onClick={() => handleSave(selectedCategory.id)}
-                      className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold flex items-center space-x-2 transition-all duration-200 shadow-lg"
-                    >
-                      <Check className="w-5 h-5" />
-                      <span>Save Changes</span>
-                    </button>
+                  {/* Action Buttons */}
+                  <div className="mb-8">
+                    {isEditing === selectedCategory.id ? (
+                      <div className="flex justify-end space-x-4">
+                        <button
+                          onClick={() => handleCancel(selectedCategory.id)}
+                          className="px-6 py-3 text-gray-700 hover:text-gray-900 font-semibold flex items-center space-x-2 hover:bg-gray-100 rounded-xl transition-all duration-200 border border-gray-300"
+                        >
+                          <X className="w-5 h-5" />
+                          <span>Cancel</span>
+                        </button>
+                        <button
+                          onClick={() => handleSave(selectedCategory.id)}
+                          className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold flex items-center space-x-2 transition-all duration-200 shadow-lg"
+                        >
+                          <Check className="w-5 h-5" />
+                          <span>Save Changes</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => handleStartEdit(selectedCategory.id)}
+                          className="px-6 py-3 text-indigo-600 hover:text-indigo-700 font-semibold flex items-center space-x-2 hover:bg-indigo-50 rounded-xl transition-all duration-200 border border-indigo-200"
+                        >
+                          <Edit className="w-5 h-5" />
+                          <span>Edit</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => handleStartEdit(selectedCategory.id)}
-                      className="px-6 py-3 text-indigo-600 hover:text-indigo-700 font-semibold flex items-center space-x-2 hover:bg-indigo-50 rounded-xl transition-all duration-200 border border-indigo-200"
-                    >
-                      <Edit className="w-5 h-5" />
-                      <span>Edit</span>
-                    </button>
-                  </div>
-                )}
-              </div>
 
-              {/* Modal content */}
-              <div className="pb-8">
-                <div className="space-y-6">
-                  <div className={`bg-gradient-to-r ${selectedCategory.colorScheme.gradient} rounded-xl p-6 border border-${selectedCategory.colorScheme.primary}-200 shadow-lg`}>
-                    <h4 className={`text-xl font-bold text-${selectedCategory.colorScheme.primary}-900 mb-3 flex items-center`}>
-                      <FiActivity className="mr-3 w-6 h-6" />
-                      Skill Development Tracking
-                    </h4>
-                    <p className={`text-${selectedCategory.colorScheme.primary}-700 text-base mb-4`}>
-                      Track and monitor your {selectedSkill.name.toLowerCase()} progress.
-                    </p>
-                  </div>
+                  {/* Modal content */}
                   <div className="pb-8">
-                    <SkillBar
-                      skill={selectedSkill}
-                      userScore={
-                        isEditing === selectedCategory.id
-                          ? editedScores[selectedSkill.id]
-                          : skillData?.[selectedSkill.id as keyof SkillData] as number
-                      }
-                      averageScore={averages?.averages[selectedSkill.id] || 0}
-                      isEditing={isEditing === selectedCategory.id}
-                      onScoreChange={handleScoreChange}
-                      showComparison={selectedCategory.id !== "MENTAL"}
-                      personalizedTarget={
-                        selectedCategory.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
-                          ? (() => {
-                              const nutrition = calculatePersonalizedNutrition(
-                                skillData.student.weight,
-                                skillData.student.height,
-                                skillData.student.age
-                              );
-                              const nutritionKey = selectedSkill.id as keyof NutritionData;
-                              return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
-                            })()
-                          : undefined
-                      }
-                    />
+                    <div className="space-y-6">
+                      <div className={`bg-gradient-to-r ${selectedCategory.colorScheme.gradient} rounded-xl p-6 border border-${selectedCategory.colorScheme.primary}-200 shadow-lg`}>
+                        <h4 className={`text-xl font-bold text-${selectedCategory.colorScheme.primary}-900 mb-3 flex items-center`}>
+                          <FiActivity className="mr-3 w-6 h-6" />
+                          Skill Development Tracking
+                        </h4>
+                        <p className={`text-${selectedCategory.colorScheme.primary}-700 text-base mb-4`}>
+                          Track and monitor your {selectedSkill.name.toLowerCase()} progress.
+                        </p>
+                      </div>
+                      <div className="pb-8">
+                        <SkillBar
+                          skill={selectedSkill}
+                          userScore={
+                            isEditing === selectedCategory.id
+                              ? editedScores[selectedSkill.id]
+                              : skillData?.[selectedSkill.id as keyof SkillData] as number
+                          }
+                          averageScore={averages?.averages[selectedSkill.id] || 0}
+                          isEditing={isEditing === selectedCategory.id}
+                          onScoreChange={handleScoreChange}
+                          showComparison={selectedCategory.id !== "MENTAL"}
+                          personalizedTarget={
+                            selectedCategory.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
+                              ? (() => {
+                                  const nutrition = calculatePersonalizedNutrition(
+                                    skillData.student.weight,
+                                    skillData.student.height,
+                                    skillData.student.age
+                                  );
+                                  const nutritionKey = selectedSkill.id as keyof NutritionData;
+                                  return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
+                                })()
+                              : undefined
+                          }
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
