@@ -745,111 +745,110 @@ const SkillBar: React.FC<{
   personalizedTarget?: number; // For nutrition values
   onClick?: () => void; // New prop for click handling
 }> = ({ skill, userScore, averageScore, isEditing, onScoreChange, showComparison = true, personalizedTarget, onClick }) => {
-  const displayScore = userScore || 0;
+  const score = userScore || 0;
+  const average = averageScore || 0;
 
-  // Get logical ranges for different skill types
   const getSkillRange = () => {
-    switch (skill.id) {
-      // Physical Skills - Use realistic values
-      case 'pushupScore':
-        return { min: 0, max: 100, step: 1 }; // Push-ups in 1 minute
-      case 'pullupScore':
-        return { min: 0, max: 50, step: 1 }; // Pull-ups max
-      case 'sprintTime':
-        return { min: 8, max: 20, step: 0.1 }; // 100m sprint time in seconds
-      case 'run5kTime':
-        return { min: 15, max: 40, step: 0.5 }; // 5K time in minutes
-      
-      // Mental Skills - Keep 0-10 scale
-      case 'moodScore':
-      case 'sleepScore':
-        return { min: 0, max: 10, step: 0.5 };
-      
-      // Nutrition Skills - Use realistic daily values
-      case 'totalCalories':
-        return { min: 1000, max: 4000, step: 50 }; // Daily calories
-      case 'protein':
-        return { min: 20, max: 200, step: 5 }; // Protein in grams
-      case 'carbohydrates':
-        return { min: 50, max: 500, step: 10 }; // Carbs in grams
-      case 'fats':
-        return { min: 20, max: 150, step: 5 }; // Fats in grams
-      
-      // Technical Skills - Use 0-10 scale for technique ratings
+    switch (skill.type) {
+      case "count":
+        return { min: 0, max: 100, step: 1 };
+      case "time":
+        if (skill.id === "sprintTime") {
+          return { min: 0, max: 30, step: 0.1 };
+        } else {
+          return { min: 0, max: 60, step: 1 };
+        }
+      case "score":
+        return { min: 0, max: 10, step: 1 };
+      case "grams":
+        if (skill.id === "protein") {
+          return { min: 0, max: 200, step: 5 };
+        } else if (skill.id === "carbohydrates") {
+          return { min: 0, max: 500, step: 10 };
+        } else {
+          return { min: 0, max: 150, step: 5 };
+        }
+      case "calories":
+        return { min: 0, max: 5000, step: 50 };
       default:
-        return { min: 0, max: 10, step: 0.5 };
+        return { min: 0, max: 100, step: 1 };
     }
   };
 
   const range = getSkillRange();
-  
-  // Calculate percentage based on skill-specific range
+
   const getPercentage = () => {
-    const clampedScore = Math.min(range.max, Math.max(range.min, displayScore));
-    
-    if (skill.id === 'sprintTime' || skill.id === 'run5kTime') {
-      // For time-based skills, lower is better
-      // 100m Sprint: 8s = 100%, 14s = 50%, 20s = 0%
-      // 5K Run: 15min = 100%, 27.5min = 50%, 40min = 0%
-      const normalizedPosition = (clampedScore - range.min) / (range.max - range.min);
-      return Math.round((1 - normalizedPosition) * 100);
+    if (skill.type === "time") {
+      // For time-based skills, invert the percentage (lower is better)
+      if (score === 0) return 0;
+      const percentage = ((range.max - score) / range.max) * 100;
+      return Math.max(0, Math.min(100, percentage));
+    } else {
+      // For other skills, higher is better
+      const percentage = (score / range.max) * 100;
+      return Math.max(0, Math.min(100, percentage));
     }
-    
-    // For other skills, higher is better
-    const normalizedPosition = (clampedScore - range.min) / (range.max - range.min);
-    return Math.round(normalizedPosition * 100);
   };
 
-  const percentage = getPercentage();
-  
-  // For time-based skills, "above average" means lower time (better performance)
-  const isAboveAverage = averageScore ? 
-    (skill.id === 'sprintTime' || skill.id === 'run5kTime'
-      ? displayScore < averageScore  // Lower time is better
-      : displayScore > averageScore) // Higher score is better
-    : false;
+  const getAveragePercentage = () => {
+    if (!showComparison || !average) return 0;
+    if (skill.type === "time") {
+      // For time-based skills, invert the percentage (lower is better)
+      if (average === 0) return 0;
+      const percentage = ((range.max - average) / range.max) * 100;
+      return Math.max(0, Math.min(100, percentage));
+    } else {
+      // For other skills, higher is better
+      const percentage = (average / range.max) * 100;
+      return Math.max(0, Math.min(100, percentage));
+    }
+  };
 
   const getProgressColor = () => {
-    if (percentage >= 80) return 'from-green-500 to-emerald-600';
-    if (percentage >= 60) return 'from-blue-500 to-indigo-600';
-    if (percentage >= 40) return 'from-yellow-500 to-amber-600';
-    return 'from-red-500 to-pink-600';
+    const percentage = getPercentage();
+    if (percentage >= 80) return "bg-green-500";
+    if (percentage >= 60) return "bg-yellow-500";
+    if (percentage >= 40) return "bg-orange-500";
+    return "bg-red-500";
+  };
+
+  const formatValue = (value: number) => {
+    switch (skill.type) {
+      case "time":
+        return skill.id === "sprintTime" ? `${value.toFixed(1)}s` : `${value} min`;
+      case "count":
+        return `${value} reps`;
+      case "score":
+        return `${value}/10`;
+      case "grams":
+        return `${value}g`;
+      case "calories":
+        return `${value} kcal`;
+      default:
+        return value.toString();
+    }
   };
 
   return (
-    <motion.div 
-      className="card-modern p-4 hover:shadow-lg transition-all duration-300 cursor-pointer"
+    <div 
+      className={`bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
-      whileHover={{ y: -2 }}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
     >
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <motion.div 
-            className={`w-10 h-10 rounded-lg bg-gradient-to-r ${getProgressColor()} flex items-center justify-center shadow-md`}
-            whileHover={{ rotate: 360 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="text-gray-900">{skill.icon}</div>
-          </motion.div>
+          <div className={`p-3 rounded-lg ${skill.colorScheme.background}`}>
+            {skill.icon}
+          </div>
           <div>
-            <h4 className="font-semibold text-gray-900">{skill.name}</h4>
-            <p className="text-xs text-gray-500">{skill.description}</p>
+            <h4 className="font-semibold text-gray-900 text-lg">{skill.name}</h4>
+            <p className="text-sm text-gray-500">{skill.description}</p>
           </div>
         </div>
-        {!isEditing && (
-          <motion.div 
-            className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", bounce: 0.5 }}
-          >
-            {displayScore}
-            {skill.unit && <span className="text-sm ml-1">{skill.unit}</span>}
-          </motion.div>
-        )}
+        <div className="text-right">
+          <div className="text-2xl font-bold text-purple-600">
+            {formatValue(score)}
+          </div>
+        </div>
       </div>
 
       {isEditing ? (
@@ -859,77 +858,46 @@ const SkillBar: React.FC<{
             min={range.min}
             max={range.max}
             step={range.step}
-            value={displayScore}
+            value={score}
             onChange={(e) => onScoreChange(skill.id, parseFloat(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
-            style={{
-              background: `linear-gradient(to right, #8b5cf6 0%, #3b82f6 ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`
-            }}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           />
           <div className="flex justify-between text-xs text-gray-500">
             <span>{range.min}</span>
-            <span className="font-semibold text-purple-600">
-              {displayScore}{skill.unit && ` ${skill.unit}`}
-            </span>
+            <span>{formatValue(score)}</span>
             <span>{range.max}</span>
           </div>
         </div>
       ) : (
-        <>
-          <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
-            <motion.div
-              className={`absolute inset-y-0 left-0 bg-gradient-to-r ${getProgressColor()} rounded-full`}
-              initial={{ width: 0 }}
-              animate={{ width: `${percentage}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
-            >
-              <div className="absolute inset-0 bg-white/20 animate-shimmer" />
-            </motion.div>
-            {showComparison && averageScore && (
-              <motion.div
-                className="absolute top-0 bottom-0 w-0.5 bg-gray-600"
-                style={{ 
-                  left: `${
-                    skill.id === 'sprintTime' || skill.id === 'run5kTime'
-                      ? Math.min(100, Math.max(0, 100 - ((averageScore - range.min) / (range.max - range.min)) * 100))
-                      : Math.min(100, Math.max(0, ((averageScore - range.min) / (range.max - range.min)) * 100))
-                  }%` 
-                }}
-                initial={{ opacity: 0, scaleY: 0 }}
-                animate={{ opacity: 0.5, scaleY: 1 }}
-                transition={{ delay: 0.5 }}
+        <div className="space-y-3">
+          <div className="relative">
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div
+                className={`h-full ${getProgressColor()} transition-all duration-500 rounded-full relative`}
+                style={{ width: `${getPercentage()}%` }}
+              >
+                <div className="absolute inset-0 bg-white opacity-20"></div>
+              </div>
+            </div>
+            {showComparison && average > 0 && (
+              <div
+                className="absolute top-0 h-3 w-1 bg-gray-600 rounded-full shadow-sm"
+                style={{ left: `${getAveragePercentage()}%`, transform: 'translateX(-50%)' }}
+                title={`Average: ${formatValue(average)}`}
               />
             )}
           </div>
-          
-          {showComparison && averageScore && (
-            <motion.div 
-              className="mt-2 flex items-center justify-between text-xs"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-            >
-              <span className="text-gray-500">
-                Avg: <span className="font-medium text-gray-700">{averageScore.toFixed(1)}</span>
-              </span>
-              {isAboveAverage && (
-                <motion.span 
-                  className="text-green-600 font-medium flex items-center"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", bounce: 0.5, delay: 1 }}
-                >
-                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Above Average
-                </motion.span>
+          {showComparison && average > 0 && (
+            <div className="flex justify-between text-xs text-gray-600">
+              <span>Avg: {formatValue(average)}</span>
+              {personalizedTarget && (
+                <span className="text-blue-600">Target: {formatValue(personalizedTarget)}</span>
               )}
-            </motion.div>
+            </div>
           )}
-        </>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
@@ -1779,7 +1747,7 @@ export default function SkillSnap({
     }
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
+      <div className="space-y-4 pb-8">
         {category.skills.map((skill) => (
           <SkillBar
             key={skill.id}
@@ -1855,6 +1823,38 @@ export default function SkillSnap({
               </div>
             </div>
 
+            {/* Action Buttons */}
+            <div className="mb-6">
+              {isEditing === selectedCategory.id ? (
+                <div className="flex justify-end space-x-4">
+                  <button
+                    onClick={() => handleCancel(selectedCategory.id)}
+                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium flex items-center space-x-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Cancel</span>
+                  </button>
+                  <button
+                    onClick={() => handleSave(selectedCategory.id)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2 transition-colors"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Save Changes</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => handleStartEdit(selectedCategory.id)}
+                    className="px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium flex items-center space-x-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Edit</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Modal content */}
             <div className="max-h-[70vh] overflow-y-auto">
               <div className="space-y-6">
@@ -1867,31 +1867,33 @@ export default function SkillSnap({
                     Track and monitor your {selectedSkill.name.toLowerCase()} progress.
                   </p>
                 </div>
-                <SkillBar
-                  skill={selectedSkill}
-                  userScore={
-                    isEditing === selectedCategory.id
-                      ? editedScores[selectedSkill.id]
-                      : skillData?.[selectedSkill.id as keyof SkillData] as number
-                  }
-                  averageScore={averages?.averages[selectedSkill.id] || 0}
-                  isEditing={isEditing === selectedCategory.id}
-                  onScoreChange={handleScoreChange}
-                  showComparison={selectedCategory.id !== "MENTAL"}
-                  personalizedTarget={
-                    selectedCategory.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
-                      ? (() => {
-                          const nutrition = calculatePersonalizedNutrition(
-                            skillData.student.weight,
-                            skillData.student.height,
-                            skillData.student.age
-                          );
-                          const nutritionKey = selectedSkill.id as keyof NutritionData;
-                          return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
-                        })()
-                      : undefined
-                  }
-                />
+                <div className="pb-8">
+                  <SkillBar
+                    skill={selectedSkill}
+                    userScore={
+                      isEditing === selectedCategory.id
+                        ? editedScores[selectedSkill.id]
+                        : skillData?.[selectedSkill.id as keyof SkillData] as number
+                    }
+                    averageScore={averages?.averages[selectedSkill.id] || 0}
+                    isEditing={isEditing === selectedCategory.id}
+                    onScoreChange={handleScoreChange}
+                    showComparison={selectedCategory.id !== "MENTAL"}
+                    personalizedTarget={
+                      selectedCategory.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
+                        ? (() => {
+                            const nutrition = calculatePersonalizedNutrition(
+                              skillData.student.weight,
+                              skillData.student.height,
+                              skillData.student.age
+                            );
+                            const nutritionKey = selectedSkill.id as keyof NutritionData;
+                            return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
+                          })()
+                        : undefined
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>
