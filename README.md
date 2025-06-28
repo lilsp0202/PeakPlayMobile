@@ -11,15 +11,15 @@ A Next.js + Prisma + TypeScript PWA for athlete development.
 ## Quick Start
 
 1. Clone the repository:
-   ```bash
+```bash
    git clone https://github.com/lilsp0202/PeakPlayMobile-prototype.git
    cd PeakPlayMobile-prototype
-   ```
+```
 
 2. Install dependencies:
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
 3. Set up environment variables:
    ```bash
@@ -30,17 +30,17 @@ A Next.js + Prisma + TypeScript PWA for athlete development.
    ```
    DATABASE_URL="postgresql://username:password@localhost:5432/peakplay?schema=public"
    DIRECT_URL="postgresql://username:password@localhost:5432/peakplay?schema=public"
-   ```
+```
 
 5. Initialize the database:
-   ```bash
+```bash
    npx prisma generate
    npx prisma migrate dev
-   ```
+```
 
 6. Start the development server:
-   ```bash
-   npm run dev
+```bash
+npm run dev
    ```
 
 The app will be available at:

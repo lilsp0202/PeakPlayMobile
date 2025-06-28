@@ -941,7 +941,7 @@ export default function Dashboard() {
               Badge Management
             </h2>
             <BadgeManager />
-          </div>
+                          </div>
         );
 
       case 'todo':
