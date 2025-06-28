@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Edit, Check, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { FiActivity } from "react-icons/fi";
 
 // Types for skills and analytics
 interface SkillData {
@@ -1816,108 +1817,82 @@ export default function SkillSnap({
     if (!selectedSkill || !selectedCategory) return null;
 
     return (
-      <div 
-        className="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] animate-modalFadeIn"
-        onClick={closeModal}
-        style={{ 
-          touchAction: 'none',
-          overscrollBehavior: 'none',
-          WebkitOverflowScrolling: 'touch',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          isolation: 'isolate'
-        }}
-      >
-                {/* Modal Container - iPhone PWA Optimized */}
-        <div 
-          className="fixed"
-          style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            WebkitOverflowScrolling: 'touch',
-            padding: '1rem'
-          }}
-        >
-            <div 
-              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl animate-slideUpBounce z-[10000]"
-              onClick={(e) => e.stopPropagation()}
-              style={{ 
-                maxHeight: 'calc(100vh - 2rem)',
-                width: '92%',
-                maxWidth: '22rem',
-                margin: '0 auto',
-                zIndex: 10000,
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                borderRadius: '1rem',
-                overflow: 'hidden',
-                WebkitOverflowScrolling: 'touch',
-                position: 'relative'
-              }}
-              role="dialog"
+      <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+          {/* Background overlay */}
+          <div
+            className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"
+            onClick={closeModal}
+          />
+
+          {/* Modal content */}
+          <div
+            className="inline-block w-full max-w-6xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl relative"
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header - Fixed */}
-            <div className="modal-header-glass p-4 sm:p-6 border-b border-gray-200 rounded-t-xl flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
-                  <div className={`p-2 sm:p-3 rounded-lg bg-gradient-to-br ${selectedCategory.colorScheme.gradient} text-${selectedCategory.colorScheme.primary} flex-shrink-0`}>
-                    {selectedSkill.icon}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">{selectedSkill.name}</h3>
-                    <p className="text-sm md:text-base text-gray-600 line-clamp-2">{selectedSkill.description}</p>
-                  </div>
+            {/* Close button */}
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Modal header */}
+            <div className="mb-6">
+              <div className="flex items-center space-x-3">
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center`}>
+                  {selectedSkill.icon}
                 </div>
-                <button
-                  onClick={closeModal}
-                  className="text-gray-500 hover:text-gray-700 transition-colors p-2 -m-2 flex-shrink-0 ml-4 touch-target"
-                  aria-label="Close modal"
-                >
-                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {selectedSkill.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 capitalize">
+                    {selectedSkill.description}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Modal Content - Enhanced Mobile Scrolling */}
-            <div 
-              className="p-4 modal-scroll-enhanced modal-mobile-content overflow-y-auto overscroll-contain" 
-              style={{ 
-                maxHeight: 'calc(100vh - 16rem)',
-                minHeight: '20vh',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              <SkillBar
-                skill={selectedSkill}
-                userScore={skillData?.[selectedSkill.id as keyof SkillData] as number}
-                averageScore={averages?.averages[selectedSkill.id] || 0}
-                isEditing={isEditing === selectedCategory.id}
-                onScoreChange={handleScoreChange}
-                showComparison={selectedCategory.id !== "MENTAL"}
-                personalizedTarget={
-                  selectedCategory.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
-                    ? (() => {
-                        const nutrition = calculatePersonalizedNutrition(
-                          skillData.student.weight,
-                          skillData.student.height,
-                          skillData.student.age
-                        );
-                        const nutritionKey = selectedSkill.id as keyof NutritionData;
-                        return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
-                      })()
-                    : undefined
-                }
-              />
+            {/* Modal content */}
+            <div className="max-h-[70vh] overflow-y-auto">
+              <div className="space-y-6">
+                <div className={`bg-gradient-to-r ${selectedCategory.colorScheme.gradient} rounded-xl p-6 border border-${selectedCategory.colorScheme.primary}-200`}>
+                  <h4 className={`text-lg font-semibold text-${selectedCategory.colorScheme.primary}-900 mb-2 flex items-center`}>
+                    <FiActivity className="mr-2" />
+                    Skill Development Tracking
+                  </h4>
+                  <p className={`text-${selectedCategory.colorScheme.primary}-700 text-sm mb-4`}>
+                    Track and monitor your {selectedSkill.name.toLowerCase()} progress.
+                  </p>
+                </div>
+                <SkillBar
+                  skill={selectedSkill}
+                  userScore={
+                    isEditing === selectedCategory.id
+                      ? editedScores[selectedSkill.id]
+                      : skillData?.[selectedSkill.id as keyof SkillData] as number
+                  }
+                  averageScore={averages?.averages[selectedSkill.id] || 0}
+                  isEditing={isEditing === selectedCategory.id}
+                  onScoreChange={handleScoreChange}
+                  showComparison={selectedCategory.id !== "MENTAL"}
+                  personalizedTarget={
+                    selectedCategory.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
+                      ? (() => {
+                          const nutrition = calculatePersonalizedNutrition(
+                            skillData.student.weight,
+                            skillData.student.height,
+                            skillData.student.age
+                          );
+                          const nutritionKey = selectedSkill.id as keyof NutritionData;
+                          return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
+                        })()
+                      : undefined
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1958,120 +1933,90 @@ export default function SkillSnap({
 
       {/* Category Modal */}
       {selectedCategory && !selectedSkill && (
-        <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] animate-modalFadeIn"
-          onClick={closeModal}
-          style={{ 
-            touchAction: 'none',
-            overscrollBehavior: 'none',
-            WebkitOverflowScrolling: 'touch',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            isolation: 'isolate'
-          }}
-        >
-                    {/* Modal Container - iPhone PWA Optimized */}
-          <div 
-            className="fixed"
-            style={{
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              width: '100vw',
-              height: '100vh',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '1rem',
-              zIndex: 9999,
-              overscrollBehavior: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-              <div 
-                className="bg-white rounded-xl shadow-2xl w-full max-w-4xl flex flex-col animate-slideUpBounce z-[10000]"
-                onClick={(e) => e.stopPropagation()}
-                              style={{ 
-                maxHeight: 'calc(100vh - 2rem)',
-                width: '92%',
-                maxWidth: '22rem',
-                margin: '0 auto',
-                zIndex: 10000,
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                borderRadius: '1rem',
-                overflow: 'hidden'
-              }}
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div
+              className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"
+              onClick={closeModal}
+            />
+
+            {/* Modal content */}
+            <div
+              className="inline-block w-full max-w-6xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl relative"
+              onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Header - Fixed */}
-              <div className="modal-header-glass p-4 sm:p-6 border-b border-gray-200 rounded-t-xl flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
-                    <div className={`p-2 sm:p-3 rounded-lg bg-gradient-to-br ${selectedCategory.colorScheme.gradient} text-${selectedCategory.colorScheme.primary} flex-shrink-0`}>
-                      {selectedCategory.icon}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">{selectedCategory.name}</h3>
-                      <p className="text-sm md:text-base text-gray-600 line-clamp-2">{selectedCategory.description}</p>
-                    </div>
+              {/* Close button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              {/* Modal header */}
+              <div className="mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center`}>
+                    {selectedCategory.icon}
                   </div>
-                  <button
-                    onClick={closeModal}
-                    className="text-gray-500 hover:text-gray-700 transition-colors p-2 -m-2 flex-shrink-0 ml-4 touch-target"
-                    aria-label="Close modal"
-                  >
-                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {selectedCategory.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 capitalize">
+                      {selectedCategory.description}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Action Buttons - Fixed */}
-              <div className="p-4 sm:p-6 border-b border-gray-100 flex-shrink-0">
+              {/* Action Buttons */}
+              <div className="mb-6">
                 {isEditing === selectedCategory.id ? (
-                  <div className="flex justify-end space-x-3 sm:space-x-4">
+                  <div className="flex justify-end space-x-4">
                     <button
                       onClick={() => handleCancel(selectedCategory.id)}
-                      className="px-3 sm:px-4 py-2 text-gray-700 hover:text-gray-900 font-medium flex items-center space-x-2 modal-btn-enhanced text-sm sm:text-base"
+                      className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium flex items-center space-x-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <X className="w-4 h-4" />
-                      <span className="hidden sm:inline">Cancel</span>
+                      <span>Cancel</span>
                     </button>
                     <button
                       onClick={() => handleSave(selectedCategory.id)}
-                      className="px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2 modal-btn-enhanced text-sm sm:text-base"
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2 transition-colors"
                     >
                       <Check className="w-4 h-4" />
-                      <span className="hidden sm:inline">Save Changes</span>
-                      <span className="sm:hidden">Save</span>
+                      <span>Save Changes</span>
                     </button>
                   </div>
                 ) : (
                   <div className="flex justify-end">
                     <button
                       onClick={() => handleStartEdit(selectedCategory.id)}
-                      className="px-3 sm:px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium flex items-center space-x-2 modal-btn-enhanced text-sm sm:text-base"
+                      className="px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium flex items-center space-x-2 hover:bg-indigo-50 rounded-lg transition-colors"
                     >
                       <Edit className="w-4 h-4" />
-                      <span className="hidden sm:inline">Edit All</span>
-                      <span className="sm:hidden">Edit</span>
+                      <span>Edit All</span>
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* Skills Content - Enhanced Mobile Scrolling */}
-              <div 
-                className="flex-1 p-4 modal-scroll-enhanced modal-category-content overflow-y-auto overscroll-contain" 
-                style={{ 
-                  maxHeight: 'calc(100vh - 22rem)',
-                  minHeight: '30vh',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                {renderSkillsForCategory(selectedCategory)}
+              {/* Modal content */}
+              <div className="max-h-[70vh] overflow-y-auto">
+                <div className="space-y-6">
+                  <div className={`bg-gradient-to-r ${selectedCategory.colorScheme.gradient} rounded-xl p-6 border border-${selectedCategory.colorScheme.primary}-200`}>
+                    <h4 className={`text-lg font-semibold text-${selectedCategory.colorScheme.primary}-900 mb-2 flex items-center`}>
+                      <FiActivity className="mr-2" />
+                      {selectedCategory.name} Skills Tracking
+                    </h4>
+                    <p className={`text-${selectedCategory.colorScheme.primary}-700 text-sm mb-4`}>
+                      Track and monitor your {selectedCategory.name.toLowerCase()} skill development progress.
+                    </p>
+                  </div>
+                  {renderSkillsForCategory(selectedCategory)}
+                </div>
               </div>
             </div>
           </div>
