@@ -1731,3 +1731,47 @@ html {
   font-weight: bold;
   font-size: 14px;
 }
+
+/* =============== MODAL ENHANCEMENTS =============== */
+
+/* Body scroll lock when modal is open */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+}
+
+/* Ensure modals are properly isolated from parent context */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+}
+
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  isolation: isolate;
+}
+
+/* Prevent scroll propagation to parent */
+.modal-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* =============== CUSTOM SCROLLBAR STYLES =============== */

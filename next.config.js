@@ -86,7 +86,6 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000', '192.168.1.75:3000'],
       bodySizeLimit: '2mb',
     },
-    instrumentationHook: false // Disable OpenTelemetry instrumentation
   },
   webpack: (config, { isServer }) => {
     // Fixes npm packages that depend on `fs` module
@@ -99,9 +98,33 @@ const nextConfig = {
         crypto: false,
       };
     }
+    
+    // Add externals for problematic packages
+    if (isServer) {
+      config.externals.push({
+        '@opentelemetry/api': 'commonjs @opentelemetry/api',
+        '@opentelemetry/instrumentation': 'commonjs @opentelemetry/instrumentation',
+        '@opentelemetry/sdk-trace-base': 'commonjs @opentelemetry/sdk-trace-base',
+      });
+    }
+    
+    // Ignore specific modules that cause issues
+    config.module = {
+      ...config.module,
+      exprContextCritical: false,
+    };
+    
+    // Handle OpenTelemetry in edge runtime
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@opentelemetry/api': false,
+      '@opentelemetry/instrumentation': false,
+      '@opentelemetry/sdk-trace-base': false,
+    };
+    
     return config;
   },
-  serverExternalPackages: ['bcryptjs'],
+  serverExternalPackages: ['bcryptjs', '@opentelemetry/api', '@opentelemetry/instrumentation'],
   images: {
     domains: ['localhost', 'peakplay.com'],
     formats: ['image/avif', 'image/webp'],

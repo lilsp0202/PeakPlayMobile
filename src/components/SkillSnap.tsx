@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Edit, Check, X } from "lucide-react";
-import { FiSave, FiX, FiEdit, FiActivity } from "react-icons/fi";
 import { motion } from "framer-motion";
+import { FiActivity, FiSave, FiX, FiEdit } from "react-icons/fi";
 
 // Types for skills and analytics
 interface SkillData {
@@ -110,39 +110,16 @@ interface TechnicalSkillsProps {
   averages: SkillAverages | null;
 }
 
-// Body scroll lock utilities
+// Helper functions for body scroll locking
 const lockBodyScroll = () => {
-  // Get the current scroll position
-  const scrollY = window.scrollY;
-  
-  // Store the scroll position
-  document.body.style.top = `-${scrollY}px`;
-  
-  // Add the lock class
-  document.body.classList.add('modal-scroll-lock');
-  
-  // Apply styles
-  document.body.style.position = 'fixed';
-  document.body.style.width = '100%';
-  document.body.style.overflowY = 'hidden';
+  if (typeof document !== 'undefined') {
+    document.body.classList.add('modal-open');
+  }
 };
 
 const unlockBodyScroll = () => {
-  // Remove the lock class
-  document.body.classList.remove('modal-scroll-lock');
-  
-  // Get the stored scroll position
-  const scrollY = document.body.style.top;
-  
-  // Reset styles
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.width = '';
-  document.body.style.overflowY = '';
-  
-  // Restore scroll position
-  if (scrollY) {
-    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+  if (typeof document !== 'undefined') {
+    document.body.classList.remove('modal-open');
   }
 };
 
@@ -1811,28 +1788,29 @@ export default function SkillSnap({
 
       {/* Category Modal */}
       {selectedCategory && !selectedSkill && (
-        <div className="fixed inset-0 z-[9999] overflow-hidden">
-          {/* Background overlay */}
+        <>
+          {/* Background overlay - separate from modal content */}
           <div 
-            className="absolute inset-0 bg-black bg-opacity-80 backdrop-blur-sm"
+            className="fixed inset-0 z-[9998] bg-black bg-opacity-80 backdrop-blur-sm"
             onClick={closeModal}
+            aria-hidden="true"
           />
           
-          {/* Modal container - centered on viewport */}
-          <div className="fixed inset-0 flex items-center justify-center p-4">
-            <div className="relative bg-white w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden">
-              {/* Close button */}
-              <button
-                onClick={closeModal}
-                className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-20 shadow-lg"
-                aria-label="Close modal"
-              >
-                <X className="w-6 h-6" />
-              </button>
+          {/* Modal container - independent of scroll context */}
+          <div className="fixed inset-0 z-[9999] pointer-events-none">
+            <div className="fixed inset-0 pointer-events-auto">
+              <div className="w-full h-full bg-white overflow-y-auto custom-scrollbar">
+                {/* Close button */}
+                <button
+                  onClick={closeModal}
+                  className="fixed top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-[10000] shadow-lg"
+                  aria-label="Close modal"
+                >
+                  <X className="w-6 h-6" />
+                </button>
 
-              {/* Modal content with scroll */}
-              <div className="h-full overflow-y-auto custom-scrollbar">
-                <div className="p-6 pt-16">
+                {/* Modal content */}
+                <div className="p-6 pt-16 max-w-5xl mx-auto">
                   {/* Modal header */}
                   <div className="mb-8">
                     <div className="flex items-center space-x-4">
@@ -1878,40 +1856,41 @@ export default function SkillSnap({
                   </div>
 
                   {/* Skills content */}
-                  <div>
+                  <div className="pb-8">
                     {renderSkillsForCategory(selectedCategory)}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Individual Skill Modal */}
       {selectedSkill && (
-        <div className="fixed inset-0 z-[9999] overflow-hidden">
-          {/* Background overlay */}
+        <>
+          {/* Background overlay - separate from modal content */}
           <div 
-            className="absolute inset-0 bg-black bg-opacity-80 backdrop-blur-sm"
+            className="fixed inset-0 z-[9998] bg-black bg-opacity-80 backdrop-blur-sm"
             onClick={closeModal}
+            aria-hidden="true"
           />
           
-          {/* Modal container - centered on viewport */}
-          <div className="fixed inset-0 flex items-center justify-center p-4">
-            <div className="relative bg-white w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden">
-              {/* Close button */}
-              <button
-                onClick={closeModal}
-                className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-20 shadow-lg"
-                aria-label="Close modal"
-              >
-                <X className="w-6 h-6" />
-              </button>
+          {/* Modal container - independent of scroll context */}
+          <div className="fixed inset-0 z-[9999] pointer-events-none">
+            <div className="fixed inset-0 pointer-events-auto">
+              <div className="w-full h-full bg-white overflow-y-auto custom-scrollbar">
+                {/* Close button */}
+                <button
+                  onClick={closeModal}
+                  className="fixed top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-[10000] shadow-lg"
+                  aria-label="Close modal"
+                >
+                  <X className="w-6 h-6" />
+                </button>
 
-              {/* Modal content with scroll */}
-              <div className="h-full overflow-y-auto custom-scrollbar">
-                <div className="p-6 pt-16">
+                {/* Modal content */}
+                <div className="p-6 pt-16 max-w-5xl mx-auto">
                   {/* Modal header */}
                   <div className="mb-8">
                     <div className="flex items-center space-x-4">
@@ -2006,7 +1985,7 @@ export default function SkillSnap({
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
