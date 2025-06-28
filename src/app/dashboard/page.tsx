@@ -302,6 +302,7 @@ export default function Dashboard() {
     { id: 'overview', label: 'Overview', icon: <FiGrid className="w-5 h-5" /> },
     { id: 'students', label: 'Students', icon: <FiUsers className="w-5 h-5" /> },
     { id: 'badges', label: 'Badges', icon: <FiAward className="w-5 h-5" /> },
+    { id: 'todo', label: 'To-Do', icon: <FiCheckSquare className="w-5 h-5" /> },
   ];
 
   const tabs = useMemo(() => session?.user.role === 'COACH' ? coachTabs : athleteTabs, [session?.user.role]);
@@ -940,7 +941,38 @@ export default function Dashboard() {
               Badge Management
             </h2>
             <BadgeManager />
-                          </div>
+          </div>
+        );
+
+      case 'todo':
+        return (
+          <motion.div 
+            className="space-y-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="card-modern glass">
+              <div className="p-6">
+                <div className="flex items-center mb-6">
+                  <motion.div 
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                    className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"
+                  >
+                    <FiCheckSquare className="w-6 h-6 text-white" />
+                  </motion.div>
+                  <div>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      Session To-Do Lists
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">Create and manage training checklists for your students</p>
+                  </div>
+                </div>
+                <SessionTodoCoach assignedStudents={assignedStudents} />
+              </div>
+            </div>
+          </motion.div>
         );
 
       default:

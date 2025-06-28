@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiCheckSquare, FiCalendar, FiUsers, FiPlus, FiTrash2, FiCheck, FiX, FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { Check, Calendar, Users, ListChecks, Trophy, Target } from 'lucide-react';
 
 interface AssignedStudent {
   id: string;
@@ -217,237 +220,540 @@ export default function SessionTodoCoach({ assignedStudents = [] }: { assignedSt
   const isAllFilteredSelected = filteredStudents.length > 0 && filteredStudents.every(s => form.studentIds.includes(s.id));
 
   return (
-    <section className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 mt-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-indigo-700">Session To-Do</h2>
-        <div className="flex gap-2">
+    <div className="space-y-6">
+      {/* Header with Action Button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
           {/* To-Do Role Filter */}
-          <select 
-            value={todoRoleFilter} 
-            onChange={(e) => setTodoRoleFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <option value="ALL">All Roles</option>
-            <option value="BATSMAN">Batsman</option>
-            <option value="BOWLER">Bowler</option>
-            <option value="ALL_ROUNDER">All Rounder</option>
-            <option value="KEEPER">Wicket Keeper</option>
-          </select>
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-indigo-700" onClick={() => setShowForm(f => !f)}>{showForm ? 'Cancel' : '+ New To-Do'}</button>
+            <select 
+              value={todoRoleFilter} 
+              onChange={(e) => setTodoRoleFilter(e.target.value)}
+              className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <option value="ALL">All Roles</option>
+              <option value="BATSMAN">Batsman</option>
+              <option value="BOWLER">Bowler</option>
+              <option value="ALL_ROUNDER">All Rounder</option>
+              <option value="KEEPER">Wicket Keeper</option>
+            </select>
+          </motion.div>
         </div>
+        
+        <motion.button 
+          className="btn-gradient btn-modern flex items-center gap-2 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200" 
+          onClick={() => setShowForm(f => !f)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {showForm ? (
+            <>
+              <FiX className="w-4 h-4" />
+              Cancel
+            </>
+          ) : (
+            <>
+              <FiPlus className="w-4 h-4" />
+              New To-Do List
+            </>
+          )}
+        </motion.button>
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && todoToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full mx-4">
-            <div className="text-center">
-              <div className="text-4xl mb-4">🗑️</div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Delete To-Do?</h3>
-              <p className="text-gray-600 mb-1">Are you sure you want to delete:</p>
-              <p className="text-indigo-700 font-semibold mb-4">"{todoToDelete.title}"</p>
-              <p className="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
-              
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={handleDeleteCancel}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors duration-200"
+      <AnimatePresence>
+        {showDeleteConfirm && todoToDelete && (
+          <motion.div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full mx-4"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", bounce: 0.3 }}
+            >
+              <div className="text-center">
+                <motion.div 
+                  className="text-5xl mb-4"
+                  animate={{ rotate: [0, -10, 10, -10, 0] }}
+                  transition={{ duration: 0.5 }}
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteConfirm}
-                  disabled={loading}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors duration-200 disabled:opacity-50"
-                >
-                  {loading ? 'Deleting...' : 'Delete'}
-                </button>
+                  🗑️
+                </motion.div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Delete To-Do?</h3>
+                <p className="text-gray-600 mb-1">Are you sure you want to delete:</p>
+                <p className="text-indigo-700 font-semibold mb-4">"{todoToDelete.title}"</p>
+                <p className="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
+                
+                <div className="flex gap-3 justify-center">
+                  <motion.button
+                    onClick={handleDeleteCancel}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all duration-200"
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleDeleteConfirm}
+                    disabled={loading}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium hover:from-red-600 hover:to-red-700 transition-all duration-200 disabled:opacity-50 shadow-lg"
+                  >
+                    {loading ? 'Deleting...' : 'Delete'}
+                  </motion.button>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Celebration Animation */}
-      {showCelebration && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-12 text-center shadow-2xl transform animate-bounce">
-            <div className="text-6xl mb-4">🎉</div>
-            <h3 className="text-3xl font-bold text-green-600 mb-2">Tasklist Completed!</h3>
-            <p className="text-gray-600 text-lg">Great job! All tasks have been checked off.</p>
-            <div className="flex justify-center mt-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="bg-white rounded-3xl p-12 text-center shadow-2xl"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, rotate: 180 }}
+              transition={{ type: "spring", bounce: 0.5 }}
+            >
+              <motion.div 
+                className="text-7xl mb-4"
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 360]
+                }}
+                transition={{ duration: 1 }}
+              >
+                🎉
+              </motion.div>
+              <h3 className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent mb-2">
+                Tasklist Completed!
+              </h3>
+              <p className="text-gray-600 text-lg">Great job! All tasks have been checked off.</p>
+              <motion.div 
+                className="flex justify-center mt-6"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <Trophy className="w-12 h-12 text-yellow-500" />
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {showForm && (
-        <form className="bg-indigo-50 p-6 rounded-xl mb-8" onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block font-medium mb-1 text-gray-800">Title</label>
-            <input className="w-full rounded border px-3 py-2 text-gray-900" value={form.title} onChange={e => handleFormChange('title', e.target.value)} required />
-          </div>
-          <div className="mb-4">
-            <label className="block font-medium mb-1 text-gray-800">Session Date</label>
-            <input type="date" className="w-full rounded border px-3 py-2 text-gray-900" value={form.sessionDate} onChange={e => handleFormChange('sessionDate', e.target.value)} required />
-          </div>
-          <div className="mb-4">
-            <label className="block font-medium mb-1 text-gray-800">Checklist Items</label>
-            {form.items.map((item, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
-                <input className="flex-1 rounded border px-3 py-2 text-gray-900" value={item} onChange={e => handleItemChange(idx, e.target.value)} required />
-                <button type="button" className="text-red-500 font-bold" onClick={() => removeItem(idx)} disabled={form.items.length === 1}>✕</button>
-              </div>
-            ))}
-            <button type="button" className="text-indigo-600 font-medium mt-2" onClick={addItem}>+ Add Item</button>
-          </div>
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <label className="block font-medium text-gray-800">Assign to Students</label>
-              <div className="flex items-center gap-2">
-                {/* Student Role Filter */}
-                <select 
-                  value={studentRoleFilter} 
-                  onChange={(e) => setStudentRoleFilter(e.target.value)}
-                  className="px-2 py-1 border border-gray-300 rounded text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="ALL">All Roles</option>
-                  <option value="BATSMAN">Batsman</option>
-                  <option value="BOWLER">Bowler</option>
-                  <option value="ALL_ROUNDER">All Rounder</option>
-                  <option value="KEEPER">Wicket Keeper</option>
-                </select>
-                {/* Select All Button */}
-                {filteredStudents.length > 0 && (
-                  <button 
-                    type="button"
-                    onClick={handleSelectAll}
-                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                      isAllFilteredSelected 
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {isAllFilteredSelected ? 'Deselect All' : 'Select All'}
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {filteredStudents.map(s => (
-                <label key={s.id} className="flex items-center gap-2 bg-white px-3 py-2 rounded shadow border cursor-pointer hover:bg-gray-50 transition-colors duration-200">
-                  <input type="checkbox" checked={form.studentIds.includes(s.id)} onChange={() => handleStudentToggle(s.id)} />
-                  <div className="flex flex-col">
-                    <span className="text-gray-800 font-medium">{s.studentName}</span>
-                    <span className="text-xs text-gray-500">{getRoleDisplayName(s.role)}</span>
-                  </div>
+      {/* Form */}
+      <AnimatePresence>
+        {showForm && (
+          <motion.form 
+            className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-2xl border border-indigo-100 shadow-lg"
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block font-medium mb-2 text-gray-800 flex items-center gap-2">
+                  <ListChecks className="w-4 h-4 text-indigo-600" />
+                  Title
                 </label>
-              ))}
+                <input 
+                  className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200" 
+                  value={form.title} 
+                  onChange={e => handleFormChange('title', e.target.value)} 
+                  placeholder="e.g., Morning Training Session"
+                  required 
+                />
+              </div>
+              <div>
+                <label className="block font-medium mb-2 text-gray-800 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-indigo-600" />
+                  Session Date
+                </label>
+                <input 
+                  type="date" 
+                  className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200" 
+                  value={form.sessionDate} 
+                  onChange={e => handleFormChange('sessionDate', e.target.value)} 
+                  required 
+                />
+              </div>
             </div>
-            {filteredStudents.length === 0 && (
-              <div className="text-gray-500 text-sm mt-2">
-                No students found for the selected role filter.
+            
+            <div className="mb-6">
+              <label className="block font-medium mb-2 text-gray-800 flex items-center gap-2">
+                <Target className="w-4 h-4 text-indigo-600" />
+                Checklist Items
+              </label>
+              <div className="space-y-2">
+                {form.items.map((item, idx) => (
+                  <motion.div 
+                    key={idx} 
+                    className="flex gap-2"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                  >
+                    <input 
+                      className="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200" 
+                      value={item} 
+                      onChange={e => handleItemChange(idx, e.target.value)} 
+                      placeholder={`Task ${idx + 1}`}
+                      required 
+                    />
+                    <motion.button 
+                      type="button" 
+                      className="text-red-500 hover:text-red-700 font-bold p-2.5 hover:bg-red-50 rounded-xl transition-all duration-200" 
+                      onClick={() => removeItem(idx)} 
+                      disabled={form.items.length === 1}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <FiTrash2 className="w-5 h-5" />
+                    </motion.button>
+                  </motion.div>
+                ))}
               </div>
-            )}
-          </div>
-          <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-indigo-700" disabled={loading}>{loading ? 'Saving...' : 'Save To-Do'}</button>
-        </form>
-      )}
-      {loading && <div className="text-gray-700 mb-4">Loading...</div>}
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      
-      {/* Results Summary */}
-      {todoRoleFilter !== 'ALL' && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-blue-800 text-sm">
-            <span className="font-medium">Filter Active:</span> Showing to-dos for {getRoleDisplayName(todoRoleFilter)} ({todosToShow.length} of {todos.length} to-dos)
-          </p>
-        </div>
-      )}
-      
-      <div className="space-y-6">
-        {todosToShow.map(todo => (
-          <div key={todo.id} className={`rounded-xl p-6 shadow flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${todo.isCompleted ? 'bg-green-50 border-2 border-green-200' : 'bg-indigo-50'}`}>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-lg font-bold text-indigo-800">{todo.title}</h3>
-                <span className="text-xs bg-indigo-200 text-indigo-700 rounded-full px-2 py-1">{new Date(todo.sessionDate).toLocaleDateString()}</span>
-                {todo.isCompleted && (
-                  <span className="text-xs bg-green-200 text-green-700 rounded-full px-2 py-1 font-semibold">✓ Completed</span>
-                )}
-              </div>
-              
-              {/* Progress Bar */}
-              <div className="mb-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-gray-700">Progress: {getCompletionPercentage(todo)}%</span>
-                  <span className="text-xs text-gray-500">({todo.items.filter(item => item.isChecked).length}/{todo.items.length} tasks)</span>
+              <motion.button 
+                type="button" 
+                className="text-indigo-600 hover:text-indigo-700 font-medium mt-3 flex items-center gap-2 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-all duration-200" 
+                onClick={addItem}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FiPlus className="w-4 h-4" />
+                Add Item
+              </motion.button>
+            </div>
+            
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block font-medium text-gray-800 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-indigo-600" />
+                  Assign to Students
+                </label>
+                <div className="flex items-center gap-2">
+                  <select 
+                    value={studentRoleFilter} 
+                    onChange={(e) => setStudentRoleFilter(e.target.value)}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="ALL">All Roles</option>
+                    <option value="BATSMAN">Batsman</option>
+                    <option value="BOWLER">Bowler</option>
+                    <option value="ALL_ROUNDER">All Rounder</option>
+                    <option value="KEEPER">Wicket Keeper</option>
+                  </select>
+                  {filteredStudents.length > 0 && (
+                    <motion.button 
+                      type="button"
+                      onClick={handleSelectAll}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        isAllFilteredSelected 
+                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-md' 
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {isAllFilteredSelected ? 'Deselect All' : 'Select All'}
+                    </motion.button>
+                  )}
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-indigo-600 h-2 rounded-full transition-all duration-300 ease-in-out"
-                    style={{ width: `${getCompletionPercentage(todo)}%` }}
-                  ></div>
-                </div>
               </div>
-
-              <ul className="list-none pl-0 mb-2">
-                {todo.items.map(item => (
-                  <li key={item.id} className="flex items-center gap-2 mb-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {filteredStudents.map(s => (
+                  <motion.label 
+                    key={s.id} 
+                    className="flex items-center gap-3 bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200 cursor-pointer hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-200"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     <input 
                       type="checkbox" 
-                      checked={item.isChecked} 
-                      onChange={() => handleCheckboxToggle(todo.id, item.id)}
-                      className="accent-indigo-600 h-4 w-4 cursor-pointer" 
-                      disabled={loading || todo.isCompleted}
+                      checked={form.studentIds.includes(s.id)} 
+                      onChange={() => handleStudentToggle(s.id)}
+                      className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                     />
-                    <span className={item.isChecked ? 'line-through text-gray-400' : 'text-gray-800'}>{item.content}</span>
-                  </li>
+                    <div className="flex flex-col">
+                      <span className="text-gray-800 font-medium">{s.studentName}</span>
+                      <span className="text-xs text-gray-500">{getRoleDisplayName(s.role)}</span>
+                    </div>
+                  </motion.label>
                 ))}
-              </ul>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {todo.students.map(s => {
-                  const student = assignedStudents.find(st => st.id === s.studentId);
-                  return (
-                    <span key={s.studentId} className="bg-white border border-indigo-200 text-indigo-700 rounded-full px-3 py-1 text-xs">
-                      {student?.studentName || 'Student'} 
-                      <span className="text-gray-500 ml-1">({getRoleDisplayName(student?.role || '')})</span>
-                    </span>
-                  );
-                })}
               </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              {isAllItemsChecked(todo) && !todo.isCompleted && (
-                <button 
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-green-700 transition-colors duration-200"
-                  onClick={() => handleCompleteChecklist(todo.id)}
-                  disabled={loading}
-                >
-                  {loading ? 'Completing...' : 'Complete Checklist'}
-                </button>
+              {filteredStudents.length === 0 && (
+                <div className="text-gray-500 text-sm mt-3 text-center py-4 bg-gray-50 rounded-xl">
+                  No students found for the selected role filter.
+                </div>
               )}
-              <button className="text-red-500 hover:underline font-medium" onClick={() => handleDeleteRequest(todo)}>Delete</button>
             </div>
-          </div>
-        ))}
+            
+            <motion.button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2" 
+              disabled={loading}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <FiCheck className="w-5 h-5" />
+                  Save To-Do List
+                </>
+              )}
+            </motion.button>
+          </motion.form>
+        )}
+      </AnimatePresence>
+
+      {/* Loading and Error States */}
+      {loading && !showForm && (
+        <div className="flex items-center justify-center py-8">
+          <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+      
+      {error && (
+        <motion.div 
+          className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {error}
+        </motion.div>
+      )}
+      
+      {/* Results Summary */}
+      <AnimatePresence>
+        {todoRoleFilter !== 'ALL' && (
+          <motion.div 
+            className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <p className="text-blue-800 text-sm flex items-center gap-2">
+              <FiFilter className="w-4 h-4" />
+              <span className="font-medium">Filter Active:</span> 
+              Showing to-dos for {getRoleDisplayName(todoRoleFilter)} ({todosToShow.length} of {todos.length} to-dos)
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Todo List */}
+      <div className="space-y-4">
+        <AnimatePresence>
+          {todosToShow.map((todo, index) => (
+            <motion.div 
+              key={todo.id} 
+              className={`rounded-2xl p-6 shadow-lg transition-all duration-300 ${
+                todo.isCompleted 
+                  ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200' 
+                  : 'bg-white border border-gray-200 hover:shadow-xl'
+              }`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ y: -2 }}
+            >
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <h3 className="text-xl font-bold text-gray-800">{todo.title}</h3>
+                    <span className="text-xs bg-indigo-100 text-indigo-700 rounded-full px-3 py-1 font-medium flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(todo.sessionDate).toLocaleDateString()}
+                    </span>
+                    {todo.isCompleted && (
+                      <motion.span 
+                        className="text-xs bg-green-100 text-green-700 rounded-full px-3 py-1 font-semibold flex items-center gap-1"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", bounce: 0.5 }}
+                      >
+                        <Check className="w-3 h-3" />
+                        Completed
+                      </motion.span>
+                    )}
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">Progress</span>
+                      <span className="text-sm text-gray-600">
+                        {getCompletionPercentage(todo)}% ({todo.items.filter(item => item.isChecked).length}/{todo.items.length})
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                      <motion.div 
+                        className="bg-gradient-to-r from-indigo-500 to-purple-600 h-full rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${getCompletionPercentage(todo)}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Checklist Items */}
+                  <div className="space-y-2 mb-4">
+                    {todo.items.map((item, itemIndex) => (
+                      <motion.div 
+                        key={item.id} 
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: itemIndex * 0.05 }}
+                      >
+                        <input 
+                          type="checkbox" 
+                          checked={item.isChecked} 
+                          onChange={() => handleCheckboxToggle(todo.id, item.id)}
+                          className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer" 
+                          disabled={loading || todo.isCompleted}
+                        />
+                        <span className={`flex-1 ${item.isChecked ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                          {item.content}
+                        </span>
+                        {item.isChecked && (
+                          <motion.span 
+                            className="text-green-500"
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: "spring", bounce: 0.5 }}
+                          >
+                            <Check className="w-4 h-4" />
+                          </motion.span>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                  
+                  {/* Assigned Students */}
+                  <div className="flex flex-wrap gap-2">
+                    {todo.students.map(s => {
+                      const student = assignedStudents.find(st => st.id === s.studentId);
+                      return student ? (
+                        <span 
+                          key={s.studentId} 
+                          className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 text-indigo-700 rounded-full px-3 py-1 text-xs font-medium"
+                        >
+                          {student.studentName} 
+                          <span className="text-indigo-500 ml-1">({getRoleDisplayName(student.role)})</span>
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+                
+                {/* Actions */}
+                <div className="flex flex-col gap-2">
+                  {isAllItemsChecked(todo) && !todo.isCompleted && (
+                    <motion.button 
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2.5 rounded-xl font-semibold shadow-md hover:shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 flex items-center gap-2"
+                      onClick={() => handleCompleteChecklist(todo.id)}
+                      disabled={loading}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Trophy className="w-4 h-4" />
+                      Complete
+                    </motion.button>
+                  )}
+                  <motion.button 
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2" 
+                    onClick={() => handleDeleteRequest(todo)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <FiTrash2 className="w-4 h-4" />
+                    Delete
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
       
+      {/* Empty State */}
       {todosToShow.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          {todoRoleFilter !== 'ALL' 
-            ? `No to-dos found for ${getRoleDisplayName(todoRoleFilter)}.`
-            : 'No to-dos created yet.'
-          }
-        </div>
+        <motion.div 
+          className="text-center py-12 bg-gray-50 rounded-2xl"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <motion.div
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <ListChecks className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          </motion.div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">No To-Do Lists Yet</h3>
+          <p className="text-gray-500">
+            {todoRoleFilter !== 'ALL' 
+              ? `No to-dos found for ${getRoleDisplayName(todoRoleFilter)}.`
+              : 'Create your first training checklist to get started.'
+            }
+          </p>
+        </motion.div>
       )}
       
+      {/* Show More/Less Button */}
       {filteredTodos.length > 3 && (
-        <div className="flex justify-center mt-4">
-          <button className="text-indigo-600 hover:underline font-medium" onClick={() => setShowAll(s => !s)}>{showAll ? 'Show Less' : 'Show More'}</button>
-        </div>
+        <motion.div 
+          className="flex justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <motion.button 
+            className="text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-2 hover:bg-indigo-50 px-4 py-2 rounded-lg transition-all duration-200" 
+            onClick={() => setShowAll(s => !s)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {showAll ? (
+              <>
+                <FiChevronUp className="w-4 h-4" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <FiChevronDown className="w-4 h-4" />
+                Show More ({filteredTodos.length - 3} more)
+              </>
+            )}
+          </motion.button>
+        </motion.div>
       )}
-    </section>
+    </div>
   );
 } 
