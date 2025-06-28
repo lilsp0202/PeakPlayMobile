@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Edit, Check, X, FiSave, FiX, FiEdit } from "lucide-react";
+import { Edit, Check, X } from "lucide-react";
+import { FiSave, FiX, FiEdit, FiActivity } from "react-icons/fi";
 import { motion } from "framer-motion";
-import { FiActivity } from "react-icons/fi";
 
 // Types for skills and analytics
 interface SkillData {
