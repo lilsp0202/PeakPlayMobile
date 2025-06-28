@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Edit, Check, X } from "lucide-react";
+import { Edit, Check, X, FiSave, FiX, FiEdit } from "lucide-react";
 import { motion } from "framer-motion";
 import { FiActivity } from "react-icons/fi";
 
@@ -841,63 +841,54 @@ const SkillBar: React.FC<{
           </div>
           <div className="flex-1">
             <h4 className="font-bold text-gray-900 text-lg mb-1">{skill.name}</h4>
-            <p className="text-sm text-gray-600 leading-relaxed">{skill.description}</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{skill.description}</p>
           </div>
         </div>
         <div className="text-right ml-4">
-          <div className="text-2xl font-bold text-purple-700">
+          <div className="text-2xl font-bold text-gray-900 mb-1">
             {formatValue(score)}
           </div>
+          {showComparison && (
+            <div className="text-sm text-gray-700">
+              Avg: {formatValue(average)}
+            </div>
+          )}
         </div>
       </div>
 
-      {isEditing ? (
-        <div className="space-y-3">
+      {/* Progress bar */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-800">Progress</span>
+          <span className="text-sm text-gray-700">{Math.round(getPercentage())}%</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-3">
+          <div
+            className={`h-3 rounded-full transition-all duration-300 ${skill.colorScheme.background}`}
+            style={{ width: `${Math.min(getPercentage(), 100)}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Input field for editing */}
+      {isEditing && (
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-800 mb-2">
+            Update {skill.name}
+          </label>
           <input
-            type="range"
+            type="number"
+            value={score}
+            onChange={(e) => onScoreChange(skill.id, parseFloat(e.target.value) || 0)}
             min={range.min}
             max={range.max}
             step={range.step}
-            value={score}
-            onChange={(e) => onScoreChange(skill.id, parseFloat(e.target.value))}
-            className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-            style={{
-              background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${getPercentage()}%, #e5e7eb ${getPercentage()}%, #e5e7eb 100%)`
-            }}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            placeholder={`Enter ${skill.name.toLowerCase()}`}
           />
-          <div className="flex justify-between text-sm font-medium text-gray-600">
-            <span>{range.min}</span>
-            <span className="text-purple-700 font-bold">{formatValue(score)}</span>
-            <span>{range.max}</span>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <div className="relative">
-            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
-              <div
-                className={`h-full ${getProgressColor()} transition-all duration-500 rounded-full relative shadow-sm`}
-                style={{ width: `${getPercentage()}%` }}
-              >
-                <div className="absolute inset-0 bg-white opacity-20 rounded-full"></div>
-              </div>
-            </div>
-            {showComparison && average > 0 && (
-              <div
-                className="absolute top-0 h-4 w-1 bg-gray-700 rounded-full shadow-sm"
-                style={{ left: `${getAveragePercentage()}%`, transform: 'translateX(-50%)' }}
-                title={`Average: ${formatValue(average)}`}
-              />
-            )}
-          </div>
-          {showComparison && average > 0 && (
-            <div className="flex justify-between text-sm font-medium text-gray-700">
-              <span>Avg: <span className="font-bold">{formatValue(average)}</span></span>
-              {personalizedTarget && (
-                <span className="text-blue-700 font-bold">Target: {formatValue(personalizedTarget)}</span>
-              )}
-            </div>
-          )}
+          <p className="text-xs text-gray-700 mt-1">
+            Range: {range.min} - {range.max} {skill.unit}
+          </p>
         </div>
       )}
     </div>
@@ -1419,6 +1410,7 @@ export default function SkillSnap({
   const [averages, setAverages] = useState<SkillAverages | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Add effect to manage body scroll when modals are open
   useEffect(() => {
@@ -1589,6 +1581,7 @@ export default function SkillSnap({
 
   const handleSave = async (categoryId: string) => {
     try {
+      setIsSaving(true);
       setLoading(true);
       
       let categoryScores: Record<string, number> = {};
@@ -1660,6 +1653,7 @@ export default function SkillSnap({
       console.error("Error saving skills:", error);
       alert("Network error. Please check your connection and try again.");
     } finally {
+      setIsSaving(false);
       setLoading(false);
     }
   };
@@ -1818,18 +1812,18 @@ export default function SkillSnap({
       {/* Category Modal */}
       {selectedCategory && !selectedSkill && (
         <div className="fixed inset-0 z-[9999] bg-black bg-opacity-80">
-          <div className="fixed top-0 left-0 w-full h-full bg-white overflow-y-auto">
+          <div className="fixed top-0 left-0 w-full h-full bg-white overflow-y-auto custom-scrollbar">
             {/* Close button */}
             <button
               onClick={closeModal}
-              className="absolute top-4 right-4 p-3 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-all duration-200 z-20 shadow-lg"
+              className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-20 shadow-lg"
               aria-label="Close modal"
             >
               <X className="w-6 h-6" />
             </button>
 
             {/* Modal content */}
-            <div className="p-6 pt-16">
+            <div className="p-6 pt-16 max-w-5xl mx-auto">
               {/* Modal header */}
               <div className="mb-8">
                 <div className="flex items-center space-x-4">
@@ -1837,12 +1831,8 @@ export default function SkillSnap({
                     {selectedCategory.icon}
                   </div>
                   <div>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {selectedCategory.name}
-                    </h3>
-                    <p className="text-base text-gray-600 capitalize">
-                      {selectedCategory.description}
-                    </p>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedCategory.name}</h2>
+                    <p className="text-base text-gray-700 leading-relaxed">{selectedCategory.description}</p>
                   </div>
                 </div>
               </div>
@@ -1850,49 +1840,37 @@ export default function SkillSnap({
               {/* Action Buttons */}
               <div className="mb-8">
                 {isEditing === selectedCategory.id ? (
-                  <div className="flex justify-end space-x-4">
-                    <button
-                      onClick={() => handleCancel(selectedCategory.id)}
-                      className="px-6 py-3 text-gray-700 hover:text-gray-900 font-semibold flex items-center space-x-2 hover:bg-gray-100 rounded-xl transition-all duration-200 border border-gray-300"
-                    >
-                      <X className="w-5 h-5" />
-                      <span>Cancel</span>
-                    </button>
+                  <div className="flex space-x-4">
                     <button
                       onClick={() => handleSave(selectedCategory.id)}
-                      className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold flex items-center space-x-2 transition-all duration-200 shadow-lg"
+                      disabled={isSaving}
+                      className="flex items-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
                     >
-                      <Check className="w-5 h-5" />
-                      <span>Save Changes</span>
+                      <FiSave className="mr-2" />
+                      {isSaving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                      onClick={() => handleCancel(selectedCategory.id)}
+                      className="flex items-center px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                    >
+                      <FiX className="mr-2" />
+                      Cancel
                     </button>
                   </div>
                 ) : (
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => handleStartEdit(selectedCategory.id)}
-                      className="px-6 py-3 text-indigo-600 hover:text-indigo-700 font-semibold flex items-center space-x-2 hover:bg-indigo-50 rounded-xl transition-all duration-200 border border-indigo-200"
-                    >
-                      <Edit className="w-5 h-5" />
-                      <span>Edit All</span>
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleStartEdit(selectedCategory.id)}
+                    className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                  >
+                    <FiEdit className="mr-2" />
+                    Edit All Skills
+                  </button>
                 )}
               </div>
 
-              {/* Modal content */}
-              <div className="pb-8">
-                <div className="space-y-6">
-                  <div className={`bg-gradient-to-r ${selectedCategory.colorScheme.gradient} rounded-xl p-6 border border-${selectedCategory.colorScheme.primary}-200 shadow-lg`}>
-                    <h4 className={`text-xl font-bold text-${selectedCategory.colorScheme.primary}-900 mb-3 flex items-center`}>
-                      <FiActivity className="mr-3 w-6 h-6" />
-                      {selectedCategory.name} Skills Tracking
-                    </h4>
-                    <p className={`text-${selectedCategory.colorScheme.primary}-700 text-base mb-4`}>
-                      Track and monitor your {selectedCategory.name.toLowerCase()} skill development progress.
-                    </p>
-                  </div>
-                  {renderSkillsForCategory(selectedCategory)}
-                </div>
+              {/* Skills content */}
+              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                {renderSkillsForCategory(selectedCategory)}
               </div>
             </div>
           </div>
