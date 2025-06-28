@@ -1,59 +1,102 @@
-# PeakPlay - Sports Academy Management PWA
+# PeakPlay Mobile Prototype
 
-A comprehensive Progressive Web App for sports academy management, connecting athletes and coaches with advanced performance tracking, badge systems, and academy management tools.
+A Next.js + Prisma + TypeScript PWA for athlete development.
 
-## 🚀 Quick Start
+## Prerequisites
 
-### Prerequisites
+- Node.js 18+ 
+- PostgreSQL 14+
+- npm or yarn
 
-- **Node.js** 18+ 
-- **npm** or **yarn**
-- **Git**
+## Environment Setup
 
-### Installation
+Create a `.env` file in the root directory with the following variables:
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/lilsp0202/PeakPlayMobile.git
-cd PeakPlayMobile
-```
-
-2. **Install dependencies**
-```bash
-npm install
-```
-
-3. **Set up environment variables**
-Create a `.env` file in the root directory:
 ```env
-DATABASE_URL="file:./dev.db"
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/peakplay?schema=public"
+
+# NextAuth.js
 NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-key-here-change-this-in-production"
+NEXTAUTH_SECRET="your-secret-key"
+
+# JWT
+JWT_SECRET="your-jwt-secret"
+
+# Email (optional)
+EMAIL_SERVER_HOST="smtp.example.com"
+EMAIL_SERVER_PORT=587
+EMAIL_SERVER_USER="user@example.com"
+EMAIL_SERVER_PASSWORD="password"
+EMAIL_FROM="noreply@example.com"
+
+# PWA
+NEXT_PUBLIC_PWA_URL="http://192.168.1.75:3000"
 ```
 
-4. **Initialize the database**
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/lilsp0202/PeakPlayMobile-prototype.git
+   cd PeakPlayMobile-prototype
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up the database:
+   ```bash
+   npx prisma migrate dev
+   npx prisma generate
+   ```
+
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+The application will be available at:
+- Web: http://localhost:3000
+- PWA: http://192.168.1.75:3000
+- Prisma Studio: http://localhost:5555
+
+## Features
+
+- Athlete Development Tracking
+- Skill Assessment
+- Badge System
+- Real-time Progress Monitoring
+- PWA Support
+- Offline Capabilities
+
+## Development
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npx prisma studio` - Open Prisma Studio
+
+## Testing
+
 ```bash
-npx prisma generate
-npx prisma db push
+npm run test
+npm run test:e2e
 ```
 
-5. **Seed the database (optional)**
-```bash
-npm run db:seed
-```
+## Contributing
 
-6. **Start the development servers**
-```bash
-# Terminal 1 - Start the Next.js PWA server
-npm run dev
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-# Terminal 2 - Start Prisma Studio (database management)
-npx prisma studio
-```
+## License
 
-7. **Access the application**
-- **PWA**: http://localhost:3000
-- **Database Admin**: http://localhost:5555
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🎯 Test Accounts
 
@@ -131,45 +174,6 @@ src/
 2. Automatic redirect to role-appropriate dashboard
 3. Full access to saved data and progress
 
-## 🛠️ Development
-
-### Available Scripts
-
-```bash
-# Development
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-
-# Database
-npx prisma studio    # Open database management UI
-npx prisma generate  # Generate Prisma client
-npx prisma db push   # Push schema changes to database
-npm run db:seed      # Seed database with sample data
-
-# Utilities
-npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript checks
-```
-
-### Database Management
-
-The application uses **Prisma** with **SQLite** for development:
-
-- **View Data**: Access http://localhost:5555 (Prisma Studio)
-- **Schema**: Located in `prisma/schema.prisma`
-- **Migrations**: Automatically managed by Prisma
-
-### Key Technologies
-
-- **Framework**: Next.js 14 with App Router
-- **Authentication**: NextAuth.js with JWT strategy  
-- **Database**: Prisma ORM with SQLite/PostgreSQL
-- **Styling**: Tailwind CSS with custom gradients
-- **PWA**: Next-PWA with offline support
-- **UI Components**: React with TypeScript
-- **Icons**: React Icons + Lucide React
-
 ## 🎨 Features Deep Dive
 
 ### SkillSnap Performance Tracking
@@ -234,18 +238,6 @@ npm install
 - Ensure HTTPS in production
 - Check manifest.json configuration
 - Verify service worker registration
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
