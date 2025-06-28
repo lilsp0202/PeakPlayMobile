@@ -171,8 +171,9 @@ const skillCategories: SkillCategory[] = [
         description: "Maximum push-ups in 1 minute",
         colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+            <circle cx="12" cy="8" r="2" strokeWidth="1"/>
           </svg>
         ),
       },
@@ -184,8 +185,10 @@ const skillCategories: SkillCategory[] = [
         description: "Maximum pull-ups in 1 set",
         colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+            <rect x="6" y="10" width="2" height="8" rx="1"/>
+            <rect x="16" y="6" width="2" height="8" rx="1"/>
           </svg>
         ),
       },
@@ -197,8 +200,9 @@ const skillCategories: SkillCategory[] = [
         description: "100 meter sprint time",
         colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6.3 8.1 7.8 12 4.9 13.8 3.8 12.6c-.4-.6-1.2-.6-1.6-.2s-.4 1.2 0 1.6l2 2L7.8 14 8.9 21H11l1.1-2.1z"/>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            <path d="M18 8l-2-2m0 0L14 8m2-2v6" strokeWidth="1"/>
           </svg>
         ),
       },
@@ -210,8 +214,10 @@ const skillCategories: SkillCategory[] = [
         description: "5 kilometer run time",
         colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M15.5 12c2.49 0 4.5-2.01 4.5-4.5S17.99 3 15.5 3 11 5.01 11 7.5s2.01 4.5 4.5 4.5zM5 8.5c0-.83.67-1.5 1.5-1.5S8 7.67 8 8.5 7.33 10 6.5 10 5 9.33 5 8.5zm7 8.5c-2.33 0-7 1.17-7 3.5V22h14v-1.5c0-2.33-4.67-3.5-7-3.5z"/>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+            <circle cx="12" cy="12" r="9" strokeWidth="1"/>
+            <path d="M8 12l2-2m6 2l-2-2" strokeWidth="1"/>
           </svg>
         ),
       },
@@ -241,8 +247,8 @@ const skillCategories: SkillCategory[] = [
         description: "Daily mood and motivation rating",
         colorScheme: { primary: "purple-600", secondary: "purple-100", background: "purple-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM8.5 9c.83 0 1.5.67 1.5 1.5S9.33 12 8.5 12 7 11.33 7 10.5 7.67 9 8.5 9zm7 0c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5S14 10.33 14 9.5 14.67 9 15.5 9zM12 17.5c-2.33 0-4.31-1.46-5.11-3.5h10.22c-.8 2.04-2.78 3.5-5.11 3.5z"/>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
           </svg>
         ),
       },
@@ -254,8 +260,9 @@ const skillCategories: SkillCategory[] = [
         description: "Sleep quality and recovery rating",
         colorScheme: { primary: "purple-600", secondary: "purple-100", background: "purple-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12.5 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2C20.5 10.48 17.83 6.55 12.5 2zm3.5 13.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5 1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5z"/>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth="1"/>
           </svg>
         ),
       },
@@ -285,9 +292,9 @@ const skillCategories: SkillCategory[] = [
         description: "Daily caloric intake",
         colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M11.15 3.4L7.43 9.48c-.41.68-1.08 1.16-1.86 1.33L2.66 11.25c-.79.18-1.28 1.05-.96 1.79.32.74 1.17 1.17 1.96.99l2.91-.54c.78-.15 1.45-.63 1.86-1.33L11.15 3.4z"/>
-            <circle cx="17.5" cy="6.5" r="4.5"/>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+            <circle cx="12" cy="12" r="2" strokeWidth="1"/>
           </svg>
         ),
       },
@@ -312,8 +319,10 @@ const skillCategories: SkillCategory[] = [
         description: "Daily carbohydrate intake",
         colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1z"/>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            <circle cx="8" cy="8" r="1" strokeWidth="1"/>
+            <circle cx="16" cy="8" r="1" strokeWidth="1"/>
           </svg>
         ),
       },
@@ -325,8 +334,8 @@ const skillCategories: SkillCategory[] = [
         description: "Daily fat intake",
         colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12.47 2.05c-.14-.4-.6-.4-.74 0L9.75 8.79c-.41-.02-.82.08-1.18.3-.77.47-1.26 1.3-1.32 2.23-.05.93.32 1.83 1 2.42.41.36.92.56 1.45.56.19 0 .38-.02.56-.07l1.97 5.46c.14.4.6.4.74 0l1.97-5.46c.18.05.37.07.56.07.53 0 1.04-.2 1.45-.56.68-.59 1.05-1.49 1-2.42-.06-.93-.55-1.76-1.32-2.23-.36-.22-.77-.32-1.18-.3L12.47 2.05z"/>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
           </svg>
         ),
       },
@@ -355,7 +364,7 @@ const skillCategories: SkillCategory[] = [
         unit: "avg",
         type: "score" as const,
         description: "Batting technique mastery",
-        icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M2.5 17.5L7 13l11 11-4.5 4.5L2.5 17.5zm15-15L13 7l1.5 1.5L19 4l-1.5-1.5zM6 3l3 3-3 3-3-3 3-3z"/></svg>,
+        icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>,
         colorScheme: { primary: "orange-600", secondary: "orange-100", background: "orange-50" }
       },
       {
@@ -364,7 +373,7 @@ const skillCategories: SkillCategory[] = [
         unit: "avg",
         type: "score" as const,
         description: "Bowling technique mastery",
-        icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>,
+        icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><circle cx="12" cy="12" r="9" strokeWidth="1"/><circle cx="12" cy="8" r="1" fill="currentColor"/><circle cx="10" cy="10" r="1" fill="currentColor"/><circle cx="14" cy="10" r="1" fill="currentColor"/></svg>,
         colorScheme: { primary: "orange-600", secondary: "orange-100", background: "orange-50" }
       },
       {
@@ -373,7 +382,7 @@ const skillCategories: SkillCategory[] = [
         unit: "avg",
         type: "score" as const,
         description: "Fielding technique mastery",
-        icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>,
+        icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m-3-3a1.5 1.5 0 013 0"/><circle cx="12" cy="12" r="2" strokeWidth="1"/></svg>,
         colorScheme: { primary: "orange-600", secondary: "orange-100", background: "orange-50" }
       }
     ]
@@ -401,17 +410,37 @@ const skillCategories: SkillCategory[] = [
 const calculatePhysicalAggregateScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
 
-  const scores = [
-    skillData.pushupScore || 0,
-    skillData.pullupScore || 0,
-    skillData.sprintTime ? 10 - (skillData.sprintTime / 2) : 0, // Convert time to score (lower is better)
-    skillData.run5kTime ? 10 - (skillData.run5kTime / 30) : 0, // Convert time to score (lower is better)
-  ];
+  // Normalize raw scores to 0-10 scale based on the new logical ranges
+  const normalizedScores = [];
+  
+  // Push-ups (0-100 range, normalize to 0-10)
+  if (skillData.pushupScore !== undefined && skillData.pushupScore !== null) {
+    const pushupNormalized = Math.min(10, Math.max(0, (skillData.pushupScore / 100) * 10));
+    normalizedScores.push(pushupNormalized);
+  }
+  
+  // Pull-ups (0-50 range, normalize to 0-10)
+  if (skillData.pullupScore !== undefined && skillData.pullupScore !== null) {
+    const pullupNormalized = Math.min(10, Math.max(0, (skillData.pullupScore / 50) * 10));
+    normalizedScores.push(pullupNormalized);
+  }
+  
+  // Sprint time (8-20 seconds, lower is better)
+  if (skillData.sprintTime !== undefined && skillData.sprintTime !== null) {
+    const sprintNormalized = Math.min(10, Math.max(0, 10 - ((skillData.sprintTime - 8) / (20 - 8)) * 10));
+    normalizedScores.push(sprintNormalized);
+  }
+  
+  // 5K time (15-40 minutes, lower is better)
+  if (skillData.run5kTime !== undefined && skillData.run5kTime !== null) {
+    const run5kNormalized = Math.min(10, Math.max(0, 10 - ((skillData.run5kTime - 15) / (40 - 15)) * 10));
+    normalizedScores.push(run5kNormalized);
+  }
 
-  const validScores = scores.filter(score => score > 0);
-  if (validScores.length === 0) return 0;
+  if (normalizedScores.length === 0) return 0;
 
-  return Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length);
+  const average = normalizedScores.reduce((a, b) => a + b, 0) / normalizedScores.length;
+  return Math.min(10, Math.max(0, Math.round(average * 10) / 10)); // Round to 1 decimal and ensure 0-10 range
 };
 
 const calculateMentalAggregateScore = (skillData: SkillData | null): number => {
@@ -422,10 +451,13 @@ const calculateMentalAggregateScore = (skillData: SkillData | null): number => {
     skillData.sleepScore || 0,
   ];
 
-  const validScores = scores.filter(score => score > 0);
+  // Ensure all mental scores are capped at 10
+  const cappedScores = scores.map(score => Math.min(10, Math.max(0, score)));
+  const validScores = cappedScores.filter(score => score > 0);
   if (validScores.length === 0) return 0;
 
-  return Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length);
+  const average = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+  return Math.min(10, Math.max(0, Math.round(average * 10) / 10));
 };
 
 const calculateNutritionAggregateScore = (skillData: SkillData | null): number => {
@@ -433,22 +465,68 @@ const calculateNutritionAggregateScore = (skillData: SkillData | null): number =
 
   // Calculate recommended values based on student data
   const student = skillData.student;
-  if (!student || !student.weight || !student.height) return 0;
+  if (!student || !student.weight || !student.height) {
+    // If no student data, use the values as percentages within their ranges
+    const scores = [];
+    
+    // Normalize calories (1000-4000 range to 0-10 scale)
+    if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
+      const calorieScore = Math.min(10, Math.max(0, ((skillData.totalCalories - 1000) / (4000 - 1000)) * 10));
+      scores.push(calorieScore);
+    }
+    
+    // Normalize protein (20-200g range to 0-10 scale) 
+    if (skillData.protein !== undefined && skillData.protein !== null) {
+      const proteinScore = Math.min(10, Math.max(0, ((skillData.protein - 20) / (200 - 20)) * 10));
+      scores.push(proteinScore);
+    }
+    
+    // Normalize carbs (50-500g range to 0-10 scale)
+    if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
+      const carbScore = Math.min(10, Math.max(0, ((skillData.carbohydrates - 50) / (500 - 50)) * 10));
+      scores.push(carbScore);
+    }
+    
+    // Normalize fats (20-150g range to 0-10 scale)
+    if (skillData.fats !== undefined && skillData.fats !== null) {
+      const fatScore = Math.min(10, Math.max(0, ((skillData.fats - 20) / (150 - 20)) * 10));
+      scores.push(fatScore);
+    }
+
+    if (scores.length === 0) return 0;
+    const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+    return Math.min(10, Math.max(0, Math.round(average * 10) / 10));
+  }
 
   const nutrition = calculatePersonalizedNutrition(student.weight, student.height, student.age);
 
-  // Calculate scores based on how close actual values are to recommended values
-  const scores = [
-    skillData.totalCalories ? 10 - Math.abs((skillData.totalCalories - nutrition.totalCalories) / nutrition.totalCalories) * 10 : 0,
-    skillData.protein ? 10 - Math.abs((skillData.protein - nutrition.protein) / nutrition.protein) * 10 : 0,
-    skillData.carbohydrates ? 10 - Math.abs((skillData.carbohydrates - nutrition.carbohydrates) / nutrition.carbohydrates) * 10 : 0,
-    skillData.fats ? 10 - Math.abs((skillData.fats - nutrition.fats) / nutrition.fats) * 10 : 0,
-  ];
+  // Calculate scores based on how close actual values are to recommended values (0-10 scale)
+  const scores = [];
+  
+  if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
+    const calorieScore = Math.max(0, 10 - Math.abs((skillData.totalCalories - nutrition.totalCalories) / nutrition.totalCalories) * 10);
+    scores.push(Math.min(10, calorieScore));
+  }
+  
+  if (skillData.protein !== undefined && skillData.protein !== null) {
+    const proteinScore = Math.max(0, 10 - Math.abs((skillData.protein - nutrition.protein) / nutrition.protein) * 10);
+    scores.push(Math.min(10, proteinScore));
+  }
+  
+  if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
+    const carbScore = Math.max(0, 10 - Math.abs((skillData.carbohydrates - nutrition.carbohydrates) / nutrition.carbohydrates) * 10);
+    scores.push(Math.min(10, carbScore));
+  }
+  
+  if (skillData.fats !== undefined && skillData.fats !== null) {
+    const fatScore = Math.max(0, 10 - Math.abs((skillData.fats - nutrition.fats) / nutrition.fats) * 10);
+    scores.push(Math.min(10, fatScore));
+  }
 
-  const validScores = scores.filter(score => score > 0);
-  if (validScores.length === 0) return 0;
+  if (scores.length === 0) return 0;
 
-  return Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length);
+  const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+  return Math.min(10, Math.max(0, Math.round(average * 10) / 10));
 };
 
 const calculateTacticalAggregateScore = (skillData: SkillData | null): number => {
@@ -489,17 +567,22 @@ export const calculateOverallProgress = (skillData: SkillData | null): number =>
   const validScores = scores.filter(score => score > 0);
   if (validScores.length === 0) return 0;
 
-  return Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length);
+  const average = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+  // Convert 0-10 scale to 0-100 percentage and ensure it's capped at 100
+  return Math.min(100, Math.max(0, Math.round(average * 10)));
 };
 
 // Progress Ring Component
 const ProgressRing: React.FC<{ progress: number }> = ({ progress }) => {
+  // Ensure progress is capped between 0 and 100
+  const cappedProgress = Math.min(100, Math.max(0, progress));
+  
   const radius = 40;
   const strokeWidth = 8;
   const normalizedRadius = radius - strokeWidth * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDasharray = `${circumference} ${circumference}`;
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
+  const strokeDashoffset = circumference - (cappedProgress / 100) * circumference;
 
   return (
     <div className="relative">
@@ -543,7 +626,7 @@ const ProgressRing: React.FC<{ progress: number }> = ({ progress }) => {
         transition={{ delay: 0.5, type: "spring" }}
       >
         <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-          {progress}%
+          {cappedProgress}%
         </span>
       </motion.div>
     </div>
@@ -662,8 +745,68 @@ const SkillBar: React.FC<{
   onClick?: () => void; // New prop for click handling
 }> = ({ skill, userScore, averageScore, isEditing, onScoreChange, showComparison = true, personalizedTarget, onClick }) => {
   const displayScore = userScore || 0;
-  const percentage = Math.min((displayScore / 10) * 100, 100);
-  const isAboveAverage = averageScore ? displayScore > averageScore : false;
+
+  // Get logical ranges for different skill types
+  const getSkillRange = () => {
+    switch (skill.id) {
+      // Physical Skills - Use realistic values
+      case 'pushupScore':
+        return { min: 0, max: 100, step: 1 }; // Push-ups in 1 minute
+      case 'pullupScore':
+        return { min: 0, max: 50, step: 1 }; // Pull-ups max
+      case 'sprintTime':
+        return { min: 8, max: 20, step: 0.1 }; // 100m sprint time in seconds
+      case 'run5kTime':
+        return { min: 15, max: 40, step: 0.5 }; // 5K time in minutes
+      
+      // Mental Skills - Keep 0-10 scale
+      case 'moodScore':
+      case 'sleepScore':
+        return { min: 0, max: 10, step: 0.5 };
+      
+      // Nutrition Skills - Use realistic daily values
+      case 'totalCalories':
+        return { min: 1000, max: 4000, step: 50 }; // Daily calories
+      case 'protein':
+        return { min: 20, max: 200, step: 5 }; // Protein in grams
+      case 'carbohydrates':
+        return { min: 50, max: 500, step: 10 }; // Carbs in grams
+      case 'fats':
+        return { min: 20, max: 150, step: 5 }; // Fats in grams
+      
+      // Technical Skills - Use 0-10 scale for technique ratings
+      default:
+        return { min: 0, max: 10, step: 0.5 };
+    }
+  };
+
+  const range = getSkillRange();
+  
+  // Calculate percentage based on skill-specific range
+  const getPercentage = () => {
+    const clampedScore = Math.min(range.max, Math.max(range.min, displayScore));
+    
+    if (skill.id === 'sprintTime' || skill.id === 'run5kTime') {
+      // For time-based skills, lower is better
+      // 100m Sprint: 8s = 100%, 14s = 50%, 20s = 0%
+      // 5K Run: 15min = 100%, 27.5min = 50%, 40min = 0%
+      const normalizedPosition = (clampedScore - range.min) / (range.max - range.min);
+      return Math.round((1 - normalizedPosition) * 100);
+    }
+    
+    // For other skills, higher is better
+    const normalizedPosition = (clampedScore - range.min) / (range.max - range.min);
+    return Math.round(normalizedPosition * 100);
+  };
+
+  const percentage = getPercentage();
+  
+  // For time-based skills, "above average" means lower time (better performance)
+  const isAboveAverage = averageScore ? 
+    (skill.id === 'sprintTime' || skill.id === 'run5kTime'
+      ? displayScore < averageScore  // Lower time is better
+      : displayScore > averageScore) // Higher score is better
+    : false;
 
   const getProgressColor = () => {
     if (percentage >= 80) return 'from-green-500 to-emerald-600';
@@ -688,7 +831,7 @@ const SkillBar: React.FC<{
             whileHover={{ rotate: 360 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="text-white">{skill.icon}</div>
+            <div className="text-gray-900">{skill.icon}</div>
           </motion.div>
           <div>
             <h4 className="font-semibold text-gray-900">{skill.name}</h4>
@@ -703,6 +846,7 @@ const SkillBar: React.FC<{
             transition={{ type: "spring", bounce: 0.5 }}
           >
             {displayScore}
+            {skill.unit && <span className="text-sm ml-1">{skill.unit}</span>}
           </motion.div>
         )}
       </div>
@@ -711,9 +855,9 @@ const SkillBar: React.FC<{
         <div className="space-y-2">
           <input
             type="range"
-            min="0"
-            max="10"
-            step="0.5"
+            min={range.min}
+            max={range.max}
+            step={range.step}
             value={displayScore}
             onChange={(e) => onScoreChange(skill.id, parseFloat(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
@@ -722,9 +866,11 @@ const SkillBar: React.FC<{
             }}
           />
           <div className="flex justify-between text-xs text-gray-500">
-            <span>0</span>
-            <span className="font-semibold text-purple-600">{displayScore}</span>
-            <span>10</span>
+            <span>{range.min}</span>
+            <span className="font-semibold text-purple-600">
+              {displayScore}{skill.unit && ` ${skill.unit}`}
+            </span>
+            <span>{range.max}</span>
           </div>
         </div>
       ) : (
@@ -741,7 +887,13 @@ const SkillBar: React.FC<{
             {showComparison && averageScore && (
               <motion.div
                 className="absolute top-0 bottom-0 w-0.5 bg-gray-600"
-                style={{ left: `${(averageScore / 10) * 100}%` }}
+                style={{ 
+                  left: `${
+                    skill.id === 'sprintTime' || skill.id === 'run5kTime'
+                      ? Math.min(100, Math.max(0, 100 - ((averageScore - range.min) / (range.max - range.min)) * 100))
+                      : Math.min(100, Math.max(0, ((averageScore - range.min) / (range.max - range.min)) * 100))
+                  }%` 
+                }}
                 initial={{ opacity: 0, scaleY: 0 }}
                 animate={{ opacity: 0.5, scaleY: 1 }}
                 transition={{ delay: 0.5 }}
@@ -787,7 +939,8 @@ const CategoryCard: React.FC<{
   skillData: SkillData | null;
 }> = ({ category, onOpen, skillData }) => {
   const aggregateScore = calculateAggregateScore(category, skillData);
-  const progress = aggregateScore * 10;
+  // Convert 0-10 aggregate score to 0-100 percentage, properly capped
+  const progress = Math.min(100, Math.max(0, Math.round(aggregateScore * 10)));
 
   return (
     <motion.div
@@ -806,7 +959,7 @@ const CategoryCard: React.FC<{
             whileHover={{ rotate: 360 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="text-white">{category.icon}</div>
+            <div className="text-gray-900">{category.icon}</div>
           </motion.div>
           <div>
             <h3 className="text-xl font-bold text-gray-900">{category.name}</h3>
@@ -883,7 +1036,7 @@ const BMICard: React.FC<{
     return (
       <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
         <div className="flex items-center space-x-3 mb-4">
-          <div className="p-3 bg-green-500 rounded-lg text-white">
+          <div className="p-3 bg-green-500 rounded-lg text-gray-800">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
@@ -913,7 +1066,7 @@ const BMICard: React.FC<{
   return (
     <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="p-3 bg-green-500 rounded-lg text-white">
+        <div className="p-3 bg-green-500 rounded-lg text-gray-800">
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
           </svg>
@@ -1051,8 +1204,10 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
     isEditing: boolean;
     onScoreChange: (skillId: string, value: number) => void;
   }> = ({ skill, userScore, averageScore, isEditing, onScoreChange }) => {
-    const normalizedUserScore = (userScore / skill.maxPoints) * 10;
-    const normalizedAverageScore = (averageScore / skill.maxPoints) * 10;
+    const normalizedUserScore = Math.min(10, Math.max(0, (userScore / skill.maxPoints) * 10));
+    const normalizedAverageScore = Math.min(10, Math.max(0, (averageScore / skill.maxPoints) * 10));
+    const userProgressPercentage = Math.min(100, Math.max(0, (normalizedUserScore / 10) * 100));
+    const averageProgressPercentage = Math.min(100, Math.max(0, (normalizedAverageScore / 10) * 100));
 
     return (
       <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
@@ -1090,12 +1245,12 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(normalizedUserScore / 10) * 100}%` }}
+                style={{ width: `${userProgressPercentage}%` }}
               />
             </div>
             <div
               className="absolute top-0 h-2 w-0.5 bg-gray-400 rounded-full"
-              style={{ left: `${(normalizedAverageScore / 10) * 100}%` }}
+              style={{ left: `${averageProgressPercentage}%` }}
             />
           </div>
         </div>
@@ -1153,8 +1308,8 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
                 {icon}
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white drop-shadow-sm">{title}</h3>
-                <p className="text-white text-opacity-90 text-sm font-medium">
+                            <h3 className="text-xl font-bold text-gray-800 drop-shadow-sm">{title}</h3>
+            <p className="text-gray-700 text-sm font-medium">
                   {completedSkills}/{totalSkills} skills tracked
                 </p>
               </div>
@@ -1164,7 +1319,7 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               )}
               <svg
-                className={`w-6 h-6 text-white transition-transform duration-200 ${
+                className={`w-6 h-6 text-gray-800 transition-transform duration-200 ${
                   isExpanded ? 'rotate-180' : ''
                 }`}
                 fill="none"
@@ -1209,7 +1364,7 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
         skills={battingSkills}
         colorScheme="batting"
         icon={
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
             <path d="M2.5 17.5L7 13l11 11-4.5 4.5L2.5 17.5zm15-15L13 7l1.5 1.5L19 4l-1.5-1.5zM6 3l3 3-3 3-3-3 3-3z"/></svg>
         }
       />
@@ -1220,7 +1375,7 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
         skills={bowlingSkills}
         colorScheme="bowling"
         icon={
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="3"/>
             <circle cx="8" cy="8" r="1"/>
             <circle cx="16" cy="8" r="1"/>
@@ -1240,7 +1395,7 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
         skills={fieldingSkills}
         colorScheme="fielding"
         icon={
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8 8s3.59 8 8 8 8-3.59 8-8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
           </svg>
         }
@@ -1308,6 +1463,19 @@ export default function SkillSnap({
       unlockBodyScroll();
     };
   }, [selectedCategory, selectedSkill]);
+
+  // Prevent scroll restoration on page navigation
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      unlockBodyScroll();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      unlockBodyScroll();
+    };
+  }, []);
 
   useEffect(() => {
     fetchSkillData();
@@ -1555,19 +1723,13 @@ export default function SkillSnap({
   };
 
   const openCategoryModal = (category: SkillCategory) => {
-    // Prevent scroll restoration while opening modal
-    document.documentElement.style.scrollBehavior = 'auto';
     setSelectedCategory(category);
     setSelectedSkill(null);
-    // Re-enable smooth scrolling after modal is open
-    setTimeout(() => {
-      document.documentElement.style.scrollBehavior = '';
-    }, 150);
+    // Lock body scroll when modal opens
+    lockBodyScroll();
   };
 
   const openSkillModal = (skill: SkillItem, category: SkillCategory) => {
-    // Prevent scroll restoration while opening modal
-    document.documentElement.style.scrollBehavior = 'auto';
     setSelectedCategory(category);
     setSelectedSkill(skill);
     
@@ -1579,25 +1741,19 @@ export default function SkillSnap({
       }));
     }
     
-    // Re-enable smooth scrolling after modal is open
-    setTimeout(() => {
-      document.documentElement.style.scrollBehavior = '';
-    }, 150);
+    // Lock body scroll when modal opens
+    lockBodyScroll();
   };
 
   const closeModal = () => {
-    // Prevent scroll restoration while closing modal
-    document.documentElement.style.scrollBehavior = 'auto';
     setSelectedCategory(null);
     setSelectedSkill(null);
     // Cancel any ongoing edits
     if (isEditing) {
       handleCancel(isEditing);
     }
-    // Re-enable smooth scrolling after modal is closed and scroll is restored
-    setTimeout(() => {
-      document.documentElement.style.scrollBehavior = '';
-    }, 150);
+    // Unlock body scroll when modal closes
+    unlockBodyScroll();
   };
 
   const renderTechnicalSkills = () => {
@@ -1661,23 +1817,54 @@ export default function SkillSnap({
 
     return (
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-modalFadeIn"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] animate-modalFadeIn"
         onClick={closeModal}
         style={{ 
           touchAction: 'none',
           overscrollBehavior: 'none',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          isolation: 'isolate'
         }}
       >
-        {/* Modal Container - Enhanced Mobile PWA Optimization */}
-        <div className="min-h-screen max-h-screen flex items-start justify-center pt-4 sm:pt-8 modal-mobile-safe modal-pwa-safe">
-          <div 
-            className="bg-white rounded-xl shadow-2xl w-full max-w-2xl animate-slideUpBounce relative mx-4 sm:mx-6"
-            onClick={(e) => e.stopPropagation()}
-            style={{ 
-              maxHeight: 'calc(100vh - 10rem)',
-              height: 'fit-content'
-            }}
+                {/* Modal Container - iPhone PWA Optimized */}
+        <div 
+          className="fixed"
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            WebkitOverflowScrolling: 'touch',
+            padding: '1rem'
+          }}
+        >
+            <div 
+              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl animate-slideUpBounce z-[10000]"
+              onClick={(e) => e.stopPropagation()}
+              style={{ 
+                maxHeight: 'calc(100vh - 2rem)',
+                width: '92%',
+                maxWidth: '22rem',
+                margin: '0 auto',
+                zIndex: 10000,
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                borderRadius: '1rem',
+                overflow: 'hidden',
+                WebkitOverflowScrolling: 'touch',
+                position: 'relative'
+              }}
+              role="dialog"
           >
             {/* Modal Header - Fixed */}
             <div className="modal-header-glass p-4 sm:p-6 border-b border-gray-200 rounded-t-xl flex-shrink-0">
@@ -1703,10 +1890,11 @@ export default function SkillSnap({
 
             {/* Modal Content - Enhanced Mobile Scrolling */}
             <div 
-              className="p-4 sm:p-6 modal-scroll-enhanced modal-mobile-content overflow-y-auto overscroll-contain" 
+              className="p-4 modal-scroll-enhanced modal-mobile-content overflow-y-auto overscroll-contain" 
               style={{ 
-                maxHeight: 'calc(100vh - 14rem)',
-                minHeight: '15vh'
+                maxHeight: 'calc(100vh - 16rem)',
+                minHeight: '20vh',
+                WebkitOverflowScrolling: 'touch'
               }}
             >
               <SkillBar
@@ -1771,22 +1959,51 @@ export default function SkillSnap({
       {/* Category Modal */}
       {selectedCategory && !selectedSkill && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-modalFadeIn"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] animate-modalFadeIn"
           onClick={closeModal}
           style={{ 
             touchAction: 'none',
             overscrollBehavior: 'none',
-            WebkitOverflowScrolling: 'touch'
+            WebkitOverflowScrolling: 'touch',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            isolation: 'isolate'
           }}
         >
-          {/* Modal Container - Enhanced Mobile PWA Optimization */}
-          <div className="min-h-screen max-h-screen flex items-start justify-center pt-4 sm:pt-8 modal-mobile-safe modal-pwa-safe">
-            <div 
-              className="bg-white rounded-xl shadow-2xl w-full max-w-4xl flex flex-col animate-slideUpBounce relative mx-4 sm:mx-6"
-              onClick={(e) => e.stopPropagation()}
-              style={{ 
-                maxHeight: 'calc(100vh - 10rem)',
-                height: 'fit-content'
+                    {/* Modal Container - iPhone PWA Optimized */}
+          <div 
+            className="fixed"
+            style={{
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100vw',
+              height: '100vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem',
+              zIndex: 9999,
+              overscrollBehavior: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+              <div 
+                className="bg-white rounded-xl shadow-2xl w-full max-w-4xl flex flex-col animate-slideUpBounce z-[10000]"
+                onClick={(e) => e.stopPropagation()}
+                              style={{ 
+                maxHeight: 'calc(100vh - 2rem)',
+                width: '92%',
+                maxWidth: '22rem',
+                margin: '0 auto',
+                zIndex: 10000,
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                borderRadius: '1rem',
+                overflow: 'hidden'
               }}
             >
               {/* Modal Header - Fixed */}
@@ -1847,10 +2064,11 @@ export default function SkillSnap({
 
               {/* Skills Content - Enhanced Mobile Scrolling */}
               <div 
-                className="flex-1 p-4 sm:p-6 modal-scroll-enhanced modal-category-content overflow-y-auto overscroll-contain" 
+                className="flex-1 p-4 modal-scroll-enhanced modal-category-content overflow-y-auto overscroll-contain" 
                 style={{ 
-                  maxHeight: 'calc(100vh - 20rem)',
-                  minHeight: '20vh'
+                  maxHeight: 'calc(100vh - 22rem)',
+                  minHeight: '30vh',
+                  WebkitOverflowScrolling: 'touch'
                 }}
               >
                 {renderSkillsForCategory(selectedCategory)}

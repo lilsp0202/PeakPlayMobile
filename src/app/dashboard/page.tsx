@@ -5,8 +5,6 @@ import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight } from "react-icons/fi";
 import { Check } from "lucide-react";
-import { Badge, Student } from "@prisma/client";
-
 import PeakPlayLogo from "@/components/PeakPlayLogo";
 import SkillSnap from "@/components/SkillSnap";
 import BadgeDisplay from "@/components/BadgeDisplay";
@@ -24,8 +22,8 @@ interface ProfileData {
   role: "COACH" | "ATHLETE";
   sport: string;
   academy?: string;
-  students?: Student[];
-  badges?: Badge[];
+  students?: any[];
+  badges?: any[];
 }
 
 const LoadingSpinner = () => (
@@ -125,7 +123,6 @@ export default function Dashboard() {
 
   const fetchProfile = async () => {
     try {
-      console.log('🔍 Dashboard - Starting profile fetch...');
       setLoading(true);
       setError(null); // Clear any previous errors
       
@@ -133,13 +130,10 @@ export default function Dashboard() {
         ? "/api/coach/profile"
         : "/api/student/profile";
 
-      console.log('🔍 Dashboard - Fetching from endpoint:', endpoint);
-        const response = await fetch(endpoint);
-      console.log('🔍 Dashboard - Response status:', response.status);
+      const response = await fetch(endpoint);
       
       if (!response.ok) {
         if (response.status === 404) {
-          console.log('🔍 Dashboard - Profile not found, redirecting to onboarding...');
           // Profile doesn't exist, redirect to onboarding
           const onboardingPath = session?.user?.role === "COACH"
             ? "/onboarding/coach"
@@ -150,36 +144,30 @@ export default function Dashboard() {
         throw new Error(`Failed to fetch profile: ${response.status}`);
       }
 
-          const data = await response.json();
-      console.log('🔍 Dashboard - Profile data received:', data);
-          setProfileData(data);
+      const data = await response.json();
+      setProfileData(data);
 
       if (data.role === "COACH" && data.academy) {
-        console.log('🔍 Dashboard - Fetching coach-specific data...');
         fetchAvailableStudents(data.academy);
         fetchAssignedStudents();
       }
     } catch (err) {
-      console.error("❌ Dashboard - Profile fetch error:", err);
+      console.error("Dashboard - Profile fetch error:", err);
       setError(err instanceof Error ? err.message : "An error occurred loading your profile");
     } finally {
-      console.log('🔍 Dashboard - Setting loading to false');
       setLoading(false);
     }
   };
 
   const fetchResource = async (setter: Function, endpoint: string) => {
     try {
-      console.log(`🌐 fetchResource - Calling endpoint: ${endpoint}`);
       const response = await fetch(endpoint);
-      console.log(`🌐 fetchResource - Response status: ${response.status} for ${endpoint}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-        const data = await response.json();
-      console.log(`🌐 fetchResource - Response data for ${endpoint}:`, data);
+      const data = await response.json();
       
       // Handle different response structures
       if (endpoint.includes('/api/students/by-academy')) {
@@ -203,10 +191,7 @@ export default function Dashboard() {
   };
   const fetchAssignedStudents = () => fetchResource((data: any) => {
     // The coach profile API returns the coach object directly, not wrapped in a data object
-    console.log('🔍 fetchAssignedStudents - Raw data received:', data);
-    console.log('🔍 fetchAssignedStudents - Students array:', data.students);
-    console.log('🔍 fetchAssignedStudents - Students length:', data.students?.length || 0);
-        setAssignedStudents(data.students || []);
+    setAssignedStudents(data.students || []);
   }, "/api/coach/profile");
   
   useEffect(() => {
@@ -258,12 +243,10 @@ export default function Dashboard() {
       setSelectedStudents([]);
       
       // Refresh both lists immediately
-      console.log('🔄 Refreshing student lists after assignment...');
       await Promise.all([
         fetchAssignedStudents(),
         profileData?.academy ? fetchAvailableStudents(profileData.academy) : Promise.resolve()
       ]);
-      console.log('✅ Student lists refreshed successfully');
       
       // Show success message
       setSuccessMessage(`Successfully assigned ${result.assignedCount} student${result.assignedCount !== 1 ? 's' : ''}`);
@@ -304,7 +287,6 @@ export default function Dashboard() {
 
   const handleFeedbackCreated = () => {
     // Optionally refresh data or show success message
-    console.log('Feedback created successfully');
     closeModal();
   };
 
@@ -819,16 +801,6 @@ export default function Dashboard() {
                   <FiUsers className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-2 text-sm font-medium text-gray-900">No assigned students</h3>
                   <p className="mt-1 text-sm text-gray-500">You don't have any students assigned yet.</p>
-                  <div className="mt-4 p-4 bg-yellow-50 rounded-lg text-left">
-                    <p className="text-xs text-yellow-800 font-mono">
-                      <strong>Debug Info:</strong><br/>
-                      assignedStudents: {assignedStudents ? JSON.stringify(assignedStudents, null, 2) : 'null'}<br/>
-                      assignedStudents length: {assignedStudents?.length}<br/>
-                      assignedStudents type: {typeof assignedStudents}<br/>
-                      profileData academy: {profileData?.academy}<br/>
-                      session user role: {session?.user.role}
-                        </p>
-                      </div>
                               </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

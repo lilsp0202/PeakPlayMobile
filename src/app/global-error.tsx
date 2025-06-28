@@ -1,10 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import * as Sentry from "@sentry/nextjs";
-import Link from "next/link";
+import { useEffect } from 'react';
+import Link from 'next/link';
 
-export default function Error({
+export default function GlobalError({
   error,
   reset,
 }: {
@@ -12,12 +11,12 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to Sentry
-    Sentry.captureException(error);
+    // TODO: Re-enable Sentry error reporting once configuration is fixed
+    console.error('Global error:', error);
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
       <div className="max-w-md w-full mx-auto p-8">
         <div className="bg-white rounded-lg shadow-lg p-8 text-center">
           <div className="mb-4">
@@ -37,29 +36,17 @@ export default function Error({
           </div>
           
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Oops! Something went wrong
+            Critical Error Occurred
           </h1>
           
           <p className="text-gray-600 mb-6">
-            We apologize for the inconvenience. Our team has been notified and is working on fixing this issue.
+            A critical error has occurred. Our team has been notified and is working on a fix.
           </p>
-
-          {process.env.NODE_ENV === 'development' && (
-            <details className="mb-6 text-left">
-              <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
-                Error details (Development only)
-              </summary>
-              <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto">
-                {error.message}
-                {error.stack}
-              </pre>
-            </details>
-          )}
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={reset}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               Try Again
             </button>

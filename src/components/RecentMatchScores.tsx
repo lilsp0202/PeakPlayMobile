@@ -185,6 +185,61 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
     }
   };
 
+  const handleAddMatch = async () => {
+    try {
+      const matchData = {
+        studentId: studentId,
+        matchName: `${newMatch.matchType} vs Opponent`,
+        opponent: "Opponent Team",
+        venue: newMatch.venue,
+        matchDate: newMatch.matchDate,
+        sport: "CRICKET",
+        matchType: newMatch.matchType,
+        result: newMatch.result,
+        position: playerRole || "BATSMAN",
+        stats: JSON.stringify({
+          runs: newMatch.runsScored,
+          balls: newMatch.ballsFaced,
+          fours: newMatch.fours,
+          sixes: newMatch.sixes,
+          wickets: newMatch.wicketsTaken,
+          overs: newMatch.oversBowled,
+          runsConceded: newMatch.runsConceded,
+          catches: newMatch.catches,
+          runOuts: newMatch.runOuts,
+          stumpings: newMatch.stumpings
+        }),
+        rating: null,
+        notes: newMatch.notes
+      };
+      
+      await handleMatchSubmit(matchData);
+      
+      // Reset form
+      setIsAddingMatch(false);
+      setNewMatch({
+        matchDate: new Date().toISOString().split("T")[0],
+        matchType: "FRIENDLY",
+        venue: "",
+        result: "WON",
+        runsScored: 0,
+        ballsFaced: 0,
+        fours: 0,
+        sixes: 0,
+        wicketsTaken: 0,
+        oversBowled: 0,
+        runsConceded: 0,
+        catches: 0,
+        runOuts: 0,
+        stumpings: 0,
+        notes: "",
+      });
+    } catch (error) {
+      console.error('Error adding match:', error);
+      setError(error instanceof Error ? error.message : 'Failed to add match');
+    }
+  };
+
   const handleEditMatch = async (matchData: any) => {
     if (!editingMatch) return;
 

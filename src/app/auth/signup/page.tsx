@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, User, UserCheck, Users, Sparkles, Shield, Star } from "lucide-react";
 
 export default function SignUp() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,6 +36,7 @@ export default function SignUp() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name,
           email,
           username,
           password,
@@ -46,7 +48,7 @@ export default function SignUp() {
         router.push("/auth/signin?message=Account created successfully");
       } else {
         const data = await response.json();
-        setError(data.message || "Failed to create account");
+        setError(data.error || data.message || "Failed to create account");
       }
     } catch (error) {
       setError("An error occurred. Please try again.");
@@ -126,6 +128,24 @@ export default function SignUp() {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-1">
+                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      id="name"
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50/50 focus:bg-white/80 backdrop-blur-sm text-gray-900 placeholder-gray-500"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
                   <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                     Email address
                   </label>
@@ -184,6 +204,9 @@ export default function SignUp() {
                       {showPassword ? <EyeOff /> : <Eye />}
                     </button>
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Must be at least 8 characters with uppercase, lowercase, and numbers
+                  </p>
                 </div>
 
                 <div className="space-y-1">
