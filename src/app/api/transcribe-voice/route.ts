@@ -3,10 +3,6 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(request: NextRequest) {
   try {
     console.log('=== Transcription API Debug ===');
@@ -61,6 +57,20 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Transcription API - Authentication successful for coach:', session.user.email);
+
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.log('Transcription API - OpenAI API key not configured');
+      return NextResponse.json(
+        { error: "Voice transcription service is not configured" },
+        { status: 503 }
+      );
+    }
+
+    // Initialize OpenAI client
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
     const formData = await request.formData();
     const audioFile = formData.get('audio') as File;

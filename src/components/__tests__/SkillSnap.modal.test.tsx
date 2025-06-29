@@ -6,16 +6,8 @@ import '@testing-library/jest-dom';
 
 // Mock next-auth
 jest.mock('next-auth/react', () => ({
-  SessionProvider: ({ children }: any) => children,
-  useSession: () => ({
-    data: {
-      user: {
-        id: 'test-user',
-        email: 'test@example.com',
-        role: 'ATHLETE',
-      },
-    },
-  }),
+  useSession: () => ({ data: { user: { id: 'test-user' } }, status: 'authenticated' }),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock fetch
@@ -25,6 +17,9 @@ global.fetch = jest.fn();
 jest.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
+    svg: ({ children, ...props }: any) => <svg {...props}>{children}</svg>,
+    circle: ({ children, ...props }: any) => <circle {...props}>{children}</circle>,
   },
 }));
 
@@ -35,6 +30,9 @@ jest.mock('react-icons/fi', () => ({
   FiX: () => <span data-testid="fi-x">X</span>,
   FiEdit: () => <span data-testid="fi-edit">Edit</span>,
 }));
+
+// Mock window.scrollTo
+global.scrollTo = jest.fn();
 
 const mockSkillData = {
   id: 'test-skill-data',
@@ -106,36 +104,36 @@ describe('SkillSnap Modal Behavior', () => {
         <SkillSnap />
       </SessionProvider>
     );
-
+    
     // Wait for data to load
     await waitFor(() => {
       expect(screen.getByText('Physical')).toBeInTheDocument();
     });
-
-    // Click on Physical category
-    const physicalCard = screen.getByText('Physical').closest('div[class*="cursor-pointer"]');
+    
+    const physicalCard = screen.getByText('Physical').closest('div[class*="card-gradient"]');
     fireEvent.click(physicalCard!);
 
-    // Check modal structure
     await waitFor(() => {
-      // Check for background overlay
-      const overlay = document.querySelector('div[class*="fixed inset-0 z-\\[9998\\]"]');
+      // Check background overlay
+      const overlay = document.querySelector('div[class*="bg-black bg-opacity-80"]');
       expect(overlay).toBeInTheDocument();
-      expect(overlay).toHaveClass('bg-black', 'bg-opacity-80', 'backdrop-blur-sm');
-
-      // Check for modal container
-      const modalContainer = document.querySelector('div[class*="fixed inset-0 z-\\[9999\\]"]');
+      expect(overlay).toHaveClass('fixed', 'inset-0', 'z-[9998]');
+      
+      // Check modal container structure
+      const modalContainer = document.querySelector('div[class*="fixed inset-0 z-[9999]"]');
       expect(modalContainer).toBeInTheDocument();
-      expect(modalContainer).toHaveClass('pointer-events-none');
-
-      // Check for modal content
-      const modalContent = document.querySelector('div[class*="w-full h-full bg-white"]');
+      
+      // Check modal content with flex column layout
+      const modalContent = document.querySelector('div[class*="w-full h-full bg-white flex flex-col"]');
       expect(modalContent).toBeInTheDocument();
-      expect(modalContent).toHaveClass('overflow-y-auto', 'custom-scrollbar');
-
+      
+      // Check scrollable content area
+      const scrollableContent = document.querySelector('div[class*="flex-1 overflow-y-auto custom-scrollbar"]');
+      expect(scrollableContent).toBeInTheDocument();
+      
       // Check close button positioning
       const closeButton = screen.getByLabelText('Close modal');
-      expect(closeButton).toHaveClass('fixed', 'top-4', 'right-4', 'z-[10000]');
+      expect(closeButton).toHaveClass('absolute', 'top-4', 'right-4', 'z-[10000]');
     });
   });
 
@@ -198,27 +196,25 @@ describe('SkillSnap Modal Behavior', () => {
         <SkillSnap />
       </SessionProvider>
     );
-
+    
+    // Wait for data to load
     await waitFor(() => {
       expect(screen.getByText('Physical')).toBeInTheDocument();
     });
-
-    // Open modal
-    const physicalCard = screen.getByText('Physical').closest('div[class*="cursor-pointer"]');
+    
+    const physicalCard = screen.getByText('Physical').closest('div[class*="card-gradient"]');
     fireEvent.click(physicalCard!);
 
     await waitFor(() => {
-      expect(screen.getByText('Physical Skills')).toBeInTheDocument();
+      expect(screen.getByLabelText('Close modal')).toBeInTheDocument();
     });
 
     // Click overlay
-    const overlay = document.querySelector('div[class*="fixed inset-0 z-\\[9998\\]"]');
+    const overlay = document.querySelector('div[class*="bg-black bg-opacity-80"]');
     fireEvent.click(overlay!);
 
-    // Modal should close
     await waitFor(() => {
-      expect(screen.queryByText('Physical Skills')).not.toBeInTheDocument();
-      expect(document.body).not.toHaveClass('modal-open');
+      expect(screen.queryByLabelText('Close modal')).not.toBeInTheDocument();
     });
   });
 
@@ -250,38 +246,45 @@ describe('SkillSnap Modal Behavior', () => {
   });
 
   it('should maintain modal position regardless of parent scroll', async () => {
-    // Add scrollable content to body
+    // Create a scrollable parent
     document.body.style.height = '200vh';
-    window.scrollTo(0, 500);
-
-    render(
-      <SessionProvider>
-        <div style={{ paddingTop: '1000px' }}>
+    
+    const { container } = render(
+      <div style={{ paddingTop: '1000px' }}>
+        <SessionProvider>
           <SkillSnap />
-        </div>
-      </SessionProvider>
+        </SessionProvider>
+      </div>
     );
-
+    
+    // Wait for data to load
     await waitFor(() => {
       expect(screen.getByText('Physical')).toBeInTheDocument();
     });
 
-    // Open modal
-    const physicalCard = screen.getByText('Physical').closest('div[class*="cursor-pointer"]');
+    // Scroll down
+    window.scrollTo(0, 1000);
+
+    const physicalCard = screen.getByText('Physical').closest('div[class*="card-gradient"]');
     fireEvent.click(physicalCard!);
 
     await waitFor(() => {
-      // Modal should cover entire viewport regardless of scroll
-      const modalContainer = document.querySelector('div[class*="fixed inset-0"]');
+      // Modal should cover entire viewport
+      const overlay = document.querySelector('div[class*="bg-black bg-opacity-80"]');
+      expect(overlay).toHaveClass('fixed', 'inset-0');
+      
+      // Modal container should be fixed position
+      const modalContainer = document.querySelector('div[class*="fixed inset-0 z-[9999]"]');
       expect(modalContainer).toBeInTheDocument();
       
-      // Close button should be at fixed position
+      // Close button should be at absolute position within the modal
       const closeButton = screen.getByLabelText('Close modal');
-      expect(closeButton).toHaveClass('fixed', 'top-4', 'right-4');
+      expect(closeButton).toHaveClass('absolute', 'top-4', 'right-4');
     });
 
     // Reset
     document.body.style.height = '';
+    window.scrollTo(0, 0);
   });
 
   it('should handle individual skill modal correctly', async () => {

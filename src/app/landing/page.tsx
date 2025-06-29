@@ -285,15 +285,23 @@ export default function LandingPage() {
   );
 }
 
-function FeatureCard({ icon, title, description, color }: any) {
-  const colorClasses = {
-    blue: "from-blue-500 to-blue-600",
-    green: "from-green-500 to-green-600",
-    purple: "from-purple-500 to-purple-600",
-    red: "from-red-500 to-red-600",
-    yellow: "from-yellow-500 to-yellow-600",
-    indigo: "from-indigo-500 to-indigo-600",
-  };
+const colorClasses = {
+  blue: "from-blue-500 to-blue-600",
+  green: "from-green-500 to-green-600",
+  purple: "from-purple-500 to-purple-600",
+  red: "from-red-500 to-red-600",
+  yellow: "from-yellow-500 to-yellow-600",
+  indigo: "from-indigo-500 to-indigo-600",
+} as const;
+
+interface FeatureCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: keyof typeof colorClasses;
+}
+
+function FeatureCard({ icon, title, description, color }: FeatureCardProps) {
 
   return (
     <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
@@ -306,7 +314,12 @@ function FeatureCard({ icon, title, description, color }: any) {
   );
 }
 
-function InstallGuide({ platform, steps }: any) {
+interface InstallGuideProps {
+  platform: string;
+  steps: string[];
+}
+
+function InstallGuide({ platform, steps }: InstallGuideProps) {
   return (
     <div className="bg-white p-8 rounded-2xl shadow-lg">
       <h3 className="text-2xl font-bold text-gray-900 mb-6">{platform}</h3>

@@ -100,6 +100,7 @@ interface SkillSnapProps {
   studentId?: string;
   isCoachView?: boolean;
   onSkillsUpdated?: () => void;
+  onModalChange?: (isOpen: boolean) => void; // Add this new prop
 }
 
 interface TechnicalSkillsProps {
@@ -808,64 +809,90 @@ const SkillBar: React.FC<{
 
   return (
     <div 
-      className={`bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 ${onClick ? 'cursor-pointer hover:border-gray-300' : ''}`}
+      className={`bg-white rounded-xl p-4 sm:p-6 border-2 shadow-sm hover:shadow-md transition-all duration-200 ${
+        isEditing 
+          ? 'border-blue-300 ring-2 ring-blue-100 bg-blue-50' 
+          : 'border-gray-200 hover:border-gray-300'
+      } ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-4">
-          <div className={`p-3 rounded-xl ${skill.colorScheme.background} shadow-sm`}>
+      <div className="flex items-start justify-between mb-3 sm:mb-4">
+        <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
+          <div className={`p-2.5 sm:p-3 rounded-xl ${skill.colorScheme.background} shadow-sm flex-shrink-0`}>
             {skill.icon}
           </div>
-          <div className="flex-1">
-            <h4 className="font-bold text-gray-900 text-lg mb-1">{skill.name}</h4>
-            <p className="text-sm text-gray-700 leading-relaxed">{skill.description}</p>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-bold text-gray-900 text-base sm:text-lg mb-0.5 sm:mb-1 truncate">{skill.name}</h4>
+            <p className="text-xs sm:text-sm text-gray-700 leading-relaxed line-clamp-2">{skill.description}</p>
           </div>
         </div>
-        <div className="text-right ml-4">
-          <div className="text-2xl font-bold text-gray-900 mb-1">
-            {formatValue(score)}
-          </div>
-          {showComparison && (
-            <div className="text-sm text-gray-700">
-              Avg: {formatValue(average)}
+        <div className="text-right ml-3 sm:ml-4 flex-shrink-0">
+          {isEditing ? (
+            <div className="flex items-center space-x-2">
+              <input
+                type="number"
+                value={score}
+                onChange={(e) => onScoreChange(skill.id, parseFloat(e.target.value) || 0)}
+                min={range.min}
+                max={range.max}
+                step={range.step}
+                className="w-20 sm:w-24 px-3 py-3 text-lg font-semibold border-2 border-blue-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200"
+                inputMode="decimal"
+                autoComplete="off"
+              />
+              <span className="text-sm font-medium text-gray-600">{skill.unit}</span>
             </div>
+          ) : (
+            <>
+              <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                {formatValue(score)}
+              </div>
+              {showComparison && (
+                <div className="text-xs sm:text-sm text-gray-700">
+                  Avg: {formatValue(average)}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="mb-4">
+      <div className="mb-3 sm:mb-4">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-gray-800">Progress</span>
           <span className="text-sm text-gray-700">{Math.round(getPercentage())}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3">
+        <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
           <div
-            className={`h-3 rounded-full transition-all duration-300 ${skill.colorScheme.background}`}
+            className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${skill.colorScheme.background}`}
             style={{ width: `${Math.min(getPercentage(), 100)}%` }}
           />
         </div>
       </div>
 
-      {/* Input field for editing */}
+      {/* Validation feedback for editing */}
       {isEditing && (
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-800 mb-2">
-            Update {skill.name}
-          </label>
-          <input
-            type="number"
-            value={score}
-            onChange={(e) => onScoreChange(skill.id, parseFloat(e.target.value) || 0)}
-            min={range.min}
-            max={range.max}
-            step={range.step}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-            placeholder={`Enter ${skill.name.toLowerCase()}`}
-          />
-          <p className="text-xs text-gray-700 mt-1">
+        <div className="mt-2 flex justify-between items-center">
+          <p className="text-xs text-gray-600">
             Range: {range.min} - {range.max} {skill.unit}
           </p>
+          <div className="flex items-center space-x-2">
+            {score < range.min && (
+              <span className="text-xs text-red-500 font-medium">Too low</span>
+            )}
+            {score > range.max && (
+              <span className="text-xs text-red-500 font-medium">Too high</span>
+            )}
+            {score >= range.min && score <= range.max && score > 0 && (
+              <span className="text-xs text-green-600 font-medium flex items-center">
+                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Valid
+              </span>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -1150,28 +1177,39 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
     const averageProgressPercentage = Math.min(100, Math.max(0, (normalizedAverageScore / 10) * 100));
 
     return (
-      <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+      <div className={`bg-white rounded-lg p-3 sm:p-4 border-2 shadow-sm transition-all duration-200 ${
+        isEditing 
+          ? 'border-orange-300 ring-2 ring-orange-100 bg-orange-50' 
+          : 'border-gray-200'
+      }`}>
         <div className="flex items-center justify-between mb-3">
-          <div className="flex-1">
-            <h4 className="font-semibold text-gray-900">{skill.name}</h4>
-            <p className="text-sm text-gray-500">{skill.description}</p>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{skill.name}</h4>
+            <p className="text-xs sm:text-sm text-gray-500 line-clamp-2">{skill.description}</p>
           </div>
-          <div className="text-right ml-4">
-            <div className="text-lg font-bold text-orange-600">
+          <div className="text-right ml-3 flex-shrink-0">
+            <div className="text-base sm:text-lg font-bold text-orange-600">
               {isEditing ? (
-                <input
-                  type="number"
-                  min={0}
-                  max={skill.maxPoints}
-                  value={userScore}
-                  onChange={(e) => onScoreChange(skill.id, parseInt(e.target.value) || 0)}
-                  className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
-                />
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={skill.maxPoints}
+                    value={userScore}
+                    onChange={(e) => onScoreChange(skill.id, parseInt(e.target.value) || 0)}
+                    className="w-16 sm:w-20 px-2 py-1.5 text-sm font-semibold border-2 border-orange-300 rounded-lg text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white shadow-sm transition-all duration-200"
+                    inputMode="numeric"
+                    autoComplete="off"
+                  />
+                  <span className="text-xs text-gray-500">/{skill.maxPoints}</span>
+                </div>
               ) : (
-                userScore
+                <div>
+                  <span>{userScore}</span>
+                  <span className="text-xs text-gray-500 ml-1">/{skill.maxPoints}</span>
+                </div>
               )}
             </div>
-            <div className="text-xs text-gray-500">/ {skill.maxPoints}</div>
           </div>
         </div>
         
@@ -1194,6 +1232,31 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
             />
           </div>
         </div>
+        
+        {/* Validation feedback for editing */}
+        {isEditing && (
+          <div className="mt-2 flex justify-between items-center">
+            <p className="text-xs text-gray-600">
+              Range: 0 - {skill.maxPoints}
+            </p>
+            <div className="flex items-center space-x-2">
+              {userScore < 0 && (
+                <span className="text-xs text-red-500 font-medium">Too low</span>
+              )}
+              {userScore > skill.maxPoints && (
+                <span className="text-xs text-red-500 font-medium">Too high</span>
+              )}
+              {userScore >= 0 && userScore <= skill.maxPoints && userScore > 0 && (
+                <span className="text-xs text-green-600 font-medium flex items-center">
+                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Valid
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -1284,7 +1347,7 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
                       ? editedScores[skill.id] 
                       : skillData?.[skill.id as keyof SkillData] as number
                   }
-                  averageScore={averages?.averages[skill.id] || 0}
+                  averageScore={averages?.averages?.[skill.id] || 0}
                   isEditing={isEditing}
                   onScoreChange={onScoreChange}
                 />
@@ -1376,7 +1439,8 @@ export const calculateTechnicalAggregateScore = (skillData: SkillData | null): n
 export default function SkillSnap({
   studentId,
   isCoachView = false,
-  onSkillsUpdated
+  onSkillsUpdated,
+  onModalChange // Add this new prop
 }: SkillSnapProps) {
   const { data: session } = useSession();
   const [skillData, setSkillData] = useState<SkillData | null>(null);
@@ -1527,7 +1591,13 @@ export default function SkillSnap({
 
   const handleStartEdit = (categoryId: string) => {
     // Initialize editedScores with current values when starting to edit
-    if (categoryId === "TECHNIQUE") {
+    if (selectedSkill) {
+      // For individual skill editing, only initialize that specific skill
+      setEditedScores(prev => ({
+        ...prev,
+        [selectedSkill.id]: skillData?.[selectedSkill.id as keyof SkillData] as number || 0
+      }));
+    } else if (categoryId === "TECHNIQUE") {
       const technicalSkillIds = [
         'battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift', 
         'topHandDominance', 'highElbow', 'runningBetweenWickets', 'calling',
@@ -1563,7 +1633,10 @@ export default function SkillSnap({
       
       let categoryScores: Record<string, number> = {};
       
-      if (categoryId === "TECHNIQUE") {
+      if (selectedSkill) {
+        // For individual skill editing, only save that specific skill
+        categoryScores[selectedSkill.id] = editedScores[selectedSkill.id] || 0;
+      } else if (categoryId === "TECHNIQUE") {
         // For TECHNIQUE category, use all technical skills directly
         const technicalSkillIds = [
           'battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift', 
@@ -1670,6 +1743,8 @@ export default function SkillSnap({
     setSelectedSkill(null);
     // Lock body scroll when modal opens
     lockBodyScroll();
+    // Notify parent component
+    onModalChange?.(true);
   };
 
   const openSkillModal = (skill: SkillItem, category: SkillCategory) => {
@@ -1677,15 +1752,15 @@ export default function SkillSnap({
     setSelectedSkill(skill);
     
     // Initialize edit state for this skill
-    if (!isEditing) {
-      setEditedScores(prev => ({
-        ...prev,
-        [skill.id]: skillData?.[skill.id as keyof SkillData] as number || 0
-      }));
-    }
+    setEditedScores(prev => ({
+      ...prev,
+      [skill.id]: skillData?.[skill.id as keyof SkillData] as number || 0
+    }));
     
     // Lock body scroll when modal opens
     lockBodyScroll();
+    // Notify parent component
+    onModalChange?.(true);
   };
 
   const closeModal = () => {
@@ -1697,6 +1772,8 @@ export default function SkillSnap({
     }
     // Unlock body scroll when modal closes
     unlockBodyScroll();
+    // Notify parent component
+    onModalChange?.(false);
   };
 
   const renderTechnicalSkills = () => {
@@ -1714,14 +1791,14 @@ export default function SkillSnap({
   const renderSkillsForCategory = (category: SkillCategory) => {
     if (category.id === "TECHNIQUE") {
       return (
-        <div className="pb-8">
+        <div className="pb-16">
           {renderTechnicalSkills()}
         </div>
       );
     }
 
     return (
-      <div className="space-y-4 pb-8">
+      <div className="space-y-4 pb-16">
         {category.skills.map((skill) => (
           <SkillBar
             key={skill.id}
@@ -1731,7 +1808,7 @@ export default function SkillSnap({
                 ? editedScores[skill.id] 
                 : skillData?.[skill.id as keyof SkillData] as number
             }
-            averageScore={averages?.averages[skill.id] || 0}
+            averageScore={averages?.averages?.[skill.id] || 0}
             isEditing={isEditing === category.id}
             onScoreChange={handleScoreChange}
             showComparison={category.id !== "MENTAL"}
@@ -1799,64 +1876,68 @@ export default function SkillSnap({
           {/* Modal container - independent of scroll context */}
           <div className="fixed inset-0 z-[9999] pointer-events-none">
             <div className="fixed inset-0 pointer-events-auto">
-              <div className="w-full h-full bg-white overflow-y-auto custom-scrollbar">
-                {/* Close button */}
-                <button
-                  onClick={closeModal}
-                  className="fixed top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-[10000] shadow-lg"
-                  aria-label="Close modal"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+              <div className="w-full h-full bg-white flex flex-col">
+                {/* Fixed Header */}
+                <div className="bg-white border-b border-gray-200 shadow-sm">
+                  <div className="p-6 max-w-5xl mx-auto">
+                    {/* Close button */}
+                    <button
+                      onClick={closeModal}
+                      className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-[10000] shadow-lg"
+                      aria-label="Close modal"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
 
-                {/* Modal content */}
-                <div className="p-6 pt-16 max-w-5xl mx-auto">
-                  {/* Modal header */}
-                  <div className="mb-8">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg`}>
-                        {selectedCategory.icon}
-                      </div>
-                      <div>
-                        <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedCategory.name}</h2>
-                        <p className="text-base text-gray-700 leading-relaxed">{selectedCategory.description}</p>
+                    {/* Modal header */}
+                    <div className="mb-6">
+                      <div className="flex items-center space-x-4 pr-16">
+                        <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                          {selectedCategory.icon}
+                        </div>
+                        <div className="flex-1">
+                          <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedCategory.name}</h2>
+                          <p className="text-base text-gray-700 leading-relaxed">{selectedCategory.description}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="mb-8">
-                    {isEditing === selectedCategory.id ? (
-                      <div className="flex space-x-4">
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      {isEditing === selectedCategory.id ? (
+                        <>
+                          <button
+                            onClick={() => handleSave(selectedCategory.id)}
+                            disabled={isSaving}
+                            className="flex items-center justify-center px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-1"
+                          >
+                            <FiSave className="mr-2 w-5 h-5" />
+                            {isSaving ? 'Saving...' : 'Save Changes'}
+                          </button>
+                          <button
+                            onClick={() => handleCancel(selectedCategory.id)}
+                            className="flex items-center justify-center px-6 py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl order-2 sm:order-2"
+                          >
+                            <FiX className="mr-2 w-5 h-5" />
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
                         <button
-                          onClick={() => handleSave(selectedCategory.id)}
-                          disabled={isSaving}
-                          className="flex items-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
+                          onClick={() => handleStartEdit(selectedCategory.id)}
+                          className="flex items-center justify-center px-6 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl"
                         >
-                          <FiSave className="mr-2" />
-                          {isSaving ? 'Saving...' : 'Save Changes'}
+                          <FiEdit className="mr-2 w-5 h-5" />
+                          Edit All Skills
                         </button>
-                        <button
-                          onClick={() => handleCancel(selectedCategory.id)}
-                          className="flex items-center px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
-                        >
-                          <FiX className="mr-2" />
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleStartEdit(selectedCategory.id)}
-                        className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
-                      >
-                        <FiEdit className="mr-2" />
-                        Edit All Skills
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
+                </div>
 
-                  {/* Skills content */}
-                  <div className="pb-8">
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                  <div className="p-6 pb-32 max-w-5xl mx-auto min-h-full">
                     {renderSkillsForCategory(selectedCategory)}
                   </div>
                 </div>
@@ -1867,7 +1948,7 @@ export default function SkillSnap({
       )}
 
       {/* Individual Skill Modal */}
-      {selectedSkill && (
+      {selectedSkill && selectedCategory && (
         <>
           {/* Background overlay - separate from modal content */}
           <div 
@@ -1911,29 +1992,30 @@ export default function SkillSnap({
                   {/* Action Buttons */}
                   <div className="mb-8">
                     {isEditing === selectedCategory.id ? (
-                      <div className="flex justify-end space-x-4">
+                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
                         <button
                           onClick={() => handleCancel(selectedCategory.id)}
-                          className="px-6 py-3 text-gray-700 hover:text-gray-900 font-semibold flex items-center space-x-2 hover:bg-gray-100 rounded-xl transition-all duration-200 border border-gray-300"
+                          className="flex items-center justify-center px-6 py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl order-2 sm:order-1"
                         >
-                          <X className="w-5 h-5" />
+                          <X className="w-5 h-5 mr-2" />
                           <span>Cancel</span>
                         </button>
                         <button
                           onClick={() => handleSave(selectedCategory.id)}
-                          className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold flex items-center space-x-2 transition-all duration-200 shadow-lg"
+                          disabled={isSaving}
+                          className="flex items-center justify-center px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
                         >
-                          <Check className="w-5 h-5" />
-                          <span>Save Changes</span>
+                          <Check className="w-5 h-5 mr-2" />
+                          <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
                         </button>
                       </div>
                     ) : (
                       <div className="flex justify-end">
                         <button
                           onClick={() => handleStartEdit(selectedCategory.id)}
-                          className="px-6 py-3 text-indigo-600 hover:text-indigo-700 font-semibold flex items-center space-x-2 hover:bg-indigo-50 rounded-xl transition-all duration-200 border border-indigo-200"
+                          className="flex items-center justify-center px-6 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl"
                         >
-                          <Edit className="w-5 h-5" />
+                          <Edit className="w-5 h-5 mr-2" />
                           <span>Edit</span>
                         </button>
                       </div>
@@ -1960,7 +2042,7 @@ export default function SkillSnap({
                               ? editedScores[selectedSkill.id]
                               : skillData?.[selectedSkill.id as keyof SkillData] as number
                           }
-                          averageScore={averages?.averages[selectedSkill.id] || 0}
+                          averageScore={averages?.averages?.[selectedSkill.id] || 0}
                           isEditing={isEditing === selectedCategory.id}
                           onScoreChange={handleScoreChange}
                           showComparison={selectedCategory.id !== "MENTAL"}

@@ -1501,7 +1501,7 @@ html {
 /* Custom scrollbar for modal content */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  scrollbar-color: rgba(75, 85, 99, 0.5) rgba(17, 24, 39, 0.1);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -1509,11 +1509,12 @@ html {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(17, 24, 39, 0.1);
+  border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.5);
+  background-color: rgba(75, 85, 99, 0.5);
   border-radius: 3px;
   transition: background-color 0.2s ease;
 }
@@ -1529,7 +1530,7 @@ html {
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.3);
+    background-color: rgba(75, 85, 99, 0.3);
   }
 }
 
