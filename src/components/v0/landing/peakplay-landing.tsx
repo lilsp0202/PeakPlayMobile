@@ -503,18 +503,18 @@ export default function PeakPlayLanding() {
 
       <div className="min-h-screen relative overflow-hidden bg-white">
         {/* Professional Animated Background System */}
-        <div className="fixed inset-0 -z-10">
+        <div className="fixed inset-0 -z-10 bg-white">
           {/* Base Professional Gradient */}
           <div
             className="absolute inset-0 animate-professional-gradient"
             style={{
               background: `
                 linear-gradient(135deg, 
-                  rgba(99, 102, 241, 0.03) 0%, 
-                  rgba(168, 85, 247, 0.03) 25%, 
-                  rgba(139, 92, 246, 0.03) 50%, 
-                  rgba(99, 102, 241, 0.03) 75%, 
-                  rgba(168, 85, 247, 0.03) 100%
+                  rgba(255, 255, 255, 1) 0%,
+                  rgba(240, 240, 255, 1) 25%,
+                  rgba(245, 245, 255, 1) 50%,
+                  rgba(240, 240, 255, 1) 75%,
+                  rgba(255, 255, 255, 1) 100%
                 )
               `,
               backgroundSize: "400% 400%",
@@ -526,11 +526,11 @@ export default function PeakPlayLanding() {
             className="absolute inset-0 opacity-30 animate-mesh-shift"
             style={{
               background: `
-                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.04) 0%, transparent 50%),
-                radial-gradient(circle at 60% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 90% 60%, rgba(168, 85, 247, 0.07) 0%, transparent 50%)
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 60% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 90% 60%, rgba(168, 85, 247, 0.05) 0%, transparent 50%)
               `,
             }}
           />
@@ -542,7 +542,7 @@ export default function PeakPlayLanding() {
               className="absolute w-64 sm:w-96 h-64 sm:h-96 rounded-full opacity-20 animate-floating-orb"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.05) 40%, transparent 70%)",
+                  "radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.03) 40%, transparent 70%)",
                 top: "10%",
                 left: "5%",
               }}
@@ -551,7 +551,7 @@ export default function PeakPlayLanding() {
               className="absolute w-48 sm:w-80 h-48 sm:h-80 rounded-full opacity-15 animate-floating-orb-reverse"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.04) 40%, transparent 70%)",
+                  "radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0.02) 40%, transparent 70%)",
                 top: "60%",
                 right: "8%",
               }}
@@ -560,7 +560,7 @@ export default function PeakPlayLanding() {
               className="absolute w-40 sm:w-64 h-40 sm:h-64 rounded-full opacity-15 animate-floating-orb-alt"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.03) 40%, transparent 70%)",
+                  "radial-gradient(circle, rgba(139, 92, 246, 0.07) 0%, rgba(139, 92, 246, 0.02) 40%, transparent 70%)",
                 bottom: "20%",
                 left: "20%",
               }}
@@ -571,8 +571,8 @@ export default function PeakPlayLanding() {
               className="absolute inset-0 opacity-5 animate-grid-flow"
               style={{
                 backgroundImage: `
-                  linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px)
+                  linear-gradient(rgba(99, 102, 241, 0.02) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(99, 102, 241, 0.02) 1px, transparent 1px)
                 `,
                 backgroundSize: "60px 60px",
               }}
@@ -583,8 +583,8 @@ export default function PeakPlayLanding() {
               className="absolute inset-0 opacity-5 animate-diagonal-flow"
               style={{
                 background: `
-                  linear-gradient(45deg, transparent 48%, rgba(99, 102, 241, 0.04) 50%, transparent 52%),
-                  linear-gradient(-45deg, transparent 48%, rgba(168, 85, 247, 0.03) 50%, transparent 52%)
+                  linear-gradient(45deg, transparent 48%, rgba(99, 102, 241, 0.03) 50%, transparent 52%),
+                  linear-gradient(-45deg, transparent 48%, rgba(168, 85, 247, 0.02) 50%, transparent 52%)
                 `,
                 backgroundSize: "200px 200px",
               }}
@@ -595,7 +595,7 @@ export default function PeakPlayLanding() {
               className="absolute w-24 sm:w-40 h-24 sm:h-40 opacity-10 animate-morphing-shape"
               style={{
                 background:
-                  "conic-gradient(from 0deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.06), rgba(139, 92, 246, 0.07), rgba(99, 102, 241, 0.08))",
+                  "conic-gradient(from 0deg, rgba(99, 102, 241, 0.06), rgba(168, 85, 247, 0.04), rgba(139, 92, 246, 0.05), rgba(99, 102, 241, 0.06))",
                 top: "30%",
                 right: "30%",
                 borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
@@ -605,7 +605,7 @@ export default function PeakPlayLanding() {
               className="absolute w-20 sm:w-32 h-20 sm:h-32 opacity-08 animate-morphing-shape-reverse"
               style={{
                 background:
-                  "conic-gradient(from 180deg, rgba(168, 85, 247, 0.07), rgba(139, 92, 246, 0.05), rgba(99, 102, 241, 0.06), rgba(168, 85, 247, 0.07))",
+                  "conic-gradient(from 180deg, rgba(168, 85, 247, 0.05), rgba(139, 92, 246, 0.03), rgba(99, 102, 241, 0.04), rgba(168, 85, 247, 0.05))",
                 bottom: "35%",
                 right: "15%",
                 borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
@@ -616,11 +616,11 @@ export default function PeakPlayLanding() {
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="absolute rounded-full opacity-40"
+                className="absolute rounded-full opacity-30"
                 style={{
                   width: `${Math.random() * 4 + 2}px`,
                   height: `${Math.random() * 4 + 2}px`,
-                  background: `rgba(${i % 2 === 0 ? "99, 102, 241" : "168, 85, 247"}, 0.5)`,
+                  background: `rgba(${i % 2 === 0 ? "99, 102, 241" : "168, 85, 247"}, 0.3)`,
                   top: `${Math.random() * 100}%`,
                   left: `${Math.random() * 100}%`,
                   animation: `floatingParticle ${15 + Math.random() * 20}s linear infinite`,
@@ -634,7 +634,7 @@ export default function PeakPlayLanding() {
               className="absolute w-48 sm:w-72 h-48 sm:h-72 rounded-full opacity-10 animate-ambient-pulse"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.03) 30%, transparent 60%)",
+                  "radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, rgba(139, 92, 246, 0.02) 30%, transparent 60%)",
                 top: "15%",
                 right: "10%",
               }}
@@ -643,7 +643,7 @@ export default function PeakPlayLanding() {
               className="absolute w-36 sm:w-56 h-36 sm:h-56 rounded-full opacity-08 animate-ambient-pulse-reverse"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.02) 30%, transparent 60%)",
+                  "radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, rgba(99, 102, 241, 0.01) 30%, transparent 60%)",
                 bottom: "15%",
                 left: "10%",
               }}
@@ -658,8 +658,8 @@ export default function PeakPlayLanding() {
                     45deg,
                     transparent,
                     transparent 150px,
-                    rgba(99, 102, 241, 0.02) 150px,
-                    rgba(99, 102, 241, 0.02) 151px
+                    rgba(99, 102, 241, 0.015) 150px,
+                    rgba(99, 102, 241, 0.015) 151px
                   )
                 `,
               }}
@@ -670,7 +670,7 @@ export default function PeakPlayLanding() {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="fixed top-4 right-4 z-50 md:hidden bg-white/90 backdrop-blur-lg rounded-full p-3 shadow-lg border border-gray-200 hover:scale-110 transition-transform duration-300"
+          className="fixed top-4 right-4 z-50 md:hidden bg-white backdrop-blur-lg rounded-full p-3 shadow-sm border border-gray-100 hover:scale-110 transition-transform duration-300"
         >
           {isMenuOpen ? <X className="w-6 h-6 text-gray-800" /> : <Menu className="w-6 h-6 text-gray-800" />}
         </button>
@@ -680,12 +680,12 @@ export default function PeakPlayLanding() {
           <div className="fixed inset-0 z-40 bg-white/98 backdrop-blur-xl md:hidden">
             <div className="flex flex-col items-center justify-center h-full gap-8 p-8">
               <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full max-w-xs bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                <Button className="w-full max-w-xs bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300">
                   Sign In
                 </Button>
               </Link>
               <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full max-w-xs bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                <Button className="w-full max-w-xs bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300">
                   Get Started
                 </Button>
               </Link>
@@ -710,7 +710,7 @@ export default function PeakPlayLanding() {
             {/* Standalone Lightning Bolt - no container box */}
             <div className="relative group-hover:scale-110 transition-transform duration-500">
               {/* Outer glow ring */}
-              <div className="absolute -inset-3 bg-gradient-to-r from-indigo-400/20 via-purple-400/20 to-indigo-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse blur-lg"></div>
+              <div className="absolute -inset-3 bg-gradient-to-r from-indigo-400/10 via-purple-400/10 to-indigo-400/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse blur-lg"></div>
 
               {/* Lightning Bolt SVG - standalone */}
               <div className="relative w-8 h-10 sm:w-14 sm:h-16 flex items-center justify-center group-hover:scale-105 transition-all duration-500">
@@ -718,9 +718,9 @@ export default function PeakPlayLanding() {
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="w-6 h-8 sm:w-12 sm:h-14 text-indigo-600 drop-shadow-lg animate-lightning-pulse"
+                  className="w-6 h-8 sm:w-12 sm:h-14 text-indigo-600 drop-shadow-sm animate-lightning-pulse"
                   style={{
-                    filter: "drop-shadow(0 0 8px rgba(99, 102, 241, 0.4))",
+                    filter: "drop-shadow(0 0 8px rgba(99, 102, 241, 0.2))",
                   }}
                 >
                   <path
@@ -748,15 +748,15 @@ export default function PeakPlayLanding() {
 
                 {/* Lightning spark effects */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  <div className="absolute -top-1 left-1/2 w-1.5 h-1.5 bg-yellow-300 rounded-full -translate-x-1/2 -translate-y-1 animate-sparkle"></div>
-                  <div className="absolute -bottom-1 -right-1 w-1 h-1 bg-blue-300 rounded-full animate-sparkle-delay-1"></div>
-                  <div className="absolute top-1/2 -left-2 w-1 h-1 bg-purple-300 rounded-full -translate-y-1/2 animate-sparkle-delay-2"></div>
-                  <div className="absolute top-1/4 right-0 w-0.5 h-0.5 bg-indigo-300 rounded-full animate-sparkle-delay-3"></div>
+                  <div className="absolute -top-1 left-1/2 w-1.5 h-1.5 bg-yellow-300/50 rounded-full -translate-x-1/2 -translate-y-1 animate-sparkle"></div>
+                  <div className="absolute -bottom-1 -right-1 w-1 h-1 bg-blue-300/50 rounded-full animate-sparkle-delay-1"></div>
+                  <div className="absolute top-1/2 -left-2 w-1 h-1 bg-purple-300/50 rounded-full -translate-y-1/2 animate-sparkle-delay-2"></div>
+                  <div className="absolute top-1/4 right-0 w-0.5 h-0.5 bg-indigo-300/50 rounded-full animate-sparkle-delay-3"></div>
                 </div>
 
                 {/* Enhanced rotating glow effect */}
                 <div
-                  className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500/30 via-purple-500/30 to-indigo-500/30 opacity-0 group-hover:opacity-60 transition-opacity duration-500 blur-xl animate-spin"
+                  className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-60 transition-opacity duration-500 blur-xl animate-spin"
                   style={{ animationDuration: "8s" }}
                 ></div>
               </div>
@@ -768,7 +768,7 @@ export default function PeakPlayLanding() {
               <span className="text-xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:via-purple-700 group-hover:to-indigo-800 transition-all duration-500 relative">
                 PeakPlay
                 {/* Subtle text shadow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 via-purple-600/20 to-indigo-700/20 blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-indigo-700/10 blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </span>
 
               {/* Animated underline with gradient */}
@@ -778,7 +778,7 @@ export default function PeakPlayLanding() {
               </div>
 
               {/* Subtle tagline that appears on hover - hidden on mobile */}
-              <div className="hidden sm:block text-xs text-slate-500 opacity-0 group-hover:opacity-70 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0 font-medium tracking-wide">
+              <div className="hidden sm:block text-xs text-gray-500 opacity-0 group-hover:opacity-70 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0 font-medium tracking-wide">
                 Peak Performance Platform
               </div>
             </div>
@@ -787,11 +787,12 @@ export default function PeakPlayLanding() {
 
         {/* Hero Section with enhanced animations */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
+          {/* Feature badges */}
           <div className="flex justify-center gap-2 sm:gap-6 mb-6 sm:mb-8 flex-wrap">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="flex items-center gap-1 sm:gap-2 bg-white/75 backdrop-blur-md px-2 sm:px-4 py-1 sm:py-2 rounded-full border border-white/40 shadow-md hover:shadow-lg hover:bg-white/85 hover:scale-105 transition-all duration-300 cursor-pointer group text-xs sm:text-sm"
+                className="flex items-center gap-1 sm:gap-2 bg-white/90 backdrop-blur-md px-2 sm:px-4 py-1 sm:py-2 rounded-full border border-gray-100 shadow-sm hover:shadow-md hover:bg-white hover:scale-105 transition-all duration-300 cursor-pointer group text-xs sm:text-sm"
                 style={{
                   animation: `scaleIn 0.6s ease-out forwards`,
                   animationDelay: `${0.2 + index * 0.1}s`,
@@ -810,7 +811,7 @@ export default function PeakPlayLanding() {
           <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 sm:mb-12 leading-tight text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight text-center">
             Unlock Your
             <br />
-            <span className="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent hover:from-indigo-600 hover:to-purple-700 transition-all duration-500">
+            <span className="bg-gradient-to-r from-indigo-600 to-purple-700 bg-clip-text text-transparent">
               Peak Performance.
             </span>
           </h1>
@@ -830,7 +831,7 @@ export default function PeakPlayLanding() {
                 Watch Demo
               </span>
               {/* Professional animated background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-700/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </Button>
 
             <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
@@ -849,7 +850,7 @@ export default function PeakPlayLanding() {
           </div>
         </div>
 
-        {/* Enhanced Sliding Stack Component */}
+        {/* Roles Section */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-8 sm:mb-16">
             <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
@@ -864,8 +865,8 @@ export default function PeakPlayLanding() {
           <div className="relative flex justify-center items-center min-h-[400px] sm:min-h-[650px] overflow-hidden">
             {/* Enhanced Background Effects */}
             <div className="absolute inset-0 flex justify-center items-center">
-              <div className="absolute w-48 sm:w-96 h-48 sm:h-96 bg-gradient-to-r from-indigo-100/40 via-purple-100/40 to-indigo-100/40 rounded-full blur-3xl animate-pulse"></div>
-              <div className="absolute w-32 sm:w-80 h-32 sm:h-80 bg-gradient-to-r from-purple-100/30 via-indigo-100/30 to-purple-100/30 rounded-full blur-2xl animate-pulse delay-1000"></div>
+              <div className="absolute w-48 sm:w-96 h-48 sm:h-96 bg-gradient-to-r from-indigo-50/60 via-purple-50/60 to-indigo-50/60 rounded-full blur-3xl animate-pulse"></div>
+              <div className="absolute w-32 sm:w-80 h-32 sm:h-80 bg-gradient-to-r from-purple-50/50 via-indigo-50/50 to-purple-50/50 rounded-full blur-2xl animate-pulse delay-1000"></div>
             </div>
 
             {/* Cards Container */}
@@ -907,7 +908,7 @@ export default function PeakPlayLanding() {
                 return (
                   <div
                     key={role.id}
-                    className={`absolute w-[260px] sm:w-[600px] h-48 sm:h-80 ${role.color} rounded-xl sm:rounded-3xl shadow-xl transition-all duration-700 ease-out cursor-pointer hover:shadow-2xl border ${role.borderColor} backdrop-blur-sm group`}
+                    className={`absolute w-[260px] sm:w-[600px] h-48 sm:h-80 ${role.color} rounded-xl sm:rounded-3xl shadow-lg transition-all duration-700 ease-out cursor-pointer hover:shadow-xl border ${role.borderColor} backdrop-blur-sm group`}
                     style={{
                       transform: `${transform} scale(${scale})`,
                       zIndex,
@@ -921,12 +922,12 @@ export default function PeakPlayLanding() {
                   >
                     <div className="p-4 sm:p-10 h-full flex flex-col justify-between relative overflow-hidden">
                       {/* Enhanced background overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/10 rounded-xl sm:rounded-3xl group-hover:from-white/50 transition-all duration-300"></div>
-                      <div className="absolute top-0 right-0 w-16 sm:w-32 h-16 sm:h-32 bg-white/20 rounded-full -translate-y-8 sm:-translate-y-16 translate-x-8 sm:translate-x-16"></div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-white/20 rounded-xl sm:rounded-3xl group-hover:from-white/70 transition-all duration-300"></div>
+                      <div className="absolute top-0 right-0 w-16 sm:w-32 h-16 sm:h-32 bg-white/30 rounded-full -translate-y-8 sm:-translate-y-16 translate-x-8 sm:translate-x-16"></div>
 
                       <div className="relative z-10">
                         <div className="flex items-center gap-2 sm:gap-4 mb-3 sm:mb-6">
-                          <div className="p-1.5 sm:p-3 bg-white/60 rounded-lg sm:rounded-2xl backdrop-blur-sm border border-white/50 group-hover:scale-105 transition-transform duration-300 shadow-md">
+                          <div className="p-1.5 sm:p-3 bg-white/70 rounded-lg sm:rounded-2xl backdrop-blur-sm border border-white/60 group-hover:scale-105 transition-transform duration-300 shadow-sm">
                             <IconComponent className={`w-4 h-4 sm:w-7 sm:h-7 ${role.textColor}`} />
                           </div>
                           <h3
@@ -998,13 +999,13 @@ export default function PeakPlayLanding() {
           </div>
         </div>
 
-        {/* SkillSnap Framework Section */}
+        {/* Skills Section */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-8 sm:mb-16">
-            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent hover:from-indigo-700 hover:to-purple-700 transition-all duration-500 cursor-default hover:scale-105 tracking-tight">
+            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
               SkillSnap - Our Five-Pillar Skills Framework
             </h2>
-            <p className="text-lg sm:text-2xl text-slate-600 max-w-3xl mx-auto hover:text-slate-700 transition-colors duration-300 px-4 font-medium leading-relaxed">
+            <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto hover:text-gray-700 transition-colors duration-300 px-4 font-medium leading-relaxed">
               A comprehensive approach to athletic development, with every skill supporting your growth.
             </p>
           </div>
@@ -1125,11 +1126,11 @@ export default function PeakPlayLanding() {
 
         {/* Values Section */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl sm:rounded-3xl p-6 sm:p-12 shadow-xl border border-white/50">
-            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 tracking-tight text-gray-800">Our Values</h2>
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl sm:rounded-3xl p-6 sm:p-12 shadow-sm border border-gray-100">
+            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-gray-800 tracking-tight">Our Values</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {values.map((value, index) => (
-                <div key={index} className="mb-4 bg-white/80 backdrop-blur-sm rounded-lg p-4 hover:shadow-md transition-all duration-300">
+                <div key={index} className="mb-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 hover:shadow-md transition-all duration-300">
                   <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-800">{value.title}</h3>
                   <p className="text-sm sm:text-base text-gray-600">{value.description}</p>
                 </div>
@@ -1143,7 +1144,7 @@ export default function PeakPlayLanding() {
           <div className="bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-sm rounded-xl sm:rounded-3xl p-4 sm:p-16 hover:shadow-lg transition-all duration-500 border border-gray-100/50">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-12">
               <div>
-                <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent hover:from-indigo-600 hover:to-purple-700 transition-all duration-500 cursor-default hover:scale-105 tracking-tight">
+                <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
                   Contact Us
                 </h2>
                 <p className="text-lg sm:text-2xl text-gray-600 leading-relaxed hover:text-gray-700 transition-colors duration-300">
