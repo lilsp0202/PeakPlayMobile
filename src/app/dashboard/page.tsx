@@ -406,7 +406,7 @@ export default function Dashboard() {
   const renderAthleteContent = () => {
     switch (activeTab) {
       case 'overview':
-        return (
+  return (
           <div className="space-y-6">
             <motion.div 
               className="bg-white rounded-xl shadow-lg p-6"
@@ -482,136 +482,136 @@ export default function Dashboard() {
           </div>
         );
 
-      case 'skillsnap':
-        return (
-          <motion.div 
+            case 'skillsnap':
+              return (
+                <motion.div 
             className="space-y-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-          >
+                >
             <div className="card-modern glass">
-              <div className="p-6">
-                <div className="flex items-center mb-6">
-                  <motion.div 
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.6 }}
+                  <div className="p-6">
+                    <div className="flex items-center mb-6">
+                      <motion.div 
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.6 }}
                     className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"
-                  >
-                    <FiActivity className="w-6 h-6 text-white" />
-                  </motion.div>
+                      >
+                        <FiActivity className="w-6 h-6 text-white" />
+                      </motion.div>
                   <div>
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                       SkillSnap
-                    </h2>
+                      </h2>
                     <p className="text-sm text-gray-600 mt-1">Track and improve your athletic skills</p>
-                  </div>
+                    </div>
                 </div>
                 <SkillSnap onModalChange={setIsSkillSnapModalOpen} />
               </div>
-            </div>
-          </motion.div>
-        );
-
-      case 'matches':
-        return (
-          <motion.div 
-            className="card-modern"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <motion.div
-                  whileHover={{ scale: 1.2 }}
-                  className="mr-2"
-                >
-                  <FiTarget className="text-green-600" />
+                  </div>
                 </motion.div>
-                Recent Match Scores
-              </h2>
-              <RecentMatchScores />
-            </div>
-          </motion.div>
-        );
+              );
 
-      case 'badges':
-        return (
-          <motion.div 
-            className="card-modern glass"
-            whileHover={{ y: -5 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="p-6">
-              <div className="flex items-center mb-6">
+            case 'matches':
+              return (
                 <motion.div 
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"
+                  className="card-modern"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4 }}
                 >
-                  <FiAward className="w-6 h-6 text-white" />
+                  <div className="p-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                      <motion.div
+                        whileHover={{ scale: 1.2 }}
+                        className="mr-2"
+                      >
+                        <FiTarget className="text-green-600" />
+                      </motion.div>
+                      Recent Match Scores
+                    </h2>
+                    <RecentMatchScores />
+                  </div>
                 </motion.div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
-                  Your Badges
-                </h2>
-              </div>
-              <BadgeDisplay />
-            </div>
-          </motion.div>
-        );
+              );
 
-      case 'feedback':
-        return (
-          <motion.div 
-            className="card-modern"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-          >
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <motion.div
-                  animate={{ y: [0, -3, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="mr-2"
-                >
-                  <FiMessageSquare className="text-blue-600" />
-                </motion.div>
-                Coach Feedback
-              </h2>
-              <CoachFeedback />
-            </div>
-          </motion.div>
-        );
-
-      case 'todo':
-        return (
-          <motion.div 
-            className="card-modern"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <motion.div
-                  whileHover={{ rotate: 180 }}
+            case 'badges':
+              return (
+                <motion.div 
+                  className="card-modern glass"
+                  whileHover={{ y: -5 }}
                   transition={{ duration: 0.3 }}
-                  className="mr-2"
                 >
-                  <FiCheckSquare className="text-indigo-600" />
+                  <div className="p-6">
+                    <div className="flex items-center mb-6">
+                      <motion.div 
+                        animate={{ rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"
+                      >
+                        <FiAward className="w-6 h-6 text-white" />
+                      </motion.div>
+                      <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                        Your Badges
+                      </h2>
+                    </div>
+                    <BadgeDisplay />
+                  </div>
                 </motion.div>
-                Training To-Do
-              </h2>
-              <SessionTodoStudent studentId={profileData?.id || ''} coachName={profileData?.name || ''} />
-            </div>
-          </motion.div>
-        );
+              );
 
-      default:
-        return null;
-    }
+            case 'feedback':
+              return (
+                <motion.div 
+                  className="card-modern"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div className="p-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                      <motion.div
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="mr-2"
+                      >
+                        <FiMessageSquare className="text-blue-600" />
+                      </motion.div>
+                      Coach Feedback
+                    </h2>
+                    <CoachFeedback />
+                  </div>
+                </motion.div>
+              );
+
+            case 'todo':
+              return (
+                <motion.div 
+                  className="card-modern"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div className="p-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                      <motion.div
+                        whileHover={{ rotate: 180 }}
+                        transition={{ duration: 0.3 }}
+                        className="mr-2"
+                      >
+                        <FiCheckSquare className="text-indigo-600" />
+                      </motion.div>
+                      Training To-Do
+                    </h2>
+                    <SessionTodoStudent studentId={profileData?.id || ''} coachName={profileData?.name || ''} />
+                  </div>
+                </motion.div>
+              );
+
+            default:
+              return null;
+          }
   };
 
   const renderCoachContent = () => {
@@ -1165,30 +1165,30 @@ export default function Dashboard() {
 
       {/* Bottom Tab Navigation for Mobile */}
       {!isSkillSnapModalOpen && (
-        <motion.footer 
-          className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-purple-100 lg:hidden shadow-2xl"
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
-          <nav className="flex items-center justify-around max-w-7xl mx-auto px-2 py-1">
-            {tabs.map((tab, index) => (
-              <motion.div
-                key={tab.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index + 0.9 }}
-              >
-                <TabButton
-                  text={tab.label}
-                  icon={tab.icon}
-                  active={activeTab === tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                />
-              </motion.div>
-            ))}
-          </nav>
-        </motion.footer>
+      <motion.footer 
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-purple-100 lg:hidden shadow-2xl"
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+      >
+        <nav className="flex items-center justify-around max-w-7xl mx-auto px-2 py-1">
+          {tabs.map((tab, index) => (
+            <motion.div
+              key={tab.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index + 0.9 }}
+            >
+              <TabButton
+                text={tab.label}
+                icon={tab.icon}
+                active={activeTab === tab.id}
+                onClick={() => setActiveTab(tab.id)}
+              />
+            </motion.div>
+          ))}
+        </nav>
+      </motion.footer>
       )}
 
       {/* Add padding to the bottom of the main content to prevent overlap with the footer */}
@@ -1249,8 +1249,8 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <SkillSnap studentId={selectedStudentModal.id} isCoachView={true} />
-                  </div>
-                )}
+            </div>
+          )}
 
                 {activeModal === 'badges' && (
                   <div className="space-y-6">

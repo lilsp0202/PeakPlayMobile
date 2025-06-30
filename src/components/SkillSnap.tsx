@@ -754,7 +754,7 @@ const SkillBar: React.FC<{
   };
 
   const range = getSkillRange();
-
+  
   const getPercentage = () => {
     if (skill.type === "time") {
       // For time-based skills, invert the percentage (lower is better)
@@ -776,14 +776,14 @@ const SkillBar: React.FC<{
       const percentage = ((range.max - average) / range.max) * 100;
       return Math.max(0, Math.min(100, percentage));
     } else {
-      // For other skills, higher is better
+    // For other skills, higher is better
       const percentage = (average / range.max) * 100;
       return Math.max(0, Math.min(100, percentage));
     }
   };
 
   const getProgressColor = () => {
-    const percentage = getPercentage();
+  const percentage = getPercentage();
     if (percentage >= 80) return "bg-green-500";
     if (percentage >= 60) return "bg-yellow-500";
     if (percentage >= 40) return "bg-orange-500";
@@ -824,26 +824,26 @@ const SkillBar: React.FC<{
           <div className="flex-1 min-w-0">
             <h4 className="font-bold text-gray-900 text-base sm:text-lg mb-0.5 sm:mb-1 truncate">{skill.name}</h4>
             <p className="text-xs sm:text-sm text-gray-700 leading-relaxed line-clamp-2">{skill.description}</p>
-          </div>
         </div>
+      </div>
         <div className="text-right ml-3 sm:ml-4 flex-shrink-0">
-          {isEditing ? (
+      {isEditing ? (
             <div className="flex items-center space-x-2">
-              <input
+          <input
                 type="number"
                 value={score}
                 onChange={(e) => onScoreChange(skill.id, parseFloat(e.target.value) || 0)}
-                min={range.min}
-                max={range.max}
-                step={range.step}
+            min={range.min}
+            max={range.max}
+            step={range.step}
                 className="w-20 sm:w-24 px-3 py-3 text-lg font-semibold border-2 border-blue-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200"
                 inputMode="decimal"
                 autoComplete="off"
               />
               <span className="text-sm font-medium text-gray-600">{skill.unit}</span>
-            </div>
-          ) : (
-            <>
+        </div>
+      ) : (
+        <>
               <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
                 {formatValue(score)}
               </div>
@@ -853,10 +853,10 @@ const SkillBar: React.FC<{
                 </div>
               )}
             </>
-          )}
+            )}
         </div>
-      </div>
-
+          </div>
+          
       {/* Progress bar */}
       <div className="mb-3 sm:mb-4">
         <div className="flex justify-between items-center mb-2">
@@ -886,15 +886,15 @@ const SkillBar: React.FC<{
             )}
             {score >= range.min && score <= range.max && score > 0 && (
               <span className="text-xs text-green-600 font-medium flex items-center">
-                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+                  </svg>
                 Valid
               </span>
-            )}
+              )}
           </div>
         </div>
-      )}
+          )}
     </div>
   );
 };
@@ -1191,16 +1191,16 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
             <div className="text-base sm:text-lg font-bold text-orange-600">
               {isEditing ? (
                 <div className="flex items-center space-x-2">
-                  <input
-                    type="number"
-                    min={0}
-                    max={skill.maxPoints}
-                    value={userScore}
-                    onChange={(e) => onScoreChange(skill.id, parseInt(e.target.value) || 0)}
+                <input
+                  type="number"
+                  min={0}
+                  max={skill.maxPoints}
+                  value={userScore}
+                  onChange={(e) => onScoreChange(skill.id, parseInt(e.target.value) || 0)}
                     className="w-16 sm:w-20 px-2 py-1.5 text-sm font-semibold border-2 border-orange-300 rounded-lg text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white shadow-sm transition-all duration-200"
                     inputMode="numeric"
                     autoComplete="off"
-                  />
+                />
                   <span className="text-xs text-gray-500">/{skill.maxPoints}</span>
                 </div>
               ) : (
@@ -1752,10 +1752,10 @@ export default function SkillSnap({
     setSelectedSkill(skill);
     
     // Initialize edit state for this skill
-    setEditedScores(prev => ({
-      ...prev,
-      [skill.id]: skillData?.[skill.id as keyof SkillData] as number || 0
-    }));
+      setEditedScores(prev => ({
+        ...prev,
+        [skill.id]: skillData?.[skill.id as keyof SkillData] as number || 0
+      }));
     
     // Lock body scroll when modal opens
     lockBodyScroll();
@@ -1867,9 +1867,9 @@ export default function SkillSnap({
       {selectedCategory && !selectedSkill && (
         <>
           {/* Background overlay - separate from modal content */}
-          <div 
+        <div 
             className="fixed inset-0 z-[9998] bg-black bg-opacity-80 backdrop-blur-sm"
-            onClick={closeModal}
+          onClick={closeModal}
             aria-hidden="true"
           />
           
@@ -1932,8 +1932,8 @@ export default function SkillSnap({
                         </button>
                       )}
                     </div>
+                    </div>
                   </div>
-                </div>
 
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -1962,13 +1962,13 @@ export default function SkillSnap({
             <div className="fixed inset-0 pointer-events-auto">
               <div className="w-full h-full bg-white overflow-y-auto custom-scrollbar">
                 {/* Close button */}
-                <button
-                  onClick={closeModal}
+                  <button
+                    onClick={closeModal}
                   className="fixed top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-[10000] shadow-lg"
-                  aria-label="Close modal"
-                >
+                    aria-label="Close modal"
+                  >
                   <X className="w-6 h-6" />
-                </button>
+                  </button>
 
                 {/* Modal content */}
                 <div className="p-6 pt-16 max-w-5xl mx-auto">
@@ -1986,41 +1986,41 @@ export default function SkillSnap({
                           {selectedSkill.description}
                         </p>
                       </div>
-                    </div>
-                  </div>
+                </div>
+              </div>
 
                   {/* Action Buttons */}
                   <div className="mb-8">
-                    {isEditing === selectedCategory.id ? (
+                {isEditing === selectedCategory.id ? (
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
-                        <button
-                          onClick={() => handleCancel(selectedCategory.id)}
+                    <button
+                      onClick={() => handleCancel(selectedCategory.id)}
                           className="flex items-center justify-center px-6 py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl order-2 sm:order-1"
-                        >
+                    >
                           <X className="w-5 h-5 mr-2" />
                           <span>Cancel</span>
-                        </button>
-                        <button
-                          onClick={() => handleSave(selectedCategory.id)}
+                    </button>
+                    <button
+                      onClick={() => handleSave(selectedCategory.id)}
                           disabled={isSaving}
                           className="flex items-center justify-center px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
-                        >
+                    >
                           <Check className="w-5 h-5 mr-2" />
                           <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() => handleStartEdit(selectedCategory.id)}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => handleStartEdit(selectedCategory.id)}
                           className="flex items-center justify-center px-6 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl"
-                        >
+                    >
                           <Edit className="w-5 h-5 mr-2" />
                           <span>Edit</span>
-                        </button>
-                      </div>
-                    )}
+                    </button>
                   </div>
+                )}
+              </div>
 
                   {/* Modal content */}
                   <div className="pb-8">
@@ -2033,7 +2033,7 @@ export default function SkillSnap({
                         <p className={`text-${selectedCategory.colorScheme.primary}-700 text-base mb-4`}>
                           Track and monitor your {selectedSkill.name.toLowerCase()} progress.
                         </p>
-                      </div>
+              </div>
                       <div className="pb-8">
                         <SkillBar
                           skill={selectedSkill}
@@ -2060,9 +2060,9 @@ export default function SkillSnap({
                               : undefined
                           }
                         />
-                      </div>
-                    </div>
-                  </div>
+            </div>
+          </div>
+        </div>
                 </div>
               </div>
             </div>

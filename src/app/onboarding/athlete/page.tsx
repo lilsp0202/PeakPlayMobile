@@ -26,6 +26,8 @@ export default function AthleteOnboarding() {
     setError("");
 
     try {
+      console.log("Submitting athlete onboarding form:", formData);
+      
       const response = await fetch("/api/student/create", {
         method: "POST",
         headers: {
@@ -39,14 +41,19 @@ export default function AthleteOnboarding() {
         }),
       });
 
+      const data = await response.json();
+      console.log("Athlete onboarding response:", data);
+
       if (response.ok) {
+        console.log("Athlete onboarding successful, redirecting to dashboard");
         router.push("/dashboard");
       } else {
-        const data = await response.json();
-        setError(data.message || "Failed to save information");
+        console.error("Athlete onboarding failed:", data);
+        setError(data.message || "Failed to save information. Please try again.");
       }
     } catch (error) {
-      setError("An error occurred. Please try again.");
+      console.error("Athlete onboarding error:", error);
+      setError("Network error occurred. Please check your connection and try again.");
     }
 
     setIsLoading(false);

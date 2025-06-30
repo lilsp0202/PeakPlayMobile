@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 interface PeakPlayLogoProps {
   size?: "small" | "default" | "large";
@@ -61,44 +62,46 @@ export function PeakPlayLogo({
   const currentVariant = variantClasses[variant];
 
   return (
-    <motion.div 
-      whileHover={{ scale: 1.02 }}
-      className={`flex items-center space-x-3 ${className}`}
-    >
-      {/* Lightning Bolt Icon */}
+    <Link href="/landing">
       <motion.div 
-        whileHover={{ rotate: [0, -5, 5, 0] }}
-        transition={{ duration: 0.3 }}
-        className={`${currentSize.iconContainer} ${currentVariant.iconBg} rounded-xl flex items-center justify-center shadow-lg`}
+        whileHover={{ scale: 1.02 }}
+        className={`flex items-center space-x-3 ${className}`}
       >
-        <svg 
-          className={`${currentSize.icon} ${currentVariant.iconColor}`} 
-          fill="currentColor" 
-          viewBox="0 0 24 24"
+        {/* Lightning Bolt Icon */}
+        <motion.div 
+          whileHover={{ rotate: [0, -5, 5, 0] }}
+          transition={{ duration: 0.3 }}
+          className={`${currentSize.iconContainer} ${currentVariant.iconBg} rounded-xl flex items-center justify-center shadow-lg`}
         >
-          <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-      </motion.div>
-      
-      {/* Brand Text */}
-      <div className="flex flex-col">
-        <motion.h1 
-          className={`${currentSize.title} font-bold ${currentVariant.title} leading-tight`}
-        >
-          PeakPlay
-        </motion.h1>
-        {showTagline && (
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className={`${currentSize.tagline} ${currentVariant.tagline} font-medium leading-tight`}
+          <svg 
+            className={`${currentSize.icon} ${currentVariant.iconColor}`} 
+            fill="currentColor" 
+            viewBox="0 0 24 24"
           >
-            Peak Performance Platform
-          </motion.p>
-        )}
-      </div>
-    </motion.div>
+            <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </motion.div>
+        
+        {/* Brand Text */}
+        <div className="flex flex-col">
+          <motion.h1 
+            className={`${currentSize.title} font-bold ${currentVariant.title} leading-tight`}
+          >
+            PeakPlay
+          </motion.h1>
+          {showTagline && (
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className={`${currentSize.tagline} ${currentVariant.tagline} font-medium leading-tight`}
+            >
+              Peak Performance Platform
+            </motion.p>
+          )}
+        </div>
+      </motion.div>
+    </Link>
   );
 }
 

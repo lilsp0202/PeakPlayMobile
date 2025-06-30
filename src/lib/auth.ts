@@ -24,6 +24,10 @@ export const authOptions: NextAuthOptions = {
           const user = await prisma.user.findUnique({
             where: { 
               email: credentials.email.toLowerCase().trim() 
+            },
+            include: {
+              student: true,
+              coach: true
             }
           });
 
@@ -49,10 +53,13 @@ export const authOptions: NextAuthOptions = {
           // Log successful login
           await logAuthEvent('LOGIN_SUCCESS', user.email);
 
+          // Check if user needs onboarding
+          const needsOnboarding = user.role === "ATHLETE" ? !user.student : !user.coach;
+          
           return {
             id: user.id,
             email: user.email,
-            name: user.name || undefined,
+            name: needsOnboarding ? "temp" : (user.name || user.username),
             role: user.role as "ATHLETE" | "COACH",
           };
         } catch (error) {
@@ -126,14 +133,11 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
         token.id = user.id;
-      }
-      if (account) {
-        token.accessToken = account.access_token;
-        token.refreshToken = account.refresh_token;
+        token.name = user.name; // Ensure temp status is preserved
       }
       return token;
     },
@@ -143,23 +147,32 @@ export const authOptions: NextAuthOptions = {
           ...session.user,
           id: token.sub,
           role: token.role as "ATHLETE" | "COACH",
+          name: token.name as string, // Ensure temp status is preserved
         };
       }
       return session;
     },
     async redirect({ url, baseUrl }) {
+      // Handle dynamic Vercel URLs
+      const deploymentUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : process.env.NEXTAUTH_URL 
+        ? process.env.NEXTAUTH_URL 
+        : baseUrl;
+      
       // Allow relative URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
+      if (url.startsWith("/")) return `${deploymentUrl}${url}`;
       // Allow URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
+      else if (new URL(url).origin === deploymentUrl) return url;
+      return deploymentUrl;
     }
   },
   pages: {
     signIn: "/auth/signin",
-    error: "/auth/error",
+    error: "/auth/signin",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
   events: {
     async signOut({ token }) {
       if (token?.email) {

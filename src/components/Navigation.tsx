@@ -25,7 +25,7 @@ export const PeakPlayLogo = ({ size = "default" }: { size?: "small" | "default" 
   };
 
   return (
-    <Link href="/dashboard" className="flex items-center group transition-all duration-300 hover:scale-105">
+    <Link href="/landing" className="flex items-center group transition-all duration-300 hover:scale-105">
       <div className="relative">
         <div className={`${sizeClasses[size]} bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
           <svg

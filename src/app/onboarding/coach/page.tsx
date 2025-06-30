@@ -22,6 +22,8 @@ export default function CoachOnboarding() {
     setError("");
 
     try {
+      console.log("Submitting coach onboarding form:", formData);
+      
       const response = await fetch("/api/coach/create", {
         method: "POST",
         headers: {
@@ -30,14 +32,19 @@ export default function CoachOnboarding() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+      console.log("Coach onboarding response:", data);
+
       if (response.ok) {
+        console.log("Coach onboarding successful, redirecting to dashboard");
         router.push("/dashboard");
       } else {
-        const data = await response.json();
-        setError(data.message || "Failed to save information");
+        console.error("Coach onboarding failed:", data);
+        setError(data.message || "Failed to save information. Please try again.");
       }
     } catch (error) {
-      setError("An error occurred. Please try again.");
+      console.error("Coach onboarding error:", error);
+      setError("Network error occurred. Please check your connection and try again.");
     }
 
     setIsLoading(false);
