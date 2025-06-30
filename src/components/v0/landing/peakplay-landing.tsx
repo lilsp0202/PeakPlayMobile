@@ -471,7 +471,7 @@ export default function PeakPlayLanding() {
             <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${role.color} text-white mb-4`}>
               <role.icon className="w-6 h-6" />
             </div>
-            <h3 className="text-2xl font-bold mb-2 flex items-center gap-2 text-gray-900">
+            <h3 className="text-2xl font-bold mb-2 flex items-center gap-2 text-black">
               {role.title} <span>{role.emoji}</span>
             </h3>
             <p className="text-gray-800">{role.description}</p>
@@ -529,7 +529,7 @@ export default function PeakPlayLanding() {
                 <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${pillar.color} text-white mb-4`}>
                   <pillar.icon className="w-6 h-6" />
                           </div>
-                <h3 className="text-xl font-bold mb-2 flex items-center gap-2 text-gray-900">
+                <h3 className="text-xl font-bold mb-2 flex items-center gap-2 text-black">
                   {pillar.title} <span>{pillar.emoji}</span>
                           </h3>
                 <p className={`${pillar.textColor} text-sm font-medium`}>{pillar.description}</p>
