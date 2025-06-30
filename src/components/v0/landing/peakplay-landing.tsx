@@ -5,15 +5,15 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Play, TrendingUp, Users, Target, BarChart3, Video, MapPin, Monitor, ChevronRight, Sparkles, Activity, Brain, Apple, Zap, Menu, X, Eye } from "lucide-react"
 import { track } from "@vercel/analytics"
-import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
+import { motion, AnimatePresence, useScroll, useTransform, useInView, Variants, Easing } from "framer-motion"
 
 // Animation variants
-const fadeInUp = {
+const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
 }
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -23,15 +23,19 @@ const staggerContainer = {
   }
 }
 
-const floatingOrb = {
+const floatingAnimation: Variants = {
+  initial: {
+    y: 0,
+    scale: 1
+  },
   animate: {
-    y: [0, -20, 0],
+    y: [-20, 0, -20],
     scale: [1, 1.1, 1],
     transition: {
       duration: 5,
       repeat: Infinity,
       repeatType: "reverse",
-      ease: "easeInOut"
+      ease: "easeInOut" as Easing
     }
   }
 }
@@ -208,20 +212,21 @@ export default function PeakPlayLanding() {
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          variants={floatingOrb}
+          initial="initial"
           animate="animate"
+          variants={floatingAnimation}
           className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-r from-purple-200 to-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
         />
         <motion.div
-          variants={floatingOrb}
+          initial="initial"
           animate="animate"
-          custom={1}
+          variants={floatingAnimation}
           className="absolute top-1/2 -right-40 w-96 h-96 bg-gradient-to-r from-blue-200 to-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
         />
         <motion.div
-          variants={floatingOrb}
+          initial="initial"
           animate="animate"
-          custom={2}
+          variants={floatingAnimation}
           className="absolute -bottom-40 left-1/3 w-72 h-72 bg-gradient-to-r from-green-200 to-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
         />
       </div>
