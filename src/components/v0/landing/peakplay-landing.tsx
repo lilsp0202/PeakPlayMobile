@@ -466,12 +466,10 @@ export default function PeakPlayLanding() {
         }
       `}</style>
 
-      <div className="min-h-screen relative overflow-hidden">
+      <div className="min-h-screen relative overflow-hidden bg-white">
         {/* Professional Animated Background System */}
-        <div className="fixed inset-0 -z-10">
-          {/* Base Professional Gradient */}
-          <div
-            className="absolute inset-0 animate-professional-gradient"
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 animate-professional-gradient"
             style={{
               background: `
                 linear-gradient(135deg, 
@@ -486,17 +484,21 @@ export default function PeakPlayLanding() {
             }}
           />
 
-          {/* Dynamic Mesh Gradient Overlay */}
+          {/* Mesh Gradient Overlay */}
           <div
-            className="absolute inset-0 opacity-40 animate-mesh-shift"
+            className="absolute inset-0 animate-mesh-gradient"
             style={{
               background: `
-                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 60% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
-                radial-gradient(circle at 90% 60%, rgba(168, 85, 247, 0.07) 0%, transparent 50%)
+                radial-gradient(
+                  circle at 50% 50%,
+                  rgba(99, 102, 241, 0.02) 0%,
+                  rgba(168, 85, 247, 0.015) 25%,
+                  rgba(139, 92, 246, 0.02) 50%,
+                  rgba(99, 102, 241, 0.015) 75%,
+                  rgba(168, 85, 247, 0.02) 100%
+                )
               `,
+              backgroundSize: "120% 120%",
             }}
           />
 
@@ -635,14 +637,14 @@ export default function PeakPlayLanding() {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="fixed top-4 right-4 z-50 md:hidden bg-gray-800/90 backdrop-blur-lg rounded-full p-3 shadow-lg border border-gray-700 hover:scale-110 transition-transform duration-300"
+          className="fixed top-4 right-4 z-50 md:hidden bg-white/90 backdrop-blur-lg rounded-full p-3 shadow-lg border border-gray-200 hover:scale-110 transition-transform duration-300"
         >
-          {isMenuOpen ? <X className="w-6 h-6 text-white" /> : <Menu className="w-6 h-6 text-white" />}
+          {isMenuOpen ? <X className="w-6 h-6 text-gray-800" /> : <Menu className="w-6 h-6 text-gray-800" />}
         </button>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl md:hidden">
+          <div className="fixed inset-0 z-40 bg-white backdrop-blur-xl md:hidden">
             <div className="flex flex-col items-center justify-center h-full gap-8 p-8">
               <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)}>
                 <Button className="w-full max-w-xs bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300">
