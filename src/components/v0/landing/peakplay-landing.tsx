@@ -229,7 +229,7 @@ export default function PeakPlayLanding() {
           variants={floatingAnimation}
           className="absolute -bottom-40 left-1/3 w-72 h-72 bg-gradient-to-r from-green-200 to-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
         />
-      </div>
+        </div>
 
       {/* Mobile Menu Button with hover effect */}
       <motion.button
@@ -329,18 +329,18 @@ export default function PeakPlayLanding() {
                 transition={{ duration: 0.8, delay: 0.4 }}
                 className="text-gray-900"
               >
-                Unlock Your
+            Unlock Your
               </motion.span>
-              <br />
+            <br />
               <motion.span
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
                 className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent"
               >
-                Peak Performance.
+              Peak Performance.
               </motion.span>
-            </h1>
+          </h1>
 
             <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
               Redefining youth sports development with a future-forward platform that's purposeful, performance-measurable, and makes the journey unforgettable.
@@ -447,10 +447,10 @@ export default function PeakPlayLanding() {
               >
                 <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${pillar.color} text-white mb-4`}>
                   <pillar.icon className="w-6 h-6" />
-                </div>
+                          </div>
                 <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
                   {pillar.title} <span>{pillar.emoji}</span>
-                </h3>
+                          </h3>
                 <p className={`${pillar.textColor} text-sm`}>{pillar.description}</p>
               </motion.div>
               <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -531,15 +531,15 @@ export default function PeakPlayLanding() {
                 <feature.icon className={`w-8 h-8 ${feature.color} mb-4`} />
                 <h3 className="text-xl font-bold mb-2 text-gray-900">{feature.title}:</h3>
                 <p className="text-gray-600">{feature.description}</p>
-              </div>
+                        </div>
             ))}
-          </div>
+                    </div>
 
           <div className="text-center">
             <p className="text-lg font-semibold text-gray-900">
               Ready to play? <span className="font-bold">Search. Book. Dominate.</span>
-            </p>
-          </div>
+                    </p>
+                  </div>
         </div>
       </section>
 
@@ -592,46 +592,46 @@ export default function PeakPlayLanding() {
           <motion.div variants={fadeInUp} className="space-y-2">
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Name
-            </label>
-            <input
-              type="text"
+                      </label>
+                      <input
+                        type="text"
               id="name"
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow duration-200"
-              required
+                        required
             />
           </motion.div>
 
           <motion.div variants={fadeInUp} className="space-y-2">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email
-            </label>
-            <input
-              type="email"
+                    </label>
+                    <input
+                      type="email"
               id="email"
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow duration-200"
-              required
+                      required
             />
           </motion.div>
 
           <motion.div variants={fadeInUp} className="space-y-2">
             <label htmlFor="message" className="block text-sm font-medium text-gray-700">
               Message
-            </label>
-            <textarea
+                    </label>
+                    <textarea
               id="message"
               rows={4}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow duration-200"
-              required
+                      required
             />
           </motion.div>
 
           <motion.div variants={fadeInUp}>
-            <Button
-              type="submit"
+                  <Button
+                    type="submit"
               className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl py-4 font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300"
-            >
+                  >
               Send Message
-            </Button>
+                  </Button>
           </motion.div>
         </motion.form>
       </motion.div>
@@ -642,13 +642,13 @@ export default function PeakPlayLanding() {
           <div className="flex items-center gap-2">
             <Zap className="w-6 h-6 text-indigo-400" />
             <span className="text-xl font-bold">PeakPlay</span>
-          </div>
+              </div>
           <div className="text-sm text-gray-400">
             © 2025 PeakPlay. All rights reserved.<br />
             Made with ❤️ for athletes worldwide
+            </div>
           </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
   )
 } 
