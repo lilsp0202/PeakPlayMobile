@@ -501,7 +501,7 @@ export default function PeakPlayLanding() {
         }
       `}</style>
 
-      <div className="min-h-screen relative overflow-hidden">
+      <div className="min-h-screen relative overflow-hidden bg-white">
         {/* Professional Animated Background System */}
         <div className="fixed inset-0 -z-10">
           {/* Base Professional Gradient */}
@@ -511,9 +511,9 @@ export default function PeakPlayLanding() {
               background: `
                 linear-gradient(135deg, 
                   rgba(99, 102, 241, 0.03) 0%, 
-                  rgba(168, 85, 247, 0.02) 25%, 
+                  rgba(168, 85, 247, 0.03) 25%, 
                   rgba(139, 92, 246, 0.03) 50%, 
-                  rgba(99, 102, 241, 0.02) 75%, 
+                  rgba(99, 102, 241, 0.03) 75%, 
                   rgba(168, 85, 247, 0.03) 100%
                 )
               `,
@@ -523,13 +523,13 @@ export default function PeakPlayLanding() {
 
           {/* Dynamic Mesh Gradient Overlay */}
           <div
-            className="absolute inset-0 opacity-40 animate-mesh-shift"
+            className="absolute inset-0 opacity-30 animate-mesh-shift"
             style={{
               background: `
                 radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 60% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 60% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
                 radial-gradient(circle at 90% 60%, rgba(168, 85, 247, 0.07) 0%, transparent 50%)
               `,
             }}
@@ -557,7 +557,7 @@ export default function PeakPlayLanding() {
               }}
             />
             <div
-              className="absolute w-40 sm:w-64 h-40 sm:h-64 rounded-full opacity-18 animate-floating-orb-alt"
+              className="absolute w-40 sm:w-64 h-40 sm:h-64 rounded-full opacity-15 animate-floating-orb-alt"
               style={{
                 background:
                   "radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.03) 40%, transparent 70%)",
@@ -568,7 +568,7 @@ export default function PeakPlayLanding() {
 
             {/* Professional Grid Pattern */}
             <div
-              className="absolute inset-0 opacity-8 animate-grid-flow"
+              className="absolute inset-0 opacity-5 animate-grid-flow"
               style={{
                 backgroundImage: `
                   linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
@@ -580,7 +580,7 @@ export default function PeakPlayLanding() {
 
             {/* Diagonal Light Streaks */}
             <div
-              className="absolute inset-0 opacity-6 animate-diagonal-flow"
+              className="absolute inset-0 opacity-5 animate-diagonal-flow"
               style={{
                 background: `
                   linear-gradient(45deg, transparent 48%, rgba(99, 102, 241, 0.04) 50%, transparent 52%),
@@ -592,20 +592,20 @@ export default function PeakPlayLanding() {
 
             {/* Morphing Shapes */}
             <div
-              className="absolute w-24 sm:w-40 h-24 sm:h-40 opacity-12 animate-morphing-shape"
+              className="absolute w-24 sm:w-40 h-24 sm:h-40 opacity-10 animate-morphing-shape"
               style={{
                 background:
-                  "conic-gradient(from 0deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.04), rgba(139, 92, 246, 0.06), rgba(99, 102, 241, 0.08))",
+                  "conic-gradient(from 0deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.06), rgba(139, 92, 246, 0.07), rgba(99, 102, 241, 0.08))",
                 top: "30%",
                 right: "30%",
                 borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
               }}
             />
             <div
-              className="absolute w-20 sm:w-32 h-20 sm:h-32 opacity-10 animate-morphing-shape-reverse"
+              className="absolute w-20 sm:w-32 h-20 sm:h-32 opacity-08 animate-morphing-shape-reverse"
               style={{
                 background:
-                  "conic-gradient(from 180deg, rgba(168, 85, 247, 0.06), rgba(139, 92, 246, 0.03), rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.06))",
+                  "conic-gradient(from 180deg, rgba(168, 85, 247, 0.07), rgba(139, 92, 246, 0.05), rgba(99, 102, 241, 0.06), rgba(168, 85, 247, 0.07))",
                 bottom: "35%",
                 right: "15%",
                 borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
@@ -616,11 +616,11 @@ export default function PeakPlayLanding() {
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="absolute rounded-full opacity-30"
+                className="absolute rounded-full opacity-40"
                 style={{
                   width: `${Math.random() * 4 + 2}px`,
                   height: `${Math.random() * 4 + 2}px`,
-                  background: `rgba(${i % 2 === 0 ? "99, 102, 241" : "168, 85, 247"}, 0.4)`,
+                  background: `rgba(${i % 2 === 0 ? "99, 102, 241" : "168, 85, 247"}, 0.5)`,
                   top: `${Math.random() * 100}%`,
                   left: `${Math.random() * 100}%`,
                   animation: `floatingParticle ${15 + Math.random() * 20}s linear infinite`,
@@ -631,19 +631,19 @@ export default function PeakPlayLanding() {
 
             {/* Ambient Light Spots */}
             <div
-              className="absolute w-48 sm:w-72 h-48 sm:h-72 rounded-full opacity-8 animate-ambient-pulse"
+              className="absolute w-48 sm:w-72 h-48 sm:h-72 rounded-full opacity-10 animate-ambient-pulse"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, rgba(139, 92, 246, 0.02) 30%, transparent 60%)",
+                  "radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.03) 30%, transparent 60%)",
                 top: "15%",
                 right: "10%",
               }}
             />
             <div
-              className="absolute w-36 sm:w-56 h-36 sm:h-56 rounded-full opacity-6 animate-ambient-pulse-reverse"
+              className="absolute w-36 sm:w-56 h-36 sm:h-56 rounded-full opacity-08 animate-ambient-pulse-reverse"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, rgba(99, 102, 241, 0.015) 30%, transparent 60%)",
+                  "radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.02) 30%, transparent 60%)",
                 bottom: "15%",
                 left: "10%",
               }}
@@ -651,7 +651,7 @@ export default function PeakPlayLanding() {
 
             {/* Professional Wave Pattern */}
             <div
-              className="absolute inset-0 opacity-4 animate-wave-pattern"
+              className="absolute inset-0 opacity-5 animate-wave-pattern"
               style={{
                 background: `
                   repeating-linear-gradient(
@@ -670,22 +670,22 @@ export default function PeakPlayLanding() {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="fixed top-4 right-4 z-50 md:hidden bg-gray-800/90 backdrop-blur-lg rounded-full p-3 shadow-lg border border-gray-700 hover:scale-110 transition-transform duration-300"
+          className="fixed top-4 right-4 z-50 md:hidden bg-white/90 backdrop-blur-lg rounded-full p-3 shadow-lg border border-gray-200 hover:scale-110 transition-transform duration-300"
         >
-          {isMenuOpen ? <X className="w-6 h-6 text-white" /> : <Menu className="w-6 h-6 text-white" />}
+          {isMenuOpen ? <X className="w-6 h-6 text-gray-800" /> : <Menu className="w-6 h-6 text-gray-800" />}
         </button>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl md:hidden">
+          <div className="fixed inset-0 z-40 bg-white/98 backdrop-blur-xl md:hidden">
             <div className="flex flex-col items-center justify-center h-full gap-8 p-8">
               <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full max-w-xs bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                <Button className="w-full max-w-xs bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300">
                   Sign In
                 </Button>
               </Link>
               <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full max-w-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                <Button className="w-full max-w-xs bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300">
                   Get Started
                 </Button>
               </Link>
@@ -800,22 +800,22 @@ export default function PeakPlayLanding() {
                 onClick={() => console.log("Feature Badge Clicked", { feature: feature.text })}
               >
                 <feature.icon className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600 group-hover:text-purple-600 group-hover:scale-110 transition-all duration-300" />
-                <span className="font-medium text-slate-700 group-hover:text-slate-800 transition-colors duration-300">
+                <span className="font-medium text-gray-700 group-hover:text-gray-800 transition-colors duration-300">
                   {feature.text}
                 </span>
               </div>
             ))}
           </div>
 
-          <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 sm:mb-12 leading-tight text-slate-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight text-center">
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 sm:mb-12 leading-tight text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight text-center">
             Unlock Your
             <br />
-            <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 bg-clip-text text-transparent hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 transition-all duration-500">
+            <span className="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent hover:from-indigo-600 hover:to-purple-700 transition-all duration-500">
               Peak Performance.
             </span>
           </h1>
 
-          <p className="text-base sm:text-2xl text-slate-600 mb-8 sm:mb-16 max-w-4xl mx-auto leading-relaxed hover:text-slate-700 transition-colors duration-300 px-4 font-medium">
+          <p className="text-base sm:text-2xl text-gray-600 mb-8 sm:mb-16 max-w-4xl mx-auto leading-relaxed hover:text-gray-700 transition-colors duration-300 px-4 font-medium">
             Redefining youth sports development with a future-forward platform that's purposeful,
             performance-measurable, and makes the journey unforgettable.
           </p>
@@ -835,16 +835,13 @@ export default function PeakPlayLanding() {
 
             <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
               <Link href="/auth/signup" className="flex-1 sm:flex-initial">
-                <Button className="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white hover:from-green-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg group relative overflow-hidden hover:scale-105">
+                <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:from-purple-600 hover:to-pink-700 shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg group relative overflow-hidden hover:scale-105">
                   <span className="relative z-10">Get Started</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Button>
               </Link>
               <Link href="/auth/signin" className="flex-1 sm:flex-initial">
-                <Button
-                  variant="outline"
-                  className="w-full border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 shadow-md hover:shadow-lg transition-all duration-300 px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg hover:scale-105 bg-transparent"
-                >
+                <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300">
                   Sign In
                 </Button>
               </Link>
@@ -855,10 +852,10 @@ export default function PeakPlayLanding() {
         {/* Enhanced Sliding Stack Component */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-8 sm:mb-16">
-            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-slate-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
+            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
               Tailored Solutions for Every Role
             </h2>
-            <p className="text-lg sm:text-2xl text-slate-600 max-w-3xl mx-auto hover:text-slate-700 transition-colors duration-300 px-4 font-medium leading-relaxed">
+            <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto hover:text-gray-700 transition-colors duration-300 px-4 font-medium leading-relaxed">
               Whether you're an athlete, coach, or parent, PeakPlay adapts to your unique needs with personalized
               dashboards and insights.
             </p>
@@ -1012,7 +1009,7 @@ export default function PeakPlayLanding() {
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-slate-50/80 to-white/80 backdrop-blur-sm rounded-xl sm:rounded-3xl p-6 sm:p-16 hover:shadow-lg transition-all duration-500 border border-slate-100/50">
+          <div className="bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-sm rounded-xl sm:rounded-3xl p-6 sm:p-16 hover:shadow-lg transition-all duration-500 border border-gray-100/50">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
               {skillPillars.map((skill, index) => (
                 <div
@@ -1069,10 +1066,10 @@ export default function PeakPlayLanding() {
         {/* Coaching Marketplace */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-8 sm:mb-16">
-            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-slate-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
+            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
               Specialized Coach Marketplace
             </h2>
-            <p className="text-lg sm:text-2xl text-slate-600 max-w-3xl mx-auto hover:text-slate-700 transition-colors duration-300 px-4 font-medium leading-relaxed">
+            <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto hover:text-gray-700 transition-colors duration-300 px-4 font-medium leading-relaxed">
               Connect with expert coaches for personalized guidance
             </p>
           </div>
@@ -1086,8 +1083,8 @@ export default function PeakPlayLanding() {
                 <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${option.color} text-white mb-4`}>
                   <option.icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2 text-gray-900">{option.title}</h3>
-                <p className="text-sm sm:text-base text-gray-800 font-medium">{option.description}</p>
+                <h3 className="text-lg sm:text-xl font-bold mb-2 text-gray-800">{option.title}</h3>
+                <p className="text-sm sm:text-base text-gray-600 font-medium">{option.description}</p>
               </div>
             ))}
           </div>
@@ -1097,10 +1094,10 @@ export default function PeakPlayLanding() {
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-3xl p-6 sm:p-12 border border-white/50 shadow-xl">
             <div className="text-center mb-8 sm:mb-16">
-              <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-slate-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
+              <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
                 Find Your Perfect Venue
               </h2>
-              <p className="text-lg sm:text-2xl text-slate-600 max-w-3xl mx-auto hover:text-slate-700 transition-colors duration-300 px-4 font-medium leading-relaxed">
+              <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto hover:text-gray-700 transition-colors duration-300 px-4 font-medium leading-relaxed">
                 Never hunt for grounds, fields, or nets again—discover, compare and book the perfect venue in seconds.
               </p>
             </div>
@@ -1113,13 +1110,13 @@ export default function PeakPlayLanding() {
                 >
                   <feature.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${feature.color} mb-3 sm:mb-4`} />
                   <h3 className="text-lg sm:text-xl font-bold mb-2 text-gray-900">{feature.title}:</h3>
-                  <p className="text-sm sm:text-base text-gray-800">{feature.description}</p>
+                  <p className="text-sm sm:text-base text-gray-600">{feature.description}</p>
                 </div>
               ))}
             </div>
 
             <div className="text-center">
-              <p className="text-base sm:text-lg font-semibold text-gray-900">
+              <p className="text-base sm:text-lg font-semibold text-gray-800">
                 Ready to play? <span className="font-bold">Search. Book. Dominate.</span>
               </p>
             </div>
@@ -1128,13 +1125,13 @@ export default function PeakPlayLanding() {
 
         {/* Values Section */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
-          <div className="bg-indigo-600 rounded-xl sm:rounded-3xl p-6 sm:p-12 text-white shadow-xl">
-            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 tracking-tight">Our Values</h2>
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl sm:rounded-3xl p-6 sm:p-12 shadow-xl border border-white/50">
+            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 tracking-tight text-gray-800">Our Values</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {values.map((value, index) => (
-                <div key={index} className="mb-4">
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">{value.title}</h3>
-                  <p className="text-sm sm:text-base text-indigo-100">{value.description}</p>
+                <div key={index} className="mb-4 bg-white/80 backdrop-blur-sm rounded-lg p-4 hover:shadow-md transition-all duration-300">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-800">{value.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-600">{value.description}</p>
                 </div>
               ))}
             </div>
@@ -1143,13 +1140,13 @@ export default function PeakPlayLanding() {
 
         {/* Contact Us Section */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
-          <div className="bg-gradient-to-br from-slate-100/80 to-slate-50/80 backdrop-blur-sm rounded-xl sm:rounded-3xl p-4 sm:p-16 hover:shadow-lg transition-all duration-500 border border-slate-200/60">
+          <div className="bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-sm rounded-xl sm:rounded-3xl p-4 sm:p-16 hover:shadow-lg transition-all duration-500 border border-gray-100/50">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-12">
               <div>
-                <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent hover:from-indigo-700 hover:to-purple-700 transition-all duration-500 cursor-default hover:scale-105 tracking-tight">
+                <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent hover:from-indigo-600 hover:to-purple-700 transition-all duration-500 cursor-default hover:scale-105 tracking-tight">
                   Contact Us
                 </h2>
-                <p className="text-lg sm:text-2xl text-slate-700 leading-relaxed hover:text-slate-800 transition-colors duration-300">
+                <p className="text-lg sm:text-2xl text-gray-600 leading-relaxed hover:text-gray-700 transition-colors duration-300">
                   Interested in working together? Fill out some info and we will be in touch shortly. We can't wait to
                   hear from you!
                 </p>
@@ -1159,45 +1156,45 @@ export default function PeakPlayLanding() {
                 <form className="space-y-3 sm:space-y-6" onSubmit={handleContactFormSubmit}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                         First Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         required
-                        className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-white/80 backdrop-blur-sm border border-slate-300/60 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 shadow-sm text-xs sm:text-base"
+                        className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-white backdrop-blur-sm border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 shadow-sm text-xs sm:text-base"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                         Last Name
                       </label>
                       <input
                         type="text"
-                        className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-white/80 backdrop-blur-sm border border-slate-300/60 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 shadow-sm text-xs sm:text-base"
+                        className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-white backdrop-blur-sm border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 shadow-sm text-xs sm:text-base"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                       Email <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
                       required
-                      className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-white/80 backdrop-blur-sm border border-slate-300/60 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 shadow-sm text-xs sm:text-base"
+                      className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-white backdrop-blur-sm border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 shadow-sm text-xs sm:text-base"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                       Message <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       required
                       rows={4}
-                      className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-white/80 backdrop-blur-sm border border-slate-300/60 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 resize-none shadow-sm text-xs sm:text-base"
+                      className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-white backdrop-blur-sm border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 resize-none shadow-sm text-xs sm:text-base"
                     ></textarea>
                   </div>
 
@@ -1215,7 +1212,7 @@ export default function PeakPlayLanding() {
         </div>
 
         {/* Enhanced Footer */}
-        <footer className="bg-white/95 backdrop-blur-sm text-slate-800 relative z-10 hover:bg-white/98 transition-colors duration-500">
+        <footer className="bg-white backdrop-blur-sm text-gray-800 relative z-10 hover:bg-gray-50 transition-colors duration-500 border-t border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="flex items-center gap-2 mb-3 md:mb-0 group cursor-pointer">
@@ -1224,7 +1221,7 @@ export default function PeakPlayLanding() {
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
-                    className="w-3 sm:w-6 h-4 sm:h-7 text-indigo-400 drop-shadow-sm"
+                    className="w-3 sm:w-6 h-4 sm:h-7 text-indigo-600 drop-shadow-sm"
                     style={{
                       filter: "drop-shadow(0 0 4px rgba(99, 102, 241, 0.3))",
                     }}
@@ -1244,17 +1241,14 @@ export default function PeakPlayLanding() {
                     </defs>
                   </svg>
                 </div>
-                <span className="text-sm sm:text-lg font-semibold group-hover:text-indigo-600 transition-colors duration-300">
+                <span className="text-sm sm:text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors duration-300">
                   PeakPlay
                 </span>
               </div>
 
               <div className="text-center md:text-right">
-                <p className="text-slate-600 text-xs sm:text-sm hover:text-slate-700 transition-colors duration-300 mb-1">
-                  © 2025 PeakPlay. All rights reserved.
-                </p>
-                <p className="text-xs text-slate-500 hover:text-slate-600 transition-colors duration-300">
-                  Made with ❤️ for athletes worldwide
+                <p className="text-xs sm:text-sm text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                  © 2024 PeakPlay. All rights reserved.
                 </p>
               </div>
             </div>
