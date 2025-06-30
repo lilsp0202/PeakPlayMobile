@@ -315,11 +315,11 @@ export default function PeakPlayLanding() {
       {/* Mobile Menu Button with hover effect */}
       <motion.button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="fixed top-4 right-4 z-50 md:hidden bg-white/90 backdrop-blur-lg rounded-full p-3 shadow-lg"
+        className="fixed top-4 right-4 z-50 md:hidden bg-gray-800/90 backdrop-blur-lg rounded-full p-3 shadow-lg border border-gray-700"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >
-        {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isMenuOpen ? <X className="w-6 h-6 text-white" /> : <Menu className="w-6 h-6 text-white" />}
       </motion.button>
 
       {/* Mobile Menu with improved animation */}
@@ -391,7 +391,7 @@ export default function PeakPlayLanding() {
                 className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/50"
               >
                 <feature.icon className={`w-4 h-4 ${feature.color}`} />
-                <span className="text-sm font-medium text-gray-700">{feature.text}</span>
+                <span className="text-sm font-semibold text-gray-800">{feature.text}</span>
               </motion.div>
             ))}
           </motion.div>
@@ -474,7 +474,7 @@ export default function PeakPlayLanding() {
             <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
               {role.title} <span>{role.emoji}</span>
             </h3>
-            <p className="text-gray-700">{role.description}</p>
+            <p className="text-gray-800">{role.description}</p>
           </motion.div>
         ))}
       </motion.div>
@@ -497,7 +497,7 @@ export default function PeakPlayLanding() {
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
             The SkillSnap Framework
           </h2>
-          <p className="text-xl text-gray-700 font-medium">
+          <p className="text-xl text-gray-800 font-semibold">
             A holistic approach to cricket excellence
           </p>
         </motion.div>
@@ -532,7 +532,7 @@ export default function PeakPlayLanding() {
                 <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
                   {pillar.title} <span>{pillar.emoji}</span>
                           </h3>
-                <p className={`${pillar.textColor} text-sm`}>{pillar.description}</p>
+                <p className={`${pillar.textColor} text-sm font-medium`}>{pillar.description}</p>
               </motion.div>
               <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </motion.div>
@@ -558,7 +558,7 @@ export default function PeakPlayLanding() {
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
             Specialized Coach Marketplace
           </h2>
-          <p className="text-xl text-gray-700 font-medium">
+          <p className="text-xl text-gray-800 font-semibold">
             Connect with expert coaches for personalized guidance
           </p>
         </motion.div>
@@ -584,8 +584,8 @@ export default function PeakPlayLanding() {
               <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${option.color} text-white mb-4`}>
                 <option.icon className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold mb-2">{option.title}</h3>
-              <p className="text-gray-700">{option.description}</p>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">{option.title}</h3>
+              <p className="text-gray-800 font-medium">{option.description}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -598,7 +598,7 @@ export default function PeakPlayLanding() {
             <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
               Find Your Perfect Venue
             </h2>
-            <p className="text-xl text-gray-700 max-w-3xl mx-auto font-medium">
+            <p className="text-xl text-gray-800 max-w-3xl mx-auto font-semibold">
               Never hunt for grounds, fields, or nets again—discover, compare and book the perfect venue in seconds.
             </p>
           </div>
@@ -611,7 +611,7 @@ export default function PeakPlayLanding() {
               >
                 <feature.icon className={`w-8 h-8 ${feature.color} mb-4`} />
                 <h3 className="text-xl font-bold mb-2 text-gray-900">{feature.title}:</h3>
-                <p className="text-gray-700">{feature.description}</p>
+                <p className="text-gray-800">{feature.description}</p>
                         </div>
             ))}
                     </div>
@@ -647,74 +647,79 @@ export default function PeakPlayLanding() {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
-        className="mt-32 max-w-2xl mx-auto"
+        className="mt-32 px-6 pb-16"
       >
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          whileInView={{ y: 0, opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-4xl font-bold mb-4">Get in Touch</h2>
-          <p className="text-xl text-gray-700 font-medium">
-            Have questions? We'd love to hear from you.
-          </p>
-        </motion.div>
-
-        <motion.form
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          onSubmit={handleContactFormSubmit}
-          className="space-y-6"
-        >
-          <motion.div variants={fadeInUp} className="space-y-2">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Name
-                      </label>
-                      <input
-                        type="text"
-              id="name"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow duration-200"
-                        required
-            />
+        <div className="max-w-2xl mx-auto">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Get in Touch</h2>
+            <p className="text-lg md:text-xl text-gray-800 font-semibold">
+              Have questions? We'd love to hear from you.
+            </p>
           </motion.div>
 
-          <motion.div variants={fadeInUp} className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-                    </label>
-                    <input
-                      type="email"
-              id="email"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow duration-200"
-                      required
-            />
-          </motion.div>
+          <motion.form
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            onSubmit={handleContactFormSubmit}
+            className="space-y-6"
+          >
+            <motion.div variants={fadeInUp} className="space-y-3">
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-800">
+                Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                className="w-full px-4 py-4 rounded-xl border-2 border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-gray-900 font-medium bg-white shadow-sm"
+                placeholder="Enter your full name"
+                required
+              />
+            </motion.div>
 
-          <motion.div variants={fadeInUp} className="space-y-2">
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700">
-              Message
-                    </label>
-                    <textarea
-              id="message"
-              rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow duration-200"
-                      required
-            />
-          </motion.div>
+            <motion.div variants={fadeInUp} className="space-y-3">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-800">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                className="w-full px-4 py-4 rounded-xl border-2 border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-gray-900 font-medium bg-white shadow-sm"
+                placeholder="Enter your email address"
+                required
+              />
+            </motion.div>
 
-          <motion.div variants={fadeInUp}>
-                  <Button
-                    type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl py-4 font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300"
-                  >
-              Send Message
-                  </Button>
-          </motion.div>
-        </motion.form>
+            <motion.div variants={fadeInUp} className="space-y-3">
+              <label htmlFor="message" className="block text-sm font-semibold text-gray-800">
+                Message
+              </label>
+              <textarea
+                id="message"
+                rows={5}
+                className="w-full px-4 py-4 rounded-xl border-2 border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-gray-900 font-medium bg-white shadow-sm resize-none"
+                placeholder="Tell us how we can help you..."
+                required
+              />
+            </motion.div>
+
+            <motion.div variants={fadeInUp} className="pt-4">
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl py-4 px-6 font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                Send Message
+              </Button>
+            </motion.div>
+          </motion.form>
+        </div>
       </motion.div>
 
       {/* Footer */}
