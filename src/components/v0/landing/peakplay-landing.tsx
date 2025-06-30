@@ -1,11 +1,11 @@
 "use client"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import type React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Play, TrendingUp, Users, Target, BarChart3, Video, MapPin, Monitor, ChevronRight, Sparkles, Activity, Brain, Apple, Zap, Menu, X } from "lucide-react"
+import { Play, TrendingUp, Users, Target, BarChart3, Video, MapPin, Monitor, ChevronRight, Sparkles, Activity, Brain, Apple, Zap, Menu, X, Eye } from "lucide-react"
 import { track } from "@vercel/analytics"
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 const roles = [
   {
@@ -52,80 +52,116 @@ const skillPillars = [
     title: "Physical",
     icon: Zap,
     emoji: "⚡",
-    description: "Build strength, speed, and agility",
+    description: "Assess strength, speed, and agility to build a robust foundation and reduce injury risk.",
     color: "from-blue-500 to-indigo-600",
     bgColor: "bg-gradient-to-br from-blue-50 to-indigo-50",
+    textColor: "text-blue-800",
   },
   {
-    title: "Technical",
+    title: "Technique",
     icon: Target,
     emoji: "🎯",
-    description: "Perfect your batting & bowling",
+    description: "Analyze movement patterns to refine skills for better precision and execution.",
     color: "from-purple-500 to-pink-600",
     bgColor: "bg-gradient-to-br from-purple-50 to-pink-50",
+    textColor: "text-purple-800",
   },
   {
     title: "Tactical",
-    icon: Brain,
-    emoji: "🧠",
-    description: "Master game strategy",
+    icon: Eye,
+    emoji: "👁️",
+    description: "Evaluate game awareness and decision-making for strategic advantage.",
     color: "from-amber-500 to-orange-600",
     bgColor: "bg-gradient-to-br from-amber-50 to-orange-50",
+    textColor: "text-amber-800",
   },
   {
     title: "Mental",
-    icon: Activity,
-    emoji: "💪",
-    description: "Build confidence & focus",
+    icon: Brain,
+    emoji: "🧠",
+    description: "Measure focus, resilience, and confidence to excel under pressure.",
     color: "from-green-500 to-teal-600",
     bgColor: "bg-gradient-to-br from-green-50 to-teal-50",
+    textColor: "text-green-800",
   },
   {
     title: "Nutrition",
     icon: Apple,
     emoji: "🍎",
-    description: "Fuel peak performance",
+    description: "Guide healthy eating habits that fuel performance and recovery.",
     color: "from-red-500 to-pink-600",
     bgColor: "bg-gradient-to-br from-red-50 to-pink-50",
+    textColor: "text-red-800",
   },
 ]
 
 const coachingOptions = [
   {
-    title: "Video Sessions",
+    title: "Video Call Sessions",
     icon: Video,
-    description: "Live expert feedback",
+    description: "Get real-time feedback from anywhere.",
     color: "from-blue-500 to-purple-600",
   },
   {
-    title: "In-Person",
+    title: "In-Person Training",
     icon: MapPin,
-    description: "Local certified coaches",
+    description: "Enjoy hands-on guidance tailored to you.",
     color: "from-green-500 to-teal-600",
   },
   {
-    title: "Analysis",
+    title: "Video Analysis",
     icon: Monitor,
-    description: "Performance review",
+    description: "Review and improve your performance effectively.",
     color: "from-orange-500 to-red-600",
   },
 ]
 
-export default function PeakPlayLanding() {
-  const [activeRole, setActiveRole] = useState(0)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const heroRef = useRef<HTMLDivElement>(null)
-  const { scrollY } = useScroll()
-  
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0])
-  const heroScale = useTransform(scrollY, [0, 300], [1, 0.95])
+const venueFeatures = [
+  {
+    title: "Interactive Map",
+    icon: MapPin,
+    description: "Pinpoint turf wickets, floodlit fields or all-weather nets nearby.",
+    color: "text-indigo-600",
+  },
+  {
+    title: "Instant Booking",
+    icon: Monitor,
+    description: "Real-time availability, transparent rates and secure checkout.",
+    color: "text-purple-600",
+  },
+  {
+    title: "Venue Details",
+    icon: Users,
+    description: "High-res photos, pitch specs and peer ratings at a glance.",
+    color: "text-indigo-600",
+  },
+]
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveRole((prev) => (prev + 1) % roles.length)
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [])
+const values = [
+  {
+    title: "Athlete-Centric Growth",
+    description: "We nurture the whole athlete—physical, mental and emotional.",
+  },
+  {
+    title: "Empowered Coaching",
+    description: "Tools and insights that amplify mentorship and trust.",
+  },
+  {
+    title: "Equity in Access",
+    description: "High-quality training for every community.",
+  },
+  {
+    title: "Joy in the Journey",
+    description: "Balance discipline with curiosity and fun.",
+  },
+  {
+    title: "Integrity Through Data",
+    description: "Transparent metrics you can rely on.",
+  },
+]
+
+export default function PeakPlayLanding() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const handleWatchDemo = () => {
     track("Watch Demo Clicked")
@@ -137,48 +173,12 @@ export default function PeakPlayLanding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, 50, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute top-1/2 -right-40 w-96 h-96 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
-          animate={{
-            x: [-50, 50, -50],
-            y: [0, 100, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-40 left-1/3 w-72 h-72 bg-gradient-to-r from-green-400 to-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
-          animate={{
-            x: [0, -50, 0],
-            y: [0, -50, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 relative">
+      {/* Simplified Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-r from-purple-200 to-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30" />
+        <div className="absolute top-1/2 -right-40 w-96 h-96 bg-gradient-to-r from-blue-200 to-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30" />
+        <div className="absolute -bottom-40 left-1/3 w-72 h-72 bg-gradient-to-r from-green-200 to-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30" />
       </div>
 
       {/* Mobile Menu Button */}
@@ -225,55 +225,37 @@ export default function PeakPlayLanding() {
       </AnimatePresence>
 
       {/* Hero Section */}
-      <motion.div
-        ref={heroRef}
-        style={{ opacity: heroOpacity, scale: heroScale }}
-        className="relative px-6 pt-20 pb-16 md:pt-32 md:pb-24"
-      >
+      <div className="relative px-6 pt-20 pb-16 md:pt-32 md:pb-24">
         <div className="max-w-6xl mx-auto">
           {/* Feature Pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-wrap justify-center gap-3 mb-8"
-          >
+          <div className="flex flex-wrap justify-center gap-3 mb-8">
             {features.map((feature, index) => (
-              <motion.div
+              <div
                 key={index}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-                className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/50"
+                className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/50 hover:scale-105 transition-transform duration-200"
               >
                 <feature.icon className={`w-4 h-4 ${feature.color}`} />
                 <span className="text-sm font-medium text-gray-700">{feature.text}</span>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
 
           {/* Main Title */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center"
-          >
+          <div className="text-center">
             <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
               <span className="text-gray-900">Unlock Your</span>
               <br />
               <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Peak Performance
+                Peak Performance.
               </span>
             </h1>
-            
-            <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Transform your cricket journey with AI-powered training, real-time analytics, and expert coaching
+
+            <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Redefining youth sports development with a future-forward platform that's purposeful, performance-measurable, and makes the journey unforgettable.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
               <Link href="/auth/signin" className="w-full sm:w-auto">
                 <Button className="w-full sm:w-auto bg-white text-indigo-600 border-2 border-indigo-200 hover:bg-indigo-50 px-8 py-6 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 font-semibold">
                   Sign In
@@ -287,47 +269,34 @@ export default function PeakPlayLanding() {
               </Link>
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={handleWatchDemo}
-              className="mt-6 text-indigo-600 font-medium hover:text-purple-600 transition-colors inline-flex items-center gap-2"
+              className="text-indigo-600 font-medium hover:text-purple-600 transition-colors inline-flex items-center gap-2"
             >
               <Play className="w-5 h-5" />
               Watch Demo
-            </motion.button>
-          </motion.div>
+            </button>
+          </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Roles Section */}
       <section className="px-6 py-16 md:py-24">
         <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Tailored Solutions
-              </span>
-              <br />
-              <span className="text-gray-900">for Every Role</span>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
+              Tailored Solutions for Every Role
             </h2>
-          </motion.div>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Whether you're an athlete, coach, or parent, PeakPlay adapts to your unique needs with personalized dashboards and insights.
+            </p>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {roles.map((role, index) => (
-              <motion.div
+              <div
                 key={role.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className={`relative bg-gradient-to-br ${role.bgGradient} rounded-3xl p-8 border border-white/50 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden`}
+                className={`relative bg-gradient-to-br ${role.bgGradient} rounded-3xl p-8 border border-white/50 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-1`}
               >
                 <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${role.color} opacity-10 rounded-full blur-3xl`} />
                 <div className="relative z-10">
@@ -337,51 +306,38 @@ export default function PeakPlayLanding() {
                   </h3>
                   <p className="text-gray-700 leading-relaxed">{role.description}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Skills Framework */}
-      <section className="px-6 py-16 md:py-24 bg-white/50 backdrop-blur-sm">
+      <section className="px-6 py-16 md:py-24 bg-white">
         <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
+          <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-2 rounded-full mb-4">
               <Sparkles className="w-4 h-4 text-indigo-600" />
               <span className="text-sm font-semibold text-indigo-600">SkillSnap Framework</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              <span className="text-gray-900">Five Pillars of</span>
-              <br />
-              <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Athletic Excellence
-              </span>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
+              SkillSnap - Our Five-Pillar Skills Framework
             </h2>
-          </motion.div>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              A comprehensive approach to athletic development, with every skill supporting your growth.
+            </p>
+          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {skillPillars.map((pillar, index) => (
-              <motion.div
+              <div
                 key={pillar.title}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-                className={`${pillar.bgColor} rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300`}
+                className={`${pillar.bgColor} rounded-2xl p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
               >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r ${pillar.color} mb-3`}>
-                  <pillar.icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-bold text-gray-800 mb-1">{pillar.title}</h3>
-                <p className="text-xs text-gray-600">{pillar.description}</p>
-              </motion.div>
+                <div className="text-4xl mb-4">{pillar.emoji}</div>
+                <h3 className={`text-xl font-bold mb-2 ${pillar.textColor}`}>{pillar.title}</h3>
+                <p className={`${pillar.textColor} opacity-90 text-sm`}>{pillar.description}</p>
+              </div>
             ))}
           </div>
         </div>
@@ -390,42 +346,83 @@ export default function PeakPlayLanding() {
       {/* Coaching Marketplace */}
       <section className="px-6 py-16 md:py-24">
         <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">
-                Expert Coaching
-              </span>
-              <br />
-              <span className="text-gray-900">Marketplace</span>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
+              Specialized Coach Marketplace
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Connect with certified coaches for batting, bowling, and mental preparation
+            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+              Preparing for specific conditions?
             </p>
-          </motion.div>
+            <p className="text-lg text-gray-600 max-w-4xl mx-auto mb-8">
+              Unlock your cricket potential with certified coaches specializing in batting, bowling, strategy, and mental preparation. Whether you prefer remote sessions, in-person training, or video analysis, our platform connects you with the right expert at a convenient time and budget.
+            </p>
+            
+            <h3 className="text-2xl font-bold text-gray-900 mb-8">Diverse Coaching Options</h3>
+          </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {coachingOptions.map((option, index) => (
-              <motion.div
+              <div
                 key={option.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300"
+                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r ${option.color} mb-4`}>
                   <option.icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-gray-900">{option.title}</h3>
+                <h3 className="text-xl font-bold mb-2 text-gray-900">{option.title}:</h3>
                 <p className="text-gray-600">{option.description}</p>
-              </motion.div>
+              </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Venue Section */}
+      <section className="px-6 py-16 md:py-24 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
+              Find Your Perfect Venue
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Never hunt for grounds, fields, or nets again—discover, compare and book the perfect venue in seconds.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            {venueFeatures.map((feature, index) => (
+              <div
+                key={feature.title}
+                className="bg-indigo-50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300"
+              >
+                <feature.icon className={`w-8 h-8 ${feature.color} mb-4`} />
+                <h3 className="text-xl font-bold mb-2 text-gray-900">{feature.title}:</h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <p className="text-lg font-semibold text-gray-900">
+              Ready to play? <span className="font-bold">Search. Book. Dominate.</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Values Section */}
+      <section className="px-6 py-16 md:py-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-indigo-600 rounded-3xl p-8 md:p-12 text-white">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">Our Values</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {values.map((value, index) => (
+                <div key={index} className="mb-4">
+                  <h3 className="text-xl font-semibold mb-2">{value.title}</h3>
+                  <p className="text-indigo-100">{value.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -433,62 +430,75 @@ export default function PeakPlayLanding() {
       {/* Contact Section */}
       <section className="px-6 py-16 md:py-24 bg-gradient-to-br from-indigo-50 to-purple-50">
         <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              <span className="text-gray-900">Ready to</span>{" "}
-              <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Get Started?
-              </span>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
+              Contact Us
             </h2>
             <p className="text-lg text-gray-600">
-              Join thousands of athletes transforming their game
+              Interested in working together? Fill out some info and we will be in touch shortly. We can't wait to hear from you!
             </p>
-          </motion.div>
+          </div>
 
-          <motion.form
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <form
             onSubmit={handleContactFormSubmit}
             className="bg-white rounded-3xl shadow-2xl p-8 md:p-12"
           >
             <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                <input
+                  type="text"
+                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                />
+              </div>
+            </div>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
               <input
-                type="text"
-                placeholder="First Name"
-                className="px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                className="px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                type="email"
+                required
+                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
               />
             </div>
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all mb-6"
-            />
-            <textarea
-              placeholder="Tell us about your cricket goals..."
-              rows={4}
-              className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all mb-8 resize-none"
-            />
+            <div className="mb-8">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+              <textarea
+                required
+                rows={4}
+                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+              />
+            </div>
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-6 text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 font-semibold"
             >
-              Send Message
-              <ChevronRight className="w-5 h-5 ml-2" />
+              SEND
             </Button>
-          </motion.form>
+          </form>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-8">
+        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="w-6 h-6 text-indigo-400" />
+            <span className="text-xl font-bold">PeakPlay</span>
+          </div>
+          <div className="text-sm text-gray-400">
+            © 2025 PeakPlay. All rights reserved.<br />
+            Made with ❤️ for athletes worldwide
+          </div>
+        </div>
+      </footer>
     </div>
   )
 } 
