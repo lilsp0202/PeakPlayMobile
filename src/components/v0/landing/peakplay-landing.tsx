@@ -5,7 +5,36 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Play, TrendingUp, Users, Target, BarChart3, Video, MapPin, Monitor, ChevronRight, Sparkles, Activity, Brain, Apple, Zap, Menu, X, Eye } from "lucide-react"
 import { track } from "@vercel/analytics"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion"
+
+// Animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+}
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+}
+
+const floatingOrb = {
+  animate: {
+    y: [0, -20, 0],
+    scale: [1, 1.1, 1],
+    transition: {
+      duration: 5,
+      repeat: Infinity,
+      repeatType: "reverse",
+      ease: "easeInOut"
+    }
+  }
+}
 
 const roles = [
   {
@@ -162,6 +191,8 @@ const values = [
 
 export default function PeakPlayLanding() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { scrollY } = useScroll()
+  const y = useTransform(scrollY, [0, 1000], [0, -200])
 
   const handleWatchDemo = () => {
     track("Watch Demo Clicked")
@@ -173,81 +204,137 @@ export default function PeakPlayLanding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 relative">
-      {/* Simplified Background */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 relative overflow-hidden">
+      {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-r from-purple-200 to-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30" />
-        <div className="absolute top-1/2 -right-40 w-96 h-96 bg-gradient-to-r from-blue-200 to-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30" />
-        <div className="absolute -bottom-40 left-1/3 w-72 h-72 bg-gradient-to-r from-green-200 to-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30" />
+        <motion.div
+          variants={floatingOrb}
+          animate="animate"
+          className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-r from-purple-200 to-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+        />
+        <motion.div
+          variants={floatingOrb}
+          animate="animate"
+          custom={1}
+          className="absolute top-1/2 -right-40 w-96 h-96 bg-gradient-to-r from-blue-200 to-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+        />
+        <motion.div
+          variants={floatingOrb}
+          animate="animate"
+          custom={2}
+          className="absolute -bottom-40 left-1/3 w-72 h-72 bg-gradient-to-r from-green-200 to-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+        />
       </div>
 
-      {/* Mobile Menu Button */}
-      <button
+      {/* Mobile Menu Button with hover effect */}
+      <motion.button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
         className="fixed top-4 right-4 z-50 md:hidden bg-white/90 backdrop-blur-lg rounded-full p-3 shadow-lg"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
       >
         {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
+      </motion.button>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu with improved animation */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
             initial={{ opacity: 0, x: "100%" }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl md:hidden"
           >
-            <div className="flex flex-col items-center justify-center h-full gap-8 p-8">
-              <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full max-w-xs bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl">
-                  Sign In
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col items-center justify-center h-full gap-8 p-8"
+            >
+              <motion.div variants={fadeInUp}>
+                <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full max-w-xs bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                    Sign In
+                  </Button>
+                </Link>
+              </motion.div>
+              <motion.div variants={fadeInUp}>
+                <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full max-w-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                    Get Started
+                  </Button>
+                </Link>
+              </motion.div>
+              <motion.div variants={fadeInUp}>
+                <Button
+                  onClick={() => {
+                    handleWatchDemo()
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full max-w-xs bg-white text-gray-800 border-2 border-gray-200 rounded-full py-6 text-lg font-semibold hover:bg-gray-50 transition-colors duration-300"
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Watch Demo
                 </Button>
-              </Link>
-              <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full max-w-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full py-6 text-lg font-semibold shadow-xl">
-                  Get Started
-                </Button>
-              </Link>
-              <Button
-                onClick={() => {
-                  handleWatchDemo()
-                  setIsMenuOpen(false)
-                }}
-                className="w-full max-w-xs bg-white text-gray-800 border-2 border-gray-200 rounded-full py-6 text-lg font-semibold"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                Watch Demo
-              </Button>
-            </div>
+              </motion.div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Hero Section */}
-      <div className="relative px-6 pt-20 pb-16 md:pt-32 md:pb-24">
+      {/* Hero Section with Parallax */}
+      <motion.div
+        style={{ y }}
+        className="relative px-6 pt-20 pb-16 md:pt-32 md:pb-24"
+      >
         <div className="max-w-6xl mx-auto">
-          {/* Feature Pills */}
-          <div className="flex flex-wrap justify-center gap-3 mb-8">
+          {/* Feature Pills with stagger animation */}
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="flex flex-wrap justify-center gap-3 mb-8"
+          >
             {features.map((feature, index) => (
-              <div
+              <motion.div
                 key={index}
-                className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/50 hover:scale-105 transition-transform duration-200"
+                variants={fadeInUp}
+                whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+                className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/50"
               >
                 <feature.icon className={`w-4 h-4 ${feature.color}`} />
                 <span className="text-sm font-medium text-gray-700">{feature.text}</span>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
-          {/* Main Title */}
-          <div className="text-center">
+          {/* Main Title with reveal animation */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-center"
+          >
             <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
-              <span className="text-gray-900">Unlock Your</span>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="text-gray-900"
+              >
+                Unlock Your
+              </motion.span>
               <br />
-              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent"
+              >
                 Peak Performance.
-              </span>
+              </motion.span>
             </h1>
 
             <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
@@ -276,106 +363,147 @@ export default function PeakPlayLanding() {
               <Play className="w-5 h-5" />
               Watch Demo
             </button>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Roles Section */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
-              Tailored Solutions for Every Role
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Whether you're an athlete, coach, or parent, PeakPlay adapts to your unique needs with personalized dashboards and insights.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {roles.map((role, index) => (
-              <div
-                key={role.id}
-                className={`relative bg-gradient-to-br ${role.bgGradient} rounded-3xl p-8 border border-white/50 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-1`}
-              >
-                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${role.color} opacity-10 rounded-full blur-3xl`} />
-                <div className="relative z-10">
-                  <div className="text-4xl mb-4">{role.emoji}</div>
-                  <h3 className={`text-2xl font-bold mb-3 bg-gradient-to-r ${role.color} bg-clip-text text-transparent`}>
-                    {role.title}
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed">{role.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20"
+      >
+        {roles.map((role) => (
+          <motion.div
+            key={role.id}
+            variants={fadeInUp}
+            whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+            className={`relative p-8 rounded-3xl bg-gradient-to-br ${role.bgGradient} border border-white/50 shadow-xl backdrop-blur-sm`}
+          >
+            <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${role.color} text-white mb-4`}>
+              <role.icon className="w-6 h-6" />
+            </div>
+            <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
+              {role.title} <span>{role.emoji}</span>
+            </h3>
+            <p className="text-gray-600">{role.description}</p>
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Skills Framework */}
-      <section className="px-6 py-16 md:py-24 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-2 rounded-full mb-4">
-              <Sparkles className="w-4 h-4 text-indigo-600" />
-              <span className="text-sm font-semibold text-indigo-600">SkillSnap Framework</span>
-            </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
-              SkillSnap - Our Five-Pillar Skills Framework
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              A comprehensive approach to athletic development, with every skill supporting your growth.
-            </p>
-          </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+        className="mt-32"
+      >
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            The SkillSnap Framework
+          </h2>
+          <p className="text-xl text-gray-600">
+            A holistic approach to cricket excellence
+          </p>
+        </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            {skillPillars.map((pillar, index) => (
-              <div
-                key={pillar.title}
-                className={`${pillar.bgColor} rounded-2xl p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6"
+        >
+          {skillPillars.map((pillar, index) => (
+            <motion.div
+              key={pillar.title}
+              variants={fadeInUp}
+              whileHover={{ 
+                scale: 1.03,
+                transition: { duration: 0.2 }
+              }}
+              className={`${pillar.bgColor} rounded-3xl p-6 border border-white/50 backdrop-blur-sm relative overflow-hidden group`}
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="relative z-10"
               >
-                <div className="text-4xl mb-4">{pillar.emoji}</div>
-                <h3 className={`text-xl font-bold mb-2 ${pillar.textColor}`}>{pillar.title}</h3>
-                <p className={`${pillar.textColor} opacity-90 text-sm`}>{pillar.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+                <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${pillar.color} text-white mb-4`}>
+                  <pillar.icon className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+                  {pillar.title} <span>{pillar.emoji}</span>
+                </h3>
+                <p className={`${pillar.textColor} text-sm`}>{pillar.description}</p>
+              </motion.div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
 
       {/* Coaching Marketplace */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
-              Specialized Coach Marketplace
-            </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Preparing for specific conditions?
-            </p>
-            <p className="text-lg text-gray-600 max-w-4xl mx-auto mb-8">
-              Unlock your cricket potential with certified coaches specializing in batting, bowling, strategy, and mental preparation. Whether you prefer remote sessions, in-person training, or video analysis, our platform connects you with the right expert at a convenient time and budget.
-            </p>
-            
-            <h3 className="text-2xl font-bold text-gray-900 mb-8">Diverse Coaching Options</h3>
-          </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+        className="mt-32"
+      >
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            Specialized Coach Marketplace
+          </h2>
+          <p className="text-xl text-gray-600">
+            Connect with expert coaches for personalized guidance
+          </p>
+        </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {coachingOptions.map((option, index) => (
-              <div
-                key={option.title}
-                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r ${option.color} mb-4`}>
-                  <option.icon className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-2 text-gray-900">{option.title}:</h3>
-                <p className="text-gray-600">{option.description}</p>
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8"
+        >
+          {coachingOptions.map((option, index) => (
+            <motion.div
+              key={option.title}
+              variants={fadeInUp}
+              whileHover={{ 
+                scale: 1.03,
+                boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+                transition: { duration: 0.2 }
+              }}
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/50 shadow-xl"
+            >
+              <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${option.color} text-white mb-4`}>
+                <option.icon className="w-6 h-6" />
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+              <h3 className="text-xl font-bold mb-2">{option.title}</h3>
+              <p className="text-gray-600">{option.description}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
 
       {/* Venue Section */}
       <section className="px-6 py-16 md:py-24 bg-white">
@@ -428,63 +556,80 @@ export default function PeakPlayLanding() {
       </section>
 
       {/* Contact Section */}
-      <section className="px-6 py-16 md:py-24 bg-gradient-to-br from-indigo-50 to-purple-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
-              Contact Us
-            </h2>
-            <p className="text-lg text-gray-600">
-              Interested in working together? Fill out some info and we will be in touch shortly. We can't wait to hear from you!
-            </p>
-          </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="mt-32 max-w-2xl mx-auto"
+      >
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-4xl font-bold mb-4">Get in Touch</h2>
+          <p className="text-xl text-gray-600">
+            Have questions? We'd love to hear from you.
+          </p>
+        </motion.div>
 
-          <form
-            onSubmit={handleContactFormSubmit}
-            className="bg-white rounded-3xl shadow-2xl p-8 md:p-12"
-          >
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                <input
-                  type="text"
-                  required
-                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                <input
-                  type="text"
-                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                />
-              </div>
-            </div>
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-              <input
-                type="email"
-                required
-                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-              />
-            </div>
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
-              <textarea
-                required
-                rows={4}
-                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
-              />
-            </div>
+        <motion.form
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          onSubmit={handleContactFormSubmit}
+          className="space-y-6"
+        >
+          <motion.div variants={fadeInUp} className="space-y-2">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow duration-200"
+              required
+            />
+          </motion.div>
+
+          <motion.div variants={fadeInUp} className="space-y-2">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow duration-200"
+              required
+            />
+          </motion.div>
+
+          <motion.div variants={fadeInUp} className="space-y-2">
+            <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+              Message
+            </label>
+            <textarea
+              id="message"
+              rows={4}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow duration-200"
+              required
+            />
+          </motion.div>
+
+          <motion.div variants={fadeInUp}>
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-6 text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 font-semibold"
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl py-4 font-semibold shadow-xl hover:shadow-2xl transition-shadow duration-300"
             >
-              SEND
+              Send Message
             </Button>
-          </form>
-        </div>
-      </section>
+          </motion.div>
+        </motion.form>
+      </motion.div>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-8">
