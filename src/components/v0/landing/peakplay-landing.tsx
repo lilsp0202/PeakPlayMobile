@@ -40,6 +40,40 @@ const floatingAnimation: Variants = {
   }
 }
 
+// Add new background animation variants
+const particleFloat: Variants = {
+  initial: {
+    y: 0,
+    x: 0,
+    rotate: 0
+  },
+  animate: {
+    y: [-30, 30, -30],
+    x: [-20, 20, -20],
+    rotate: [0, 180, 360],
+    transition: {
+      duration: 8,
+      repeat: Infinity,
+      repeatType: "reverse",
+      ease: "easeInOut" as Easing
+    }
+  }
+}
+
+const gradientShift: Variants = {
+  initial: {
+    backgroundPosition: "0% 50%"
+  },
+  animate: {
+    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+    transition: {
+      duration: 10,
+      repeat: Infinity,
+      ease: "linear" as Easing
+    }
+  }
+}
+
 const roles = [
   {
     id: "athlete",
@@ -209,8 +243,9 @@ export default function PeakPlayLanding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 relative overflow-hidden">
-      {/* Animated Background */}
+      {/* Enhanced Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Main floating orbs */}
         <motion.div
           initial="initial"
           animate="animate"
@@ -229,7 +264,53 @@ export default function PeakPlayLanding() {
           variants={floatingAnimation}
           className="absolute -bottom-40 left-1/3 w-72 h-72 bg-gradient-to-r from-green-200 to-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
         />
-        </div>
+        
+        {/* Additional subtle particles */}
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={particleFloat}
+          className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-r from-yellow-200 to-orange-200 rounded-full mix-blend-multiply filter blur-2xl opacity-20"
+        />
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={particleFloat}
+          style={{ animationDelay: "2s" }}
+          className="absolute top-3/4 right-1/4 w-24 h-24 bg-gradient-to-r from-cyan-200 to-blue-200 rounded-full mix-blend-multiply filter blur-2xl opacity-20"
+        />
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={particleFloat}
+          style={{ animationDelay: "4s" }}
+          className="absolute top-1/2 left-3/4 w-40 h-40 bg-gradient-to-r from-rose-200 to-pink-200 rounded-full mix-blend-multiply filter blur-2xl opacity-15"
+        />
+        
+        {/* Animated gradient overlay */}
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={gradientShift}
+          className="absolute inset-0 opacity-5"
+          style={{
+            background: "linear-gradient(45deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)",
+            backgroundSize: "400% 400%"
+          }}
+        />
+        
+        {/* Subtle grid pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: "50px 50px"
+          }}
+        />
+      </div>
 
       {/* Mobile Menu Button with hover effect */}
       <motion.button
@@ -342,7 +423,7 @@ export default function PeakPlayLanding() {
               </motion.span>
           </h1>
 
-            <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-700 mb-10 max-w-3xl mx-auto leading-relaxed font-medium">
               Redefining youth sports development with a future-forward platform that's purposeful, performance-measurable, and makes the journey unforgettable.
             </p>
 
@@ -393,7 +474,7 @@ export default function PeakPlayLanding() {
             <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
               {role.title} <span>{role.emoji}</span>
             </h3>
-            <p className="text-gray-600">{role.description}</p>
+            <p className="text-gray-700">{role.description}</p>
           </motion.div>
         ))}
       </motion.div>
@@ -413,10 +494,10 @@ export default function PeakPlayLanding() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
             The SkillSnap Framework
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-700 font-medium">
             A holistic approach to cricket excellence
           </p>
         </motion.div>
@@ -474,10 +555,10 @@ export default function PeakPlayLanding() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
             Specialized Coach Marketplace
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-700 font-medium">
             Connect with expert coaches for personalized guidance
           </p>
         </motion.div>
@@ -504,7 +585,7 @@ export default function PeakPlayLanding() {
                 <option.icon className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-bold mb-2">{option.title}</h3>
-              <p className="text-gray-600">{option.description}</p>
+              <p className="text-gray-700">{option.description}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -517,7 +598,7 @@ export default function PeakPlayLanding() {
             <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-900">
               Find Your Perfect Venue
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto font-medium">
               Never hunt for grounds, fields, or nets again—discover, compare and book the perfect venue in seconds.
             </p>
           </div>
@@ -530,7 +611,7 @@ export default function PeakPlayLanding() {
               >
                 <feature.icon className={`w-8 h-8 ${feature.color} mb-4`} />
                 <h3 className="text-xl font-bold mb-2 text-gray-900">{feature.title}:</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <p className="text-gray-700">{feature.description}</p>
                         </div>
             ))}
                     </div>
@@ -576,7 +657,7 @@ export default function PeakPlayLanding() {
           className="text-center mb-12"
         >
           <h2 className="text-4xl font-bold mb-4">Get in Touch</h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-700 font-medium">
             Have questions? We'd love to hear from you.
           </p>
         </motion.div>
