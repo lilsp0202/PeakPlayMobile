@@ -1215,7 +1215,7 @@ export default function PeakPlayLanding() {
         </div>
 
         {/* Enhanced Footer */}
-        <footer className="bg-slate-900/95 backdrop-blur-sm text-white relative z-10 hover:bg-slate-800/95 transition-colors duration-500">
+        <footer className="bg-white/95 backdrop-blur-sm text-slate-800 relative z-10 hover:bg-white/98 transition-colors duration-500">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="flex items-center gap-2 mb-3 md:mb-0 group cursor-pointer">
@@ -1244,16 +1244,16 @@ export default function PeakPlayLanding() {
                     </defs>
                   </svg>
                 </div>
-                <span className="text-sm sm:text-lg font-semibold group-hover:text-indigo-300 transition-colors duration-300">
+                <span className="text-sm sm:text-lg font-semibold group-hover:text-indigo-600 transition-colors duration-300">
                   PeakPlay
                 </span>
               </div>
 
               <div className="text-center md:text-right">
-                <p className="text-slate-400 text-xs sm:text-sm hover:text-slate-300 transition-colors duration-300 mb-1">
+                <p className="text-slate-600 text-xs sm:text-sm hover:text-slate-700 transition-colors duration-300 mb-1">
                   © 2025 PeakPlay. All rights reserved.
                 </p>
-                <p className="text-xs text-slate-500 hover:text-slate-400 transition-colors duration-300">
+                <p className="text-xs text-slate-500 hover:text-slate-600 transition-colors duration-300">
                   Made with ❤️ for athletes worldwide
                 </p>
               </div>
