@@ -7,6 +7,10 @@ export const metadata: Metadata = {
     "Unlock your peak performance with PeakPlay's comprehensive sports development platform featuring personalized training, expert coaching, and performance analytics.",
 }
 
-export default function Page() {
-  return <PeakPlayLanding />
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-white text-slate-900">
+      <PeakPlayLanding />
+    </div>
+  )
 } 
