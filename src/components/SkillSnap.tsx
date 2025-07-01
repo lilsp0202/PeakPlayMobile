@@ -772,17 +772,6 @@ const SkillBar: React.FC<{
       const rawPercentage = ((range.max - score) / range.max) * 100;
       const clampedPercentage = Math.max(0, Math.min(100, rawPercentage));
       
-      // Debug logging for 5K run specifically
-      if (skill.id === "run5kTime" && typeof window !== 'undefined' && window.console) {
-        console.log(`🏃 5K Run Debug:`, {
-          score: score,
-          maxRange: range.max,
-          calculation: `((${range.max} - ${score}) / ${range.max}) * 100`,
-          rawPercentage: rawPercentage,
-          finalPercentage: clampedPercentage
-        });
-      }
-      
       return clampedPercentage;
     } else {
       // For other skills (count, score, grams, calories), higher values are better
