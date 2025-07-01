@@ -98,7 +98,16 @@ export default function RootLayout({
         <meta name="msapplication-starturl" content="/" />
         <meta name="theme-color" content="#ffffff" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="color-scheme" content="light" />
+        <meta name="color-scheme" content="light only" />
+        <meta name="supported-color-schemes" content="light" />
+        <style>{`
+          :root {
+            color-scheme: light only !important;
+          }
+          * {
+            color-scheme: light only !important;
+          }
+        `}</style>
         
         {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

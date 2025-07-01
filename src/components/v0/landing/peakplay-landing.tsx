@@ -1113,9 +1113,9 @@ export default function PeakPlayLanding() {
           </div>
         </div>
 
-        {/* Coaching Marketplace - Dark Theme */}
+        {/* Coaching Marketplace */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
-          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl sm:rounded-3xl p-6 sm:p-16 shadow-2xl border border-slate-700/50 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 rounded-xl sm:rounded-3xl p-6 sm:p-16 shadow-2xl border border-indigo-500/30 relative overflow-hidden">
             {/* Enhanced dark background animations */}
             <div className="absolute inset-0 opacity-15">
               <div

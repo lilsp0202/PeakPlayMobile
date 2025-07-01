@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-white text-slate-900" style={{ backgroundColor: '#ffffff', color: '#1e293b' }}>
       <PeakPlayLanding />
     </div>
   )
