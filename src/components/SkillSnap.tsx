@@ -732,21 +732,21 @@ const SkillBar: React.FC<{
         return { min: 0, max: 100, step: 1 };
       case "time":
         if (skill.id === "sprintTime") {
-          return { min: 0, max: 30, step: 0.01 }; // More precise for 100m times
+          return { min: 0, max: 30, step: 0.01 }; // 100m sprint: 0-30 seconds
         } else if (skill.id === "run5kTime") {
-          return { min: 0, max: 40, step: 0.01 }; // More precise for 5K times (in minutes)
+          return { min: 0, max: 40, step: 0.01 }; // 5K run: 0-40 minutes
         } else {
           return { min: 0, max: 60, step: 1 };
         }
       case "score":
-        return { min: 0, max: 10, step: 0.1 }; // Allow decimal scores
+        return { min: 0, max: 10, step: 0.1 }; // Skill scores: 0-10
       case "grams":
         if (skill.id === "protein") {
           return { min: 0, max: 200, step: 1 };
         } else if (skill.id === "carbohydrates") {
           return { min: 0, max: 500, step: 1 };
         } else {
-          return { min: 0, max: 150, step: 1 };
+          return { min: 0, max: 150, step: 1 }; // Default for fats
         }
       case "calories":
         return { min: 0, max: 5000, step: 10 };
@@ -758,27 +758,52 @@ const SkillBar: React.FC<{
   const range = getSkillRange();
   
   const getPercentage = () => {
+    // Handle invalid or zero scores
+    if (!score || score <= 0 || isNaN(score)) return 0;
+    
+    // Ensure we have valid range values
+    if (!range.max || range.max <= 0 || isNaN(range.max)) return 0;
+    
     if (skill.type === "time") {
-      // For time-based skills, invert the percentage (lower is better)
-      if (score === 0) return 0;
-      const percentage = ((range.max - score) / range.max) * 100;
-      return Math.max(0, Math.min(100, percentage));
+      // For time-based skills, lower times are better (invert the percentage)
+      // Formula: ((maxTime - actualTime) / maxTime) * 100
+      // This gives higher percentage for better (lower) times
+      
+      const rawPercentage = ((range.max - score) / range.max) * 100;
+      const clampedPercentage = Math.max(0, Math.min(100, rawPercentage));
+      
+      // Debug logging for 5K run specifically
+      if (skill.id === "run5kTime" && typeof window !== 'undefined' && window.console) {
+        console.log(`🏃 5K Run Debug:`, {
+          score: score,
+          maxRange: range.max,
+          calculation: `((${range.max} - ${score}) / ${range.max}) * 100`,
+          rawPercentage: rawPercentage,
+          finalPercentage: clampedPercentage
+        });
+      }
+      
+      return clampedPercentage;
     } else {
-      // For other skills, higher is better
-      const percentage = (score / range.max) * 100;
-      return Math.max(0, Math.min(100, percentage));
+      // For other skills (count, score, grams, calories), higher values are better
+      // Formula: (actualScore / maxScore) * 100
+      
+      const rawPercentage = (score / range.max) * 100;
+      const clampedPercentage = Math.max(0, Math.min(100, rawPercentage));
+      
+      return clampedPercentage;
     }
   };
 
   const getAveragePercentage = () => {
-    if (!showComparison || !average) return 0;
+    if (!showComparison || !average || average <= 0) return 0;
+    
     if (skill.type === "time") {
-      // For time-based skills, invert the percentage (lower is better)
-      if (average === 0) return 0;
+      // For time-based skills, lower is better (invert the percentage)
       const percentage = ((range.max - average) / range.max) * 100;
       return Math.max(0, Math.min(100, percentage));
     } else {
-    // For other skills, higher is better
+      // For other skills, higher is better
       const percentage = (average / range.max) * 100;
       return Math.max(0, Math.min(100, percentage));
     }
@@ -1759,21 +1784,21 @@ export default function SkillSnap({
         return { min: 0, max: 100, step: 1 };
       case "time":
         if (skill.id === "sprintTime") {
-          return { min: 0, max: 30, step: 0.01 };
+          return { min: 0, max: 30, step: 0.01 }; // 100m sprint: 0-30 seconds
         } else if (skill.id === "run5kTime") {
-          return { min: 0, max: 40, step: 0.01 };
+          return { min: 0, max: 40, step: 0.01 }; // 5K run: 0-40 minutes
         } else {
           return { min: 0, max: 60, step: 1 };
         }
       case "score":
-        return { min: 0, max: 10, step: 0.1 };
+        return { min: 0, max: 10, step: 0.1 }; // Skill scores: 0-10
       case "grams":
         if (skill.id === "protein") {
           return { min: 0, max: 200, step: 1 };
         } else if (skill.id === "carbohydrates") {
           return { min: 0, max: 500, step: 1 };
         } else {
-          return { min: 0, max: 150, step: 1 };
+          return { min: 0, max: 150, step: 1 }; // Default for fats
         }
       case "calories":
         return { min: 0, max: 5000, step: 10 };
