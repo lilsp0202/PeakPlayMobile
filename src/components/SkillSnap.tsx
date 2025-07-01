@@ -2,18 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Edit, Check, X } from "lucide-react";
+import { Edit, Check, X, ChevronDown, ChevronUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { FiActivity, FiSave, FiX, FiEdit } from "react-icons/fi";
 
 // Types for skills and analytics
 interface SkillData {
   id?: string;
-  // Physical Skills
+  // Physical Skills - Strength
   pushupScore?: number;
   pullupScore?: number;
-  sprintTime?: number;
+  verticalJump?: number;
+  gripStrength?: number;
+  // Physical Skills - Speed & Agility  
+  sprint50m?: number;
+  shuttleRun?: number;
+  // Physical Skills - Endurance
   run5kTime?: number;
+  yoyoTest?: number;
+  // Legacy physical skills (for backward compatibility)
+  sprintTime?: number;
   // Mental Skills
   moodScore?: number;
   sleepScore?: number;
@@ -94,6 +102,14 @@ interface SkillCategory {
     background: string;
     gradient: string;
   };
+  subcategories?: SkillSubcategory[];
+}
+
+interface SkillSubcategory {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  skills: SkillItem[];
 }
 
 interface SkillSnapProps {
@@ -119,9 +135,16 @@ const lockBodyScroll = () => {
 };
 
 const unlockBodyScroll = () => {
-  if (typeof document !== 'undefined') {
-    document.body.classList.remove('modal-open');
-  }
+  document.body.style.overflow = "unset";
+  document.body.style.position = "static";
+  document.body.style.width = "auto";
+};
+
+// Utility function to flatten subcategories into a single skills array
+const flattenSkillsFromSubcategories = (subcategories: SkillSubcategory[]): SkillItem[] => {
+  return subcategories.reduce((allSkills: SkillItem[], subcategory) => {
+    return [...allSkills, ...subcategory.skills];
+  }, []);
 };
 
 // Skill definitions for all categories
@@ -141,66 +164,168 @@ const skillCategories: SkillCategory[] = [
       background: "indigo-50",
       gradient: "from-indigo-50 to-blue-50"
     },
-    skills: [
+    subcategories: [
       {
-        id: "pushupScore",
-        name: "Push-ups",
-        unit: "reps",
-        type: "count",
-        description: "Maximum push-ups in 1 minute",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        id: "strength",
+        name: "Strength",
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-            <circle cx="12" cy="8" r="2" strokeWidth="1"/>
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/>
           </svg>
         ),
+        skills: [
+          {
+            id: "pushupScore",
+            name: "Push-ups",
+            unit: "reps",
+            type: "count",
+            description: "Maximum push-ups in 1 minute",
+            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            icon: (
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                <circle cx="12" cy="8" r="2" strokeWidth="1"/>
+              </svg>
+            ),
+          },
+          {
+            id: "pullupScore",
+            name: "Pull-ups",
+            unit: "reps",
+            type: "count",
+            description: "Maximum pull-ups in 1 set",
+            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            icon: (
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                <rect x="6" y="10" width="2" height="8" rx="1"/>
+                <rect x="16" y="6" width="2" height="8" rx="1"/>
+              </svg>
+            ),
+          },
+          {
+            id: "verticalJump",
+            name: "Vertical Jump",
+            unit: "cm",
+            type: "count",
+            description: "Maximum vertical jump height",
+            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            icon: (
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7l4-4m0 0l4 4m-4-4v18"/>
+                <path d="M4 15l4-4 4 4" strokeWidth="1"/>
+              </svg>
+            ),
+          },
+          {
+            id: "gripStrength",
+            name: "Grip Strength",
+            unit: "kg",
+            type: "count",
+            description: "Hand grip strength measurement",
+            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            icon: (
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/>
+              </svg>
+            ),
+          },
+        ]
       },
       {
-        id: "pullupScore",
-        name: "Pull-ups",
-        unit: "reps",
-        type: "count",
-        description: "Maximum pull-ups in 1 set",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        id: "speedAgility",
+        name: "Speed & Agility",
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-            <rect x="6" y="10" width="2" height="8" rx="1"/>
-            <rect x="16" y="6" width="2" height="8" rx="1"/>
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
         ),
+        skills: [
+          {
+            id: "sprint50m",
+            name: "50m Sprint",
+            unit: "seconds",
+            type: "time",
+            description: "50 meter sprint time",
+            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            icon: (
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                <path d="M18 8l-2-2m0 0L14 8m2-2v6" strokeWidth="1"/>
+              </svg>
+            ),
+          },
+          {
+            id: "shuttleRun",
+            name: "Shuttle Run",
+            unit: "seconds",
+            type: "time",
+            description: "20m shuttle run time",
+            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            icon: (
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7l4-4m0 0l4 4m-4-4v18M4 12h16"/>
+                <path d="M7 16l-3-3 3-3M17 8l3 3-3 3" strokeWidth="1"/>
+              </svg>
+            ),
+          },
+        ]
       },
       {
-        id: "sprintTime",
-        name: "100m Sprint",
-        unit: "seconds",
-        type: "time",
-        description: "100 meter sprint time",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        id: "endurance",
+        name: "Endurance",
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-            <path d="M18 8l-2-2m0 0L14 8m2-2v6" strokeWidth="1"/>
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
           </svg>
         ),
+        skills: [
+          {
+            id: "run5kTime",
+            name: "5K Run",
+            unit: "minutes",
+            type: "time",
+            description: "5 kilometer run time",
+            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            icon: (
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                <circle cx="12" cy="12" r="9" strokeWidth="1"/>
+                <path d="M8 12l2-2m6 2l-2-2" strokeWidth="1"/>
+              </svg>
+            ),
+          },
+          {
+            id: "yoyoTest",
+            name: "Yo-Yo Test",
+            unit: "level",
+            type: "count",
+            description: "Yo-Yo intermittent recovery test level",
+            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            icon: (
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                <circle cx="12" cy="12" r="3" strokeWidth="1"/>
+              </svg>
+            ),
+          },
+        ]
       },
       {
-        id: "run5kTime",
-        name: "5K Run",
-        unit: "minutes",
-        type: "time",
-        description: "5 kilometer run time",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        id: "flexibility",
+        name: "Flexibility",
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-            <circle cx="12" cy="12" r="9" strokeWidth="1"/>
-            <path d="M8 12l2-2m6 2l-2-2" strokeWidth="1"/>
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
           </svg>
         ),
-      },
-    ]
+        skills: [
+          // Placeholder for future flexibility tests
+        ]
+      }
+    ],
+    // Populate skills array from subcategories for backward compatibility
+    skills: []
   },
   {
     id: "MENTAL",
@@ -385,6 +510,13 @@ const skillCategories: SkillCategory[] = [
   }
 ];
 
+// Initialize skills arrays from subcategories for backward compatibility
+skillCategories.forEach(category => {
+  if (category.subcategories && category.subcategories.length > 0) {
+    category.skills = flattenSkillsFromSubcategories(category.subcategories);
+  }
+});
+
 // Helper function to calculate aggregate scores for each category
 const calculatePhysicalAggregateScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
@@ -392,6 +524,7 @@ const calculatePhysicalAggregateScore = (skillData: SkillData | null): number =>
   // Normalize raw scores to 0-10 scale based on the new logical ranges
   const normalizedScores = [];
   
+  // Strength Skills
   // Push-ups (0-100 range, normalize to 0-10)
   if (skillData.pushupScore !== undefined && skillData.pushupScore !== null) {
     const pushupNormalized = Math.min(10, Math.max(0, (skillData.pushupScore / 100) * 10));
@@ -404,16 +537,49 @@ const calculatePhysicalAggregateScore = (skillData: SkillData | null): number =>
     normalizedScores.push(pullupNormalized);
   }
   
-  // Sprint time (8-20 seconds, lower is better)
-  if (skillData.sprintTime !== undefined && skillData.sprintTime !== null) {
-    const sprintNormalized = Math.min(10, Math.max(0, 10 - ((skillData.sprintTime - 8) / (20 - 8)) * 10));
-    normalizedScores.push(sprintNormalized);
+  // Vertical Jump (0-80 cm range, normalize to 0-10)
+  if (skillData.verticalJump !== undefined && skillData.verticalJump !== null) {
+    const verticalJumpNormalized = Math.min(10, Math.max(0, (skillData.verticalJump / 80) * 10));
+    normalizedScores.push(verticalJumpNormalized);
   }
   
+  // Grip Strength (0-70 kg range, normalize to 0-10)
+  if (skillData.gripStrength !== undefined && skillData.gripStrength !== null) {
+    const gripStrengthNormalized = Math.min(10, Math.max(0, (skillData.gripStrength / 70) * 10));
+    normalizedScores.push(gripStrengthNormalized);
+  }
+  
+  // Speed & Agility Skills
+  // 50m Sprint time (5-15 seconds, lower is better)
+  if (skillData.sprint50m !== undefined && skillData.sprint50m !== null) {
+    const sprint50mNormalized = Math.min(10, Math.max(0, 10 - ((skillData.sprint50m - 5) / (15 - 5)) * 10));
+    normalizedScores.push(sprint50mNormalized);
+  }
+  
+  // Shuttle Run time (10-20 seconds, lower is better)
+  if (skillData.shuttleRun !== undefined && skillData.shuttleRun !== null) {
+    const shuttleRunNormalized = Math.min(10, Math.max(0, 10 - ((skillData.shuttleRun - 10) / (20 - 10)) * 10));
+    normalizedScores.push(shuttleRunNormalized);
+  }
+  
+  // Endurance Skills
   // 5K time (15-40 minutes, lower is better)
   if (skillData.run5kTime !== undefined && skillData.run5kTime !== null) {
     const run5kNormalized = Math.min(10, Math.max(0, 10 - ((skillData.run5kTime - 15) / (40 - 15)) * 10));
     normalizedScores.push(run5kNormalized);
+  }
+  
+  // Yo-Yo Test (0-21 levels, higher is better)
+  if (skillData.yoyoTest !== undefined && skillData.yoyoTest !== null) {
+    const yoyoTestNormalized = Math.min(10, Math.max(0, (skillData.yoyoTest / 21) * 10));
+    normalizedScores.push(yoyoTestNormalized);
+  }
+  
+  // Legacy Skills (for backward compatibility)
+  // Sprint time (8-20 seconds, lower is better)
+  if (skillData.sprintTime !== undefined && skillData.sprintTime !== null) {
+    const sprintNormalized = Math.min(10, Math.max(0, 10 - ((skillData.sprintTime - 8) / (20 - 8)) * 10));
+    normalizedScores.push(sprintNormalized);
   }
 
   if (normalizedScores.length === 0) return 0;
@@ -729,10 +895,22 @@ const SkillBar: React.FC<{
   const getSkillRange = () => {
     switch (skill.type) {
       case "count":
-        return { min: 0, max: 100, step: 1 };
+        if (skill.id === "verticalJump") {
+          return { min: 0, max: 80, step: 1 }; // Vertical jump: 0-80 cm
+        } else if (skill.id === "gripStrength") {
+          return { min: 0, max: 70, step: 1 }; // Grip strength: 0-70 kg
+        } else if (skill.id === "yoyoTest") {
+          return { min: 0, max: 21, step: 1 }; // Yo-Yo test: 0-21 levels
+        } else {
+          return { min: 0, max: 100, step: 1 }; // Default for push-ups, pull-ups
+        }
       case "time":
         if (skill.id === "sprintTime") {
           return { min: 0, max: 30, step: 0.01 }; // 100m sprint: 0-30 seconds
+        } else if (skill.id === "sprint50m") {
+          return { min: 0, max: 15, step: 0.01 }; // 50m sprint: 0-15 seconds
+        } else if (skill.id === "shuttleRun") {
+          return { min: 0, max: 20, step: 0.01 }; // Shuttle run: 0-20 seconds
         } else if (skill.id === "run5kTime") {
           return { min: 0, max: 40, step: 0.01 }; // 5K run: 0-40 minutes
         } else {
@@ -811,13 +989,25 @@ const SkillBar: React.FC<{
       case "time":
         if (skill.id === "sprintTime") {
           return `${value.toFixed(2)}s`; // Show 2 decimal places for sprint
+        } else if (skill.id === "sprint50m") {
+          return `${value.toFixed(2)}s`; // Show 2 decimal places for 50m sprint
+        } else if (skill.id === "shuttleRun") {
+          return `${value.toFixed(2)}s`; // Show 2 decimal places for shuttle run
         } else if (skill.id === "run5kTime") {
           return `${value.toFixed(2)} min`; // Show 2 decimal places for 5K
         } else {
           return `${value} min`;
         }
       case "count":
-        return `${value} reps`;
+        if (skill.id === "verticalJump") {
+          return `${value} cm`;
+        } else if (skill.id === "gripStrength") {
+          return `${value} kg`;
+        } else if (skill.id === "yoyoTest") {
+          return `Level ${value}`;
+        } else {
+          return `${value} reps`;
+        }
       case "score":
         return `${value.toFixed(1)}/10`; // Show 1 decimal place for scores
       case "grams":
@@ -839,13 +1029,25 @@ const SkillBar: React.FC<{
       case "time":
         if (skill.id === "sprintTime") {
           return "e.g., 12.50";
+        } else if (skill.id === "sprint50m") {
+          return "e.g., 7.50";
+        } else if (skill.id === "shuttleRun") {
+          return "e.g., 15.20";
         } else if (skill.id === "run5kTime") {
           return "e.g., 25.30";
         } else {
           return "0";
         }
       case "count":
-        return "0";
+        if (skill.id === "verticalJump") {
+          return "e.g., 45";
+        } else if (skill.id === "gripStrength") {
+          return "e.g., 35";
+        } else if (skill.id === "yoyoTest") {
+          return "e.g., 15";
+        } else {
+          return "0";
+        }
       case "score":
         return "0.0";
       case "grams":
@@ -1541,6 +1743,7 @@ export default function SkillSnap({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [expandedSubcategories, setExpandedSubcategories] = useState<Record<string, boolean>>({});
 
   // Add effect to manage body scroll when modals are open
   useEffect(() => {
@@ -1846,6 +2049,13 @@ export default function SkillSnap({
     onModalChange?.(false);
   };
 
+  const toggleSubcategory = (subcategoryId: string) => {
+    setExpandedSubcategories(prev => ({
+      ...prev,
+      [subcategoryId]: !prev[subcategoryId]
+    }));
+  };
+
   const renderTechnicalSkills = () => {
     return (
       <TechnicalSkillsComponent
@@ -1867,6 +2077,112 @@ export default function SkillSnap({
       );
     }
 
+    // Check if this category has subcategories (Physical category)
+    if (category.subcategories && category.subcategories.length > 0) {
+      return (
+        <div className="space-y-6 pb-16">
+          {category.subcategories.map((subcategory) => {
+            const isExpanded = expandedSubcategories[subcategory.id] ?? true; // Default expanded
+            const hasSkills = subcategory.skills.length > 0;
+            
+            return (
+              <div key={subcategory.id} className="bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">
+                {/* Subcategory Header */}
+                <div 
+                  className={`flex items-center justify-between p-4 sm:p-6 bg-gradient-to-r ${category.colorScheme.gradient} cursor-pointer hover:bg-opacity-80 transition-all duration-200`}
+                  onClick={() => toggleSubcategory(subcategory.id)}
+                >
+                  <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/80 flex items-center justify-center shadow-md">
+                      {subcategory.icon}
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">{subcategory.name}</h3>
+                      <p className="text-sm text-gray-700">
+                        {hasSkills ? `${subcategory.skills.length} skills` : 'Coming soon'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {hasSkills && (
+                      <span className="hidden sm:inline-block text-sm font-medium text-gray-700 px-3 py-1 bg-white/60 rounded-full">
+                        {isExpanded ? 'Collapse' : 'Expand'}
+                      </span>
+                    )}
+                    {hasSkills ? (
+                      isExpanded ? (
+                        <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                      )
+                    ) : (
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400">
+                        <svg fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Subcategory Skills */}
+                {hasSkills && (
+                  <motion.div
+                    initial={false}
+                    animate={{
+                      height: isExpanded ? "auto" : 0,
+                      opacity: isExpanded ? 1 : 0
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-4 sm:p-6 space-y-4 bg-gray-50/50">
+                      {subcategory.skills.map((skill) => (
+                        <SkillBar
+                          key={skill.id}
+                          skill={skill}
+                          userScore={
+                            isEditing === category.id
+                              ? editedScores[skill.id] 
+                              : skillData?.[skill.id as keyof SkillData] as number
+                          }
+                          averageScore={averages?.averages?.[skill.id] || 0}
+                          isEditing={isEditing === category.id}
+                          onScoreChange={handleScoreChange}
+                          showComparison={category.id !== "MENTAL"}
+                          personalizedTarget={
+                            category.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
+                              ? (() => {
+                                  const nutrition = calculatePersonalizedNutrition(
+                                    skillData.student.weight,
+                                    skillData.student.height,
+                                    skillData.student.age
+                                  );
+                                  const nutritionKey = skill.id as keyof NutritionData;
+                                  return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
+                                })()
+                              : undefined
+                          }
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+                
+                {/* Coming Soon Message for empty subcategories */}
+                {!hasSkills && (
+                  <div className="p-4 sm:p-6 text-center bg-gray-50/50">
+                    <p className="text-gray-500 italic">Skills coming soon...</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // Fallback for categories without subcategories (Mental, Nutrition, etc.)
     return (
       <div className="space-y-4 pb-16">
         {category.skills.map((skill) => (
@@ -1895,7 +2211,6 @@ export default function SkillSnap({
                   })()
                 : undefined
             }
-            // Remove onClick prop - no more individual skill modals
           />
         ))}
       </div>
