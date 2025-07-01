@@ -485,30 +485,42 @@ export default function Dashboard() {
             case 'skillsnap':
               return (
                 <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+                  className="space-y-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
                 >
-            <div className="card-modern glass">
-                  <div className="p-6">
-                    <div className="flex items-center mb-6">
-                      <motion.div 
-                        whileHover={{ rotate: 360 }}
-                        transition={{ duration: 0.6 }}
-                    className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"
+                  <div className="card-modern glass">
+                    <div className="p-6">
+                      <div className="flex items-center mb-6">
+                        <motion.div 
+                          whileHover={{ rotate: 360 }}
+                          transition={{ duration: 0.6 }}
+                          className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"
+                        >
+                          <FiActivity className="w-6 h-6 text-white" />
+                        </motion.div>
+                        <div>
+                          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            SkillSnap
+                          </h2>
+                          <p className="text-sm text-gray-600 mt-1">Track and improve your athletic skills</p>
+                        </div>
+                      </div>
+                      
+                      {/* Open SkillSnap Button */}
+                      <motion.button
+                        onClick={() => setIsSkillSnapModalOpen(true)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300"
                       >
-                        <FiActivity className="w-6 h-6 text-white" />
-                      </motion.div>
-                  <div>
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                      SkillSnap
-                      </h2>
-                    <p className="text-sm text-gray-600 mt-1">Track and improve your athletic skills</p>
+                        <span className="flex items-center justify-center gap-2">
+                          <FiActivity className="w-5 h-5" />
+                          Open SkillSnap
+                        </span>
+                      </motion.button>
                     </div>
-                </div>
-                <SkillSnap onModalChange={setIsSkillSnapModalOpen} />
-              </div>
                   </div>
                 </motion.div>
               );
@@ -1291,6 +1303,35 @@ export default function Dashboard() {
         />
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Athlete SkillSnap Modal */}
+      {session?.user.role === 'ATHLETE' && isSkillSnapModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen">
+            {/* Background overlay */}
+            <div
+              className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"
+              onClick={() => setIsSkillSnapModalOpen(false)}
+            />
+
+            {/* Modal content */}
+            <div className="relative z-10 w-full h-full">
+              <div className="w-full h-full bg-white">
+                {/* Close button */}
+                <button
+                  onClick={() => setIsSkillSnapModalOpen(false)}
+                  className="absolute top-4 right-4 p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors z-20"
+                >
+                  <FiX className="w-6 h-6" />
+                </button>
+
+                {/* SkillSnap Component */}
+                <SkillSnap onModalChange={setIsSkillSnapModalOpen} />
               </div>
             </div>
           </div>
