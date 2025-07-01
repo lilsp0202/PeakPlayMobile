@@ -799,11 +799,11 @@ const SkillBar: React.FC<{
   };
 
   const getProgressColor = () => {
-  const percentage = getPercentage();
-    if (percentage >= 80) return "bg-green-500";
-    if (percentage >= 60) return "bg-yellow-500";
-    if (percentage >= 40) return "bg-orange-500";
-    return "bg-red-500";
+    const percentage = getPercentage();
+    if (percentage >= 80) return "from-green-500 to-green-600";
+    if (percentage >= 60) return "from-yellow-500 to-yellow-600";
+    if (percentage >= 40) return "from-orange-500 to-orange-600";
+    return "from-red-500 to-red-600";
   };
 
   const formatValue = (value: number) => {
@@ -945,8 +945,8 @@ const SkillBar: React.FC<{
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
           <div
-            className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${skill.colorScheme.background}`}
-            style={{ width: `${Math.min(getPercentage(), 100)}%` }}
+            className={`h-2 sm:h-3 rounded-full transition-all duration-300 bg-gradient-to-r ${getProgressColor()} shadow-sm`}
+            style={{ width: `${getPercentage()}%` }}
           />
         </div>
       </div>

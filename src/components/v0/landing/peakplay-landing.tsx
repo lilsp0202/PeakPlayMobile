@@ -262,7 +262,7 @@ export default function PeakPlayLanding() {
         }
 
         @keyframes floatPath2 {
-          0%, 100% {
+          0%, 100% { 
             transform: translateX(0) translateY(0) rotate(0deg);
           }
           33% {
@@ -274,30 +274,30 @@ export default function PeakPlayLanding() {
         }
 
         @keyframes glowPulse {
-          0%, 100% {
+          0%, 100% { 
             filter: blur(40px) brightness(1);
-            transform: scale(1);
+            transform: scale(1); 
           }
-          50% {
+          50% { 
             filter: blur(60px) brightness(1.2);
-            transform: scale(1.1);
+            transform: scale(1.1); 
           }
         }
 
         @keyframes subtleFloat {
-          0%, 100% {
+          0%, 100% { 
             transform: translateY(0px);
           }
-          50% {
+          50% { 
             transform: translateY(-30px);
           }
         }
 
         @keyframes gradientShift {
-          0%, 100% {
+          0%, 100% { 
             background-position: 0% 50%;
           }
-          50% {
+          50% { 
             background-position: 100% 50%;
           }
         }
@@ -363,7 +363,7 @@ export default function PeakPlayLanding() {
           
           {/* Subtle grid pattern */}
           <div className="absolute inset-0 opacity-[0.02]"
-               style={{
+              style={{
                  backgroundImage: `linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
                                   linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px)`,
                  backgroundSize: '60px 60px'
@@ -375,7 +375,7 @@ export default function PeakPlayLanding() {
           {/* Animated diagonal lines for movement */}
           <div className="absolute inset-0 overflow-hidden opacity-[0.03]">
             <div className="absolute inset-0 animate-gradient-shift"
-                 style={{
+              style={{
                    backgroundImage: `linear-gradient(45deg, transparent 48%, rgba(139, 92, 246, 0.1) 50%, transparent 52%)`,
                    backgroundSize: '30px 30px'
                  }} />
@@ -396,25 +396,25 @@ export default function PeakPlayLanding() {
             <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
             <div className="absolute right-0 top-0 h-full w-64 bg-white/95 backdrop-blur-xl shadow-2xl p-8 pt-20">
               <nav className="space-y-6">
-                <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)}>
                   <Button className="w-full bg-white hover:bg-gray-50 text-indigo-600 border-2 border-indigo-100 py-6 text-lg font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>
                   <Button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                    Get Started
-                  </Button>
-                </Link>
+                  Get Started
+                </Button>
+              </Link>
                 <button
-                  onClick={() => {
+                onClick={() => {
                     handleWatchDemo();
                     setIsMenuOpen(false);
-                  }}
+                }}
                   className="w-full flex items-center justify-center gap-2 py-6 text-lg font-semibold text-purple-700 bg-white/90 backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-purple-100"
-                >
+              >
                   <Play className="w-5 h-5" />
-                  Watch Demo
+                Watch Demo
                 </button>
               </nav>
             </div>
@@ -428,7 +428,7 @@ export default function PeakPlayLanding() {
             <div className="relative group-hover:scale-110 transition-transform duration-500">
               {/* Subtle glow effect */}
               <div className="absolute -inset-2 bg-gradient-to-r from-indigo-200/20 to-purple-200/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-lg"></div>
-              
+
               {/* Lightning Bolt SVG */}
               <div className="relative w-8 h-10 sm:w-12 sm:h-14 flex items-center justify-center">
                 <svg
@@ -454,11 +454,11 @@ export default function PeakPlayLanding() {
                 </svg>
               </div>
             </div>
-            
+
             {/* Text Logo */}
             <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:to-purple-700 transition-all duration-300">
-              PeakPlay
-            </span>
+                PeakPlay
+              </span>
           </Link>
         </div>
 
@@ -472,17 +472,17 @@ export default function PeakPlayLanding() {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
                 </span>
                 Trusted by 10,000+ Athletes
-              </span>
-            </div>
-            
+                </span>
+          </div>
+
             <h1 className="text-4xl sm:text-7xl font-black mb-6 sm:mb-8 leading-tight">
               <span className="bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-700 bg-clip-text text-transparent animate-gradient-shift">
                 Transform Your Game
-              </span>
+            </span>
               <br />
               <span className="text-slate-800">With AI-Powered Insights</span>
-            </h1>
-            
+          </h1>
+
             <p className="text-lg sm:text-2xl text-slate-600 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed">
               Join the revolution in sports training. Track progress, connect with elite coaches, and unlock your peak performance.
             </p>
@@ -492,7 +492,7 @@ export default function PeakPlayLanding() {
                 <Button className="group relative px-8 py-6 text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
                   <span className="relative z-10">Start Your Journey</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </Button>
+            </Button>
               </Link>
 
               <Link href="/auth/signin">
@@ -508,11 +508,11 @@ export default function PeakPlayLanding() {
               >
                 <div className="relative">
                   <Play className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                </div>
+            </div>
                 Watch Demo
               </button>
-            </div>
           </div>
+        </div>
 
           {/* Feature badges with subtle animation */}
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-12 sm:mb-20 relative z-10">
@@ -524,15 +524,15 @@ export default function PeakPlayLanding() {
               >
                 <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 group-hover:scale-110 transition-transform" />
                 <span className="text-sm sm:text-base font-medium text-slate-700">{feature.text}</span>
-              </div>
-            ))}
           </div>
+            ))}
+            </div>
 
           {/* Role Cards with subtle effects */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 relative z-10">
             {roles.map((role, index) => (
-              <div
-                key={role.id}
+                  <div
+                    key={role.id}
                 onClick={() => handleRoleCardClick(role.title)}
                 className={`group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-lg hover:shadow-xl transform transition-all duration-500 cursor-pointer overflow-hidden ${
                   activeIndex === index ? "scale-[1.02] shadow-xl" : "hover:scale-[1.01]"
@@ -543,31 +543,31 @@ export default function PeakPlayLanding() {
                 <div className="absolute inset-0 opacity-5">
                   <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent"></div>
                 </div>
-                
-                <div className="relative z-10">
+
+                      <div className="relative z-10">
                   <div className="flex items-center justify-between mb-4">
                     <role.icon className={`w-10 h-10 sm:w-12 sm:h-12 ${role.textColor} group-hover:scale-110 transition-transform`} />
                     <span className={`text-xs sm:text-sm font-bold ${role.textColor} bg-white/50 px-3 py-1 rounded-full`}>
                       {role.stats}
                     </span>
-                  </div>
-                  
+                        </div>
+
                   <h3 className={`text-xl sm:text-2xl font-bold mb-3 ${role.textColor}`}>{role.title}</h3>
                   <p className="text-sm sm:text-base text-slate-700 leading-relaxed">{role.description}</p>
                   
                   <div className={`mt-6 flex items-center gap-2 ${role.textColor} font-semibold group-hover:gap-3 transition-all`}>
                     <span>Learn More</span>
                     <Target className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-                
+                      </div>
+            </div>
+
                 {/* Active indicator - more subtle */}
                 {activeIndex === index && (
                   <div className="absolute inset-0 border-2 border-white/20 rounded-2xl sm:rounded-3xl"></div>
                 )}
               </div>
-            ))}
-          </div>
+                ))}
+              </div>
         </section>
 
         {/* Skill Pillars Section with subtle effects */}
@@ -575,19 +575,19 @@ export default function PeakPlayLanding() {
           {/* Section background - very subtle */}
           <div className="absolute inset-0 -z-10">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-50/10 to-transparent"></div>
-          </div>
-          
+        </div>
+
           <div className="max-w-7xl mx-auto relative z-10">
             <div className="text-center mb-12 sm:mb-16">
               <h2 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6">
                 <span className="bg-gradient-to-r from-purple-700 to-indigo-700 bg-clip-text text-transparent">
                   The 5 Skill Pillars
                 </span>
-              </h2>
+            </h2>
               <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
                 Our comprehensive approach covers every aspect of athletic development
-              </p>
-            </div>
+            </p>
+          </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
               {skillPillars.map((pillar, index) => (
@@ -599,7 +599,7 @@ export default function PeakPlayLanding() {
                   <div className="relative z-10">
                     <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
                       {pillar.icon}
-                    </div>
+                        </div>
                     <h3 className={`text-xl font-bold mb-2 ${pillar.textColor}`}>{pillar.title}</h3>
                     <p className="text-sm text-slate-600 leading-relaxed">{pillar.description}</p>
                   </div>
@@ -617,15 +617,15 @@ export default function PeakPlayLanding() {
                 <span className="bg-gradient-to-r from-purple-700 to-indigo-700 bg-clip-text text-transparent">
                   Elite Coaching Marketplace
                 </span>
-              </h2>
+            </h2>
               <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
                 Connect with professional coaches who understand your goals
-              </p>
-            </div>
+            </p>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-              {coachingOptions.map((option, index) => (
-                <div
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            {coachingOptions.map((option, index) => (
+              <div
                   key={index}
                   className="group relative p-8 rounded-3xl bg-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
                   style={{ animationDelay: `${index * 0.1}s` }}
@@ -636,14 +636,14 @@ export default function PeakPlayLanding() {
                   <div className="relative z-10">
                     <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${option.color} text-white mb-6 group-hover:scale-105 transition-transform duration-300`}>
                       <option.icon className="w-8 h-8" />
-                    </div>
+                </div>
                     <h3 className="text-2xl font-bold mb-3 text-slate-800">{option.title}</h3>
                     <p className="text-slate-600">{option.description}</p>
                   </div>
-                </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+        </div>
         </section>
 
         {/* Venue Section - Light Theme */}
@@ -683,7 +683,7 @@ export default function PeakPlayLanding() {
                 <p className="text-sm sm:text-lg text-slate-700 leading-relaxed">
                   Pinpoint turf wickets, floodlit fields or all-weather nets nearby.
                 </p>
-              </div>
+            </div>
 
               <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 hover:shadow-xl transition-all duration-300 hover:scale-105 group border border-white/50">
                 <div className="inline-flex p-3 sm:p-4 rounded-2xl bg-indigo-500 text-white mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -692,8 +692,8 @@ export default function PeakPlayLanding() {
                 <h3 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4 text-slate-900">Instant Booking:</h3>
                 <p className="text-sm sm:text-lg text-slate-700 leading-relaxed">
                   Real-time availability, transparent rates and secure checkout.
-                </p>
-              </div>
+              </p>
+            </div>
 
               <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 hover:shadow-xl transition-all duration-300 hover:scale-105 group border border-white/50">
                 <div className="inline-flex p-3 sm:p-4 rounded-2xl bg-indigo-500 text-white mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
