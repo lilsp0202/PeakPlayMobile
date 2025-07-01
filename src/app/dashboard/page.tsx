@@ -15,6 +15,7 @@ import RecentMatchScores from "@/components/RecentMatchScores";
 import CoachFeedback from "@/components/CoachFeedback";
 import CreateFeedbackModal from "@/components/CreateFeedbackModal";
 import OverallStats from "@/components/OverallStats";
+import Portal from '../../components/Portal';
 
 interface ProfileData {
   id: string;
@@ -208,6 +209,31 @@ export default function Dashboard() {
       }
     }
   }, [profileData, session?.user.role]);
+
+  // Add body scroll lock when SkillSnap modal is open
+  useEffect(() => {
+    if (isSkillSnapModalOpen) {
+      // Lock body scroll
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+    } else {
+      // Unlock body scroll
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    };
+  }, [isSkillSnapModalOpen]);
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -1311,35 +1337,72 @@ export default function Dashboard() {
 
       {/* Athlete SkillSnap Modal */}
       {session?.user.role === 'ATHLETE' && isSkillSnapModalOpen && (
-        <div className="fixed inset-0 z-[999999] overflow-hidden">
-          {/* Background overlay */}
-          <div
-            className="fixed inset-0 bg-gray-900 bg-opacity-90 transition-opacity z-[999998]"
-            onClick={() => setIsSkillSnapModalOpen(false)}
-          />
+        <Portal>
+          <div 
+            className="fixed inset-0 z-[999999] overflow-hidden"
+            style={{ 
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999999,
+              isolation: 'isolate'
+            }}
+          >
+            {/* Background overlay */}
+            <div
+              className="fixed inset-0 bg-gray-900 bg-opacity-90 transition-opacity"
+              style={{ 
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 999998
+              }}
+              onClick={() => setIsSkillSnapModalOpen(false)}
+            />
 
-          {/* Modal content - absolute full screen positioning */}
-          <div className="absolute inset-0 z-[999999]">
-            <div className="w-full h-full bg-white overflow-hidden">
-              {/* Fixed Close button - positioned absolutely */}
-              <button
-                onClick={() => setIsSkillSnapModalOpen(false)}
-                className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-[1000000] shadow-lg"
-                aria-label="Close SkillSnap"
-                style={{ position: 'fixed' }}
-              >
-                <FiX className="w-6 h-6" />
-              </button>
+            {/* Modal content - absolute full screen positioning */}
+            <div 
+              className="absolute inset-0"
+              style={{ 
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 999999,
+                backgroundColor: 'white'
+              }}
+            >
+              <div className="w-full h-full bg-white overflow-hidden">
+                {/* Fixed Close button - positioned absolutely */}
+                <button
+                  onClick={() => setIsSkillSnapModalOpen(false)}
+                  className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 shadow-lg"
+                  aria-label="Close SkillSnap"
+                  style={{ 
+                    position: 'fixed',
+                    top: '1rem',
+                    right: '1rem',
+                    zIndex: 1000000
+                  }}
+                >
+                  <FiX className="w-6 h-6" />
+                </button>
 
-              {/* SkillSnap Component - full height with overflow */}
-              <div className="w-full h-full overflow-y-auto">
-                <div className="pt-16 pb-6 px-4">
-                  <SkillSnap onModalChange={setIsSkillSnapModalOpen} />
+                {/* SkillSnap Component - full height with overflow */}
+                <div className="w-full h-full overflow-y-auto">
+                  <div className="pt-16 pb-6 px-4">
+                    <SkillSnap onModalChange={setIsSkillSnapModalOpen} />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </Portal>
       )}
     </div>
   );
