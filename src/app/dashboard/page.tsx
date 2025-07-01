@@ -1311,27 +1311,30 @@ export default function Dashboard() {
 
       {/* Athlete SkillSnap Modal */}
       {session?.user.role === 'ATHLETE' && isSkillSnapModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen">
-            {/* Background overlay */}
-            <div
-              className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"
-              onClick={() => setIsSkillSnapModalOpen(false)}
-            />
+        <div className="fixed inset-0 z-[9990] overflow-hidden">
+          {/* Background overlay */}
+          <div
+            className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"
+            onClick={() => setIsSkillSnapModalOpen(false)}
+          />
 
-            {/* Modal content */}
-            <div className="relative z-10 w-full h-full">
-              <div className="w-full h-full bg-white">
-                {/* Close button */}
-                <button
-                  onClick={() => setIsSkillSnapModalOpen(false)}
-                  className="absolute top-4 right-4 p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors z-20"
-                >
-                  <FiX className="w-6 h-6" />
-                </button>
+          {/* Modal content - full screen */}
+          <div className="fixed inset-0 z-[9991]">
+            <div className="w-full h-full bg-white overflow-hidden">
+              {/* Fixed Close button */}
+              <button
+                onClick={() => setIsSkillSnapModalOpen(false)}
+                className="fixed top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-[10000] shadow-lg"
+                aria-label="Close SkillSnap"
+              >
+                <FiX className="w-6 h-6" />
+              </button>
 
-                {/* SkillSnap Component */}
-                <SkillSnap onModalChange={setIsSkillSnapModalOpen} />
+              {/* SkillSnap Component - full height with overflow */}
+              <div className="w-full h-full overflow-y-auto">
+                <div className="pt-16 pb-6">
+                  <SkillSnap onModalChange={setIsSkillSnapModalOpen} />
+                </div>
               </div>
             </div>
           </div>
