@@ -16,6 +16,7 @@ import CoachFeedback from "@/components/CoachFeedback";
 import CreateFeedbackModal from "@/components/CreateFeedbackModal";
 import OverallStats from "@/components/OverallStats";
 import Portal from '../../components/Portal';
+import PeakScore from "@/components/PeakScore";
 
 interface ProfileData {
   id: string;
@@ -548,6 +549,12 @@ export default function Dashboard() {
                       </motion.button>
                     </div>
                   </div>
+
+                  {/* PeakScore Component */}
+                  <PeakScore 
+                    skillData={skillData}
+                    isLoading={loading}
+                  />
                 </motion.div>
               );
 
