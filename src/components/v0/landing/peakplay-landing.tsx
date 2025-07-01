@@ -249,931 +249,383 @@ export default function PeakPlayLanding() {
           100% { transform: rotate(360deg); }
         }
 
-        @keyframes floatingParticle {
-          0% { 
-            transform: translateY(100vh) translateX(0px) scale(0); 
-            opacity: 0; 
+        @keyframes floatPath1 {
+          0%, 100% {
+            transform: translateX(0) translateY(0) rotate(0deg);
           }
-          10% { 
-            opacity: 0.3; 
-            transform: translateY(90vh) translateX(20px) scale(1); 
+          33% {
+            transform: translateX(30px) translateY(-30px) rotate(120deg);
           }
-          50% { 
-            opacity: 0.3; 
-            transform: translateY(50vh) translateX(-30px) scale(1.2); 
-          }
-          90% { 
-            opacity: 0.3; 
-            transform: translateY(10vh) translateX(25px) scale(0.8); 
-          }
-          100% { 
-            transform: translateY(-10vh) translateX(0px) scale(0); 
-            opacity: 0; 
+          66% {
+            transform: translateX(-20px) translateY(20px) rotate(240deg);
           }
         }
 
-        @keyframes gridFlow {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(60px, 60px); }
-        }
-
-        @keyframes diagonalFlow {
-          0%, 100% { 
-            transform: translateX(-100px) translateY(-100px); 
+        @keyframes floatPath2 {
+          0%, 100% {
+            transform: translateX(0) translateY(0) rotate(0deg);
           }
-          50% { 
-            transform: translateX(100px) translateY(100px); 
+          33% {
+            transform: translateX(-40px) translateY(40px) rotate(-120deg);
+          }
+          66% {
+            transform: translateX(50px) translateY(-20px) rotate(-240deg);
           }
         }
 
-        @keyframes ambientPulse {
-          0%, 100% { 
-            opacity: 0.08; 
-            transform: scale(1); 
-          }
-          50% { 
-            opacity: 0.15; 
-            transform: scale(1.1); 
-          }
-        }
-
-        @keyframes wavePattern {
-          0% { transform: translateX(-150px) translateY(-150px); }
-          100% { transform: translateX(150px) translateY(150px); }
-        }
-
-        @keyframes scaleIn {
-          0% { transform: scale(0.95); opacity: 0; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes lightningPulse {
-          0%, 100% { 
-            transform: scale(1) rotate(0deg);
-            filter: drop-shadow(0 0 4px rgba(255,255,255,0.3));
-          }
-          50% { 
-            transform: scale(1.05) rotate(1deg);
-            filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));
-          }
-        }
-
-        @keyframes lightningGlow {
-          0% { 
-            filter: brightness(1) saturate(1);
-          }
-          100% { 
-            filter: brightness(1.2) saturate(1.3);
-          }
-        }
-
-        @keyframes sparkle {
-          0%, 100% { 
-            opacity: 0; 
-            transform: scale(0);
-          }
-          50% { 
-            opacity: 1; 
+        @keyframes glowPulse {
+          0%, 100% {
+            filter: blur(40px) brightness(1);
             transform: scale(1);
           }
-        }
-
-        .animate-sparkle-delay-1 {
-          animation: sparkle 1.2s ease-in-out infinite 0.3s;
-        }
-
-        .animate-sparkle-delay-2 {
-          animation: sparkle 0.8s ease-in-out infinite 0.6s;
-        }
-
-        .animate-sparkle-delay-3 {
-          animation: sparkle 1.4s ease-in-out infinite 0.9s;
-        }
-
-        .animate-professional-gradient {
-          animation: professionalGradientFlow 20s ease infinite;
-        }
-
-        .animate-mesh-shift {
-          animation: meshGradientShift 25s ease-in-out infinite;
-        }
-
-        .animate-floating-orb {
-          animation: floatingOrb 30s ease-in-out infinite;
-        }
-
-        .animate-floating-orb-reverse {
-          animation: floatingOrb 35s ease-in-out infinite reverse;
-        }
-
-        .animate-floating-orb-alt {
-          animation: floatingOrb 28s ease-in-out infinite;
-        }
-
-        .animate-morphing-shape {
-          animation: morphingShape 20s ease-in-out infinite, rotateShape 60s linear infinite;
-        }
-
-        .animate-morphing-shape-reverse {
-          animation: morphingShape 25s ease-in-out infinite reverse, rotateShape 45s linear infinite reverse;
-        }
-
-        .animate-grid-flow {
-          animation: gridFlow 40s linear infinite;
-        }
-
-        .animate-diagonal-flow {
-          animation: diagonalFlow 45s ease-in-out infinite;
-        }
-
-        .animate-ambient-pulse {
-          animation: ambientPulse 18s ease-in-out infinite;
-        }
-
-        .animate-ambient-pulse-reverse {
-          animation: ambientPulse 22s ease-in-out infinite reverse;
-        }
-
-        .animate-wave-pattern {
-          animation: wavePattern 50s linear infinite;
-        }
-
-        @keyframes scaleIn {
-          0% { transform: scale(0.95); opacity: 0; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+          50% {
+            filter: blur(60px) brightness(1.2);
+            transform: scale(1.1);
           }
         }
 
-        @keyframes lightningPulse {
-          0%, 100% { 
-            transform: scale(1) rotate(0deg);
-            filter: drop-shadow(0 0 4px rgba(255,255,255,0.3));
+        @keyframes subtleFloat {
+          0%, 100% {
+            transform: translateY(0px);
           }
-          50% { 
-            transform: scale(1.05) rotate(1deg);
-            filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));
+          50% {
+            transform: translateY(-20px);
           }
         }
 
-        @keyframes lightningGlow {
-          0% { 
-            filter: brightness(1) saturate(1);
+        @keyframes gradientShift {
+          0%, 100% {
+            background-position: 0% 50%;
           }
-          100% { 
-            filter: brightness(1.2) saturate(1.3);
-          }
-        }
-
-        @keyframes sparkle {
-          0%, 100% { 
-            opacity: 0; 
-            transform: scale(0);
-          }
-          50% { 
-            opacity: 1; 
-            transform: scale(1);
+          50% {
+            background-position: 100% 50%;
           }
         }
 
-        .animate-sparkle-delay-1 {
-          animation: sparkle 1.2s ease-in-out infinite 0.3s;
+        .animate-float-path-1 {
+          animation: floatPath1 20s ease-in-out infinite;
         }
 
-        .animate-sparkle-delay-2 {
-          animation: sparkle 0.8s ease-in-out infinite 0.6s;
+        .animate-float-path-2 {
+          animation: floatPath2 25s ease-in-out infinite;
         }
 
-        .animate-sparkle-delay-3 {
-          animation: sparkle 1.4s ease-in-out infinite 0.9s;
+        .animate-glow-pulse {
+          animation: glowPulse 4s ease-in-out infinite;
         }
 
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-          .animate-floating-orb,
-          .animate-floating-orb-reverse,
-          .animate-floating-orb-alt {
-            animation-duration: 20s;
-          }
-          
-          .animate-morphing-shape,
-          .animate-morphing-shape-reverse {
-            animation-duration: 15s;
-          }
+        .animate-subtle-float {
+          animation: subtleFloat 6s ease-in-out infinite;
         }
 
-        /* Reduce motion for accessibility */
-        @media (prefers-reduced-motion: reduce) {
-          .animate-professional-gradient,
-          .animate-mesh-shift,
-          .animate-floating-orb,
-          .animate-floating-orb-reverse,
-          .animate-floating-orb-alt,
-          .animate-morphing-shape,
-          .animate-morphing-shape-reverse,
-          .animate-grid-flow,
-          .animate-diagonal-flow,
-          .animate-ambient-pulse,
-          .animate-ambient-pulse-reverse,
-          .animate-wave-pattern {
-            animation: none;
-          }
+        .animate-gradient-shift {
+          animation: gradientShift 8s ease infinite;
+          background-size: 200% 200%;
         }
 
-        @keyframes modernPulse {
-          0%, 100% { 
-            opacity: 0.1; 
-            transform: scale(1) rotate(0deg); 
-          }
-          50% { 
-            opacity: 0.2; 
-            transform: scale(1.05) rotate(180deg); 
-          }
-        }
-
-        @keyframes modernFloat {
-          0%, 100% { 
-            transform: translateY(0px) translateX(0px) scale(1); 
-          }
-          33% { 
-            transform: translateY(-15px) translateX(8px) scale(1.02); 
-          }
-          66% { 
-            transform: translateY(-8px) translateX(-12px) scale(0.98); 
-          }
-        }
-
-        @keyframes modernGlow {
-          0%, 100% { 
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.1); 
-          }
-          50% { 
-            box-shadow: 0 0 40px rgba(168, 85, 247, 0.2); 
-          }
-        }
-
-        .animate-modern-pulse {
-          animation: modernPulse 20s ease-in-out infinite;
-        }
-
-        .animate-modern-float {
-          animation: modernFloat 25s ease-in-out infinite;
-        }
-
-        .animate-modern-glow {
-          animation: modernGlow 15s ease-in-out infinite;
+        .glass-morphism {
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
       `}</style>
 
-      <div className="min-h-screen relative overflow-hidden">
-        {/* Modern Animated Background System */}
+      <div className="relative min-h-screen text-slate-900 overflow-hidden">
+        {/* Modern Animated Background */}
         <div className="fixed inset-0 -z-10">
-          {/* Base gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30"></div>
-
-          {/* Primary animated gradient overlay */}
-          <div
-            className="absolute inset-0 animate-professional-gradient opacity-80"
-            style={{
-              background: `
-                linear-gradient(135deg, 
-                  rgba(99, 102, 241, 0.08) 0%, 
-                  rgba(168, 85, 247, 0.05) 25%, 
-                  rgba(139, 92, 246, 0.06) 50%, 
-                  rgba(99, 102, 241, 0.05) 75%, 
-                  rgba(168, 85, 247, 0.08) 100%
-                )
-              `,
-              backgroundSize: "400% 400%",
-            }}
-          />
-
-          {/* Enhanced mesh gradient overlay */}
-          <div
-            className="absolute inset-0 opacity-70 animate-mesh-shift"
-            style={{
-              background: `
-                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.10) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 60% 80%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
-                radial-gradient(circle at 90% 60%, rgba(168, 85, 247, 0.10) 0%, transparent 50%)
-              `,
-            }}
-          />
-
-          {/* Animated geometric patterns */}
+          {/* Base gradient layer */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-indigo-50" />
+          
+          {/* Animated gradient mesh */}
+          <div className="absolute inset-0 animate-gradient-shift bg-gradient-to-tr from-purple-100/40 via-transparent to-indigo-100/40" />
+          
+          {/* Floating geometric shapes */}
+          <div className="absolute top-10 left-10 w-64 h-64 animate-float-path-1">
+            <div className="w-full h-full bg-gradient-to-br from-purple-200/50 to-indigo-200/50 rounded-full animate-morphingShape" />
+          </div>
+          
+          <div className="absolute top-1/3 right-10 w-48 h-48 animate-float-path-2">
+            <div className="w-full h-full bg-gradient-to-tr from-indigo-200/40 to-purple-200/40 animate-rotateShape" 
+                 style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
+          </div>
+          
+          <div className="absolute bottom-20 left-1/4 w-56 h-56 animate-subtle-float">
+            <div className="w-full h-full bg-gradient-to-bl from-purple-300/40 to-transparent rounded-full animate-glow-pulse" />
+          </div>
+          
+          <div className="absolute top-1/2 right-1/3 w-40 h-40 animate-float-path-1">
+            <div className="w-full h-full bg-gradient-to-br from-indigo-300/40 to-purple-300/40" 
+                 style={{ clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)' }} />
+          </div>
+          
+          {/* Particle field */}
           <div className="absolute inset-0">
-            {/* Large floating orbs with enhanced visibility */}
-            <div
-              className="absolute w-96 h-96 rounded-full opacity-40 animate-floating-orb"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(99, 102, 241, 0.20) 0%, rgba(99, 102, 241, 0.08) 40%, transparent 70%)",
-                top: "10%",
-                left: "5%",
-              }}
-            />
-            <div
-              className="absolute w-80 h-80 rounded-full opacity-35 animate-floating-orb-reverse"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(168, 85, 247, 0.18) 0%, rgba(168, 85, 247, 0.06) 40%, transparent 70%)",
-                top: "60%",
-                right: "8%",
-              }}
-            />
-            <div
-              className="absolute w-64 h-64 rounded-full opacity-30 animate-floating-orb-alt"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 40%, transparent 70%)",
-                bottom: "20%",
-                left: "20%",
-              }}
-            />
-
-            {/* Enhanced grid pattern */}
-            <div
-              className="absolute inset-0 opacity-15 animate-grid-flow"
-              style={{
-                backgroundImage: `
-                  linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px)
-                `,
-                backgroundSize: "60px 60px",
-              }}
-            />
-
-            {/* Enhanced diagonal light streaks */}
-            <div
-              className="absolute inset-0 opacity-12 animate-diagonal-flow"
-              style={{
-                background: `
-                  linear-gradient(45deg, transparent 48%, rgba(99, 102, 241, 0.10) 50%, transparent 52%),
-                  linear-gradient(-45deg, transparent 48%, rgba(168, 85, 247, 0.08) 50%, transparent 52%)
-                `,
-                backgroundSize: "200px 200px",
-              }}
-            />
-
-            {/* Enhanced morphing shapes */}
-            <div
-              className="absolute w-40 h-40 opacity-20 animate-morphing-shape"
-              style={{
-                background:
-                  "conic-gradient(from 0deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.10), rgba(139, 92, 246, 0.12), rgba(99, 102, 241, 0.15))",
-                top: "30%",
-                right: "30%",
-                borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
-              }}
-            />
-            <div
-              className="absolute w-32 h-32 opacity-18 animate-morphing-shape-reverse"
-              style={{
-                background:
-                  "conic-gradient(from 180deg, rgba(168, 85, 247, 0.12), rgba(139, 92, 246, 0.08), rgba(99, 102, 241, 0.10), rgba(168, 85, 247, 0.12))",
-                bottom: "35%",
-                right: "15%",
-                borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
-              }}
-            />
-
-            {/* Enhanced floating particles */}
-            {[...Array(12)].map((_, i) => (
+            {[...Array(20)].map((_, i) => (
               <div
                 key={i}
-                className="absolute rounded-full opacity-50"
+                className="absolute w-2 h-2 bg-purple-400/50 rounded-full animate-floatingOrb"
                 style={{
-                  width: `${Math.random() * 8 + 4}px`,
-                  height: `${Math.random() * 8 + 4}px`,
-                  background: `rgba(${i % 2 === 0 ? "99, 102, 241" : "168, 85, 247"}, 0.6)`,
-                  top: `${Math.random() * 100}%`,
                   left: `${Math.random() * 100}%`,
-                  animation: `floatingParticle ${15 + Math.random() * 20}s linear infinite`,
-                  animationDelay: `${Math.random() * 15}s`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 10}s`,
+                  animationDuration: `${15 + Math.random() * 10}s`
                 }}
               />
             ))}
-
-            {/* Enhanced ambient light spots */}
-            <div
-              className="absolute w-72 h-72 rounded-full opacity-20 animate-ambient-pulse"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.04) 30%, transparent 60%)",
-                top: "15%",
-                right: "10%",
-              }}
-            />
-            <div
-              className="absolute w-56 h-56 rounded-full opacity-18 animate-ambient-pulse-reverse"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(99, 102, 241, 0.10) 0%, rgba(99, 102, 241, 0.03) 30%, transparent 60%)",
-                bottom: "15%",
-                left: "10%",
-              }}
-            />
-
-            {/* Enhanced wave pattern */}
-            <div
-              className="absolute inset-0 opacity-12 animate-wave-pattern"
-              style={{
-                background: `
-                  repeating-linear-gradient(
-                    45deg,
-                    transparent,
-                    transparent 150px,
-                    rgba(99, 102, 241, 0.06) 150px,
-                    rgba(99, 102, 241, 0.06) 151px
-                  )
-                `,
-              }}
-            />
           </div>
+          
+          {/* Grid pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.02]"
+               style={{
+                 backgroundImage: `linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px),
+                                  linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px)`,
+                 backgroundSize: '50px 50px'
+               }} />
+          
+          {/* Radial gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
         </div>
 
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="fixed top-4 right-4 z-50 md:hidden bg-white backdrop-blur-lg rounded-full p-3 shadow-sm border border-gray-100 hover:scale-110 transition-transform duration-300"
+          className="fixed top-6 right-6 z-50 md:hidden glass-morphism p-3 rounded-xl"
         >
-          {isMenuOpen ? <X className="w-6 h-6 text-gray-800" /> : <Menu className="w-6 h-6 text-gray-800" />}
+          {isMenuOpen ? <X className="w-6 h-6 text-purple-700" /> : <Menu className="w-6 h-6 text-purple-700" />}
         </button>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="fixed inset-0 z-40 bg-white/98 backdrop-blur-xl md:hidden">
-            <div className="flex flex-col items-center justify-center h-full gap-8 p-8">
-              <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full max-w-xs bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div className="fixed inset-0 z-40 md:hidden">
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
+            <div className="absolute right-0 top-0 h-full w-64 bg-white/90 backdrop-blur-xl shadow-2xl p-8 pt-20">
+              <nav className="space-y-6">
+                <Link href="/auth/signin" className="block text-lg font-medium text-slate-700 hover:text-purple-700 transition-colors">
                   Sign In
-                </Button>
-              </Link>
-              <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full max-w-xs bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  Get Started
-                </Button>
-              </Link>
-              <Button
-                onClick={() => {
-                  handleWatchDemo()
-                  setIsMenuOpen(false)
-                }}
-                className="w-full max-w-xs bg-white text-gray-800 border-2 border-gray-200 rounded-full py-6 text-lg font-semibold hover:bg-gray-50 transition-colors duration-300"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                Watch Demo
-              </Button>
+                </Link>
+                <Link href="/auth/signup" className="block">
+                  <Button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
+                    Get Started
+                  </Button>
+                </Link>
+              </nav>
             </div>
           </div>
         )}
 
-        {/* Navigation with enhanced styling */}
+        {/* Navigation with glass morphism effect */}
         <div className="flex items-center justify-center px-4 sm:px-8 py-6 sm:py-12 max-w-7xl mx-auto relative z-10">
           {/* Logo positioned directly on page background */}
-          <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer relative z-20">
-            {/* Standalone Lightning Bolt - no container box */}
-            <div className="relative group-hover:scale-110 transition-transform duration-500">
-              {/* Outer glow ring */}
-              <div className="absolute -inset-3 bg-gradient-to-r from-indigo-400/10 via-purple-400/10 to-indigo-400/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse blur-lg"></div>
-
-              {/* Lightning Bolt SVG - standalone */}
-              <div className="relative w-8 h-10 sm:w-14 sm:h-16 flex items-center justify-center group-hover:scale-105 transition-all duration-500">
-                {/* Animated Lightning Bolt SVG */}
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="w-6 h-8 sm:w-12 sm:h-14 text-indigo-600 drop-shadow-sm animate-lightning-pulse"
-                  style={{
-                    filter: "drop-shadow(0 0 8px rgba(99, 102, 241, 0.2))",
-                  }}
-                >
-                  <path
-                    d="M13 1L2 15h7l-2 9 11-13h-7l2-9z"
-                    fill="url(#lightningGradient)"
-                    className="group-hover:animate-lightning-glow"
-                  />
-                  {/* Inner lightning highlight */}
-                  <path
-                    d="M13 1L2 15h7l-2 9 11-13h-7l2-9z"
-                    fill="none"
-                    stroke="rgba(255,255,255,0.8)"
-                    strokeWidth="0.5"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  />
-                  {/* Gradient definition */}
-                  <defs>
-                    <linearGradient id="lightningGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#6366f1" />
-                      <stop offset="50%" stopColor="#a855f7" />
-                      <stop offset="100%" stopColor="#6366f1" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-
-                {/* Lightning spark effects */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  <div className="absolute -top-1 left-1/2 w-1.5 h-1.5 bg-yellow-300/50 rounded-full -translate-x-1/2 -translate-y-1 animate-sparkle"></div>
-                  <div className="absolute -bottom-1 -right-1 w-1 h-1 bg-blue-300/50 rounded-full animate-sparkle-delay-1"></div>
-                  <div className="absolute top-1/2 -left-2 w-1 h-1 bg-purple-300/50 rounded-full -translate-y-1/2 animate-sparkle-delay-2"></div>
-                  <div className="absolute top-1/4 right-0 w-0.5 h-0.5 bg-indigo-300/50 rounded-full animate-sparkle-delay-3"></div>
-                </div>
-
-                {/* Enhanced rotating glow effect */}
-                <div
-                  className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-60 transition-opacity duration-500 blur-xl animate-spin"
-                  style={{ animationDuration: "8s" }}
-                ></div>
+          <Link href="/" className="flex items-center space-x-2 group">
+            <div className="relative w-10 h-10 sm:w-14 sm:h-14 group-hover:scale-110 transition-transform duration-300">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 rounded-xl rotate-45 group-hover:rotate-90 transition-transform duration-500 shadow-lg"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-white font-black text-xl sm:text-3xl transform -rotate-12 group-hover:rotate-0 transition-transform duration-500">
+                  P
+                </span>
               </div>
+              {/* Glow effect on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-indigo-400 rounded-xl rotate-45 opacity-0 group-hover:opacity-50 blur-xl transition-all duration-500"></div>
             </div>
-
-            {/* Enhanced text logo */}
-            <div className="flex flex-col items-center relative">
-              {/* Main text with enhanced gradient */}
-              <span className="text-xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:via-purple-700 group-hover:to-indigo-800 transition-all duration-500 relative">
-                PeakPlay
-                {/* Subtle text shadow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-indigo-700/10 blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              </span>
-
-              {/* Animated underline with gradient */}
-              <div className="h-0.5 sm:h-1 w-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 group-hover:w-full transition-all duration-700 rounded-full relative overflow-hidden">
-                {/* Shimmer effect on underline */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-              </div>
-
-              {/* Subtle tagline that appears on hover - hidden on mobile */}
-              <div className="hidden sm:block text-xs text-gray-500 opacity-0 group-hover:opacity-70 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0 font-medium tracking-wide">
-                Peak Performance Platform
-              </div>
-            </div>
-          </div>
+            <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-700 to-indigo-700 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:to-indigo-600 transition-all duration-300">
+              PeakPlay
+            </span>
+          </Link>
         </div>
 
         {/* Hero Section with enhanced animations */}
-        <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
-          {/* Feature badges */}
-          <div className="flex justify-center gap-2 sm:gap-6 mb-6 sm:mb-8 flex-wrap">
+        <section className="relative px-4 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto">
+          <div className="text-center mb-12 sm:mb-20 relative z-10">
+            <div className="inline-block animate-fade-in">
+              <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 mb-6 shadow-sm">
+                <span className="relative flex h-2 w-2 mr-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+                </span>
+                Trusted by 10,000+ Athletes
+              </span>
+            </div>
+            
+            <h1 className="text-4xl sm:text-7xl font-black mb-6 sm:mb-8 leading-tight">
+              <span className="bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-700 bg-clip-text text-transparent animate-gradient-shift">
+                Transform Your Game
+              </span>
+              <br />
+              <span className="text-slate-800">With AI-Powered Insights</span>
+            </h1>
+            
+            <p className="text-lg sm:text-2xl text-slate-600 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed">
+              Join the revolution in sports training. Track progress, connect with elite coaches, and unlock your peak performance.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
+              <Link href="/auth/signup">
+                <Button className="group relative px-8 py-6 text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                  <span className="relative z-10">Start Your Journey</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </Button>
+              </Link>
+              
+              <button
+                onClick={handleWatchDemo}
+                className="group flex items-center gap-3 px-8 py-6 text-lg font-semibold text-purple-700 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 border border-purple-200"
+              >
+                <div className="relative">
+                  <Play className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                  <div className="absolute inset-0 bg-purple-400 blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
+                </div>
+                Watch Demo
+              </button>
+            </div>
+          </div>
+
+          {/* Feature badges with floating animation */}
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-12 sm:mb-20 relative z-10">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="flex items-center gap-1 sm:gap-2 bg-white/90 backdrop-blur-md px-2 sm:px-4 py-1 sm:py-2 rounded-full border border-gray-100 shadow-sm hover:shadow-md hover:bg-white hover:scale-105 transition-all duration-300 cursor-pointer group text-xs sm:text-sm"
-                style={{
-                  animation: `scaleIn 0.6s ease-out forwards`,
-                  animationDelay: `${0.2 + index * 0.1}s`,
-                  opacity: 0,
-                }}
-                onClick={() => console.log("Feature Badge Clicked", { feature: feature.text })}
+                className="group flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-white/80 backdrop-blur-sm rounded-full shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 animate-subtle-float"
+                style={{ animationDelay: `${index * 0.2}s` }}
               >
-                <feature.icon className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600 group-hover:text-purple-600 group-hover:scale-110 transition-all duration-300" />
-                <span className="font-medium text-gray-700 group-hover:text-gray-800 transition-colors duration-300">
-                  {feature.text}
-                </span>
+                <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 group-hover:scale-110 transition-transform" />
+                <span className="text-sm sm:text-base font-medium text-slate-700">{feature.text}</span>
               </div>
             ))}
           </div>
 
-          <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 sm:mb-12 leading-tight text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight text-center">
-            Unlock Your
-            <br />
-            <span className="bg-gradient-to-r from-indigo-600 to-purple-700 bg-clip-text text-transparent">
-              Peak Performance.
-            </span>
-          </h1>
-
-          <p className="text-base sm:text-2xl text-gray-600 mb-8 sm:mb-16 max-w-4xl mx-auto leading-relaxed hover:text-gray-700 transition-colors duration-300 px-4 font-medium">
-            Redefining youth sports development with a future-forward platform that's purposeful,
-            performance-measurable, and makes the journey unforgettable.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4">
-            <Button
-              className="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg group relative overflow-hidden hover:scale-105"
-              onClick={handleWatchDemo}
-            >
-              <span className="relative z-10 flex items-center justify-center">
-                <Play className="w-3 h-3 sm:w-5 sm:h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
-                Watch Demo
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Button>
-
-            <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
-              <Link href="/auth/signup" className="flex-1 sm:flex-initial">
-                <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all duration-300 px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg group relative overflow-hidden hover:scale-105">
-                  <span className="relative z-10">Get Started</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </Button>
-              </Link>
-              <Link href="/auth/signin" className="flex-1 sm:flex-initial">
-                <Button
-                  variant="outline"
-                  className="w-full border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 shadow-md hover:shadow-lg transition-all duration-300 px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg hover:scale-105 bg-white/80 backdrop-blur-sm"
-                >
-                  Sign In
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Roles Section */}
-        <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-8 sm:mb-16">
-            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
-              Tailored Solutions for Every Role
-            </h2>
-            <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto hover:text-gray-700 transition-colors duration-300 px-4 font-medium leading-relaxed">
-              Whether you're an athlete, coach, or parent, PeakPlay adapts to your unique needs with personalized
-              dashboards and insights.
-            </p>
-          </div>
-
-          <div className="relative flex justify-center items-center min-h-[400px] sm:min-h-[650px] overflow-hidden">
-            {/* Enhanced Background Effects */}
-            <div className="absolute inset-0 flex justify-center items-center">
-              <div className="absolute w-48 sm:w-96 h-48 sm:h-96 bg-gradient-to-r from-indigo-50/60 via-purple-50/60 to-indigo-50/60 rounded-full blur-3xl animate-pulse"></div>
-              <div className="absolute w-32 sm:w-80 h-32 sm:h-80 bg-gradient-to-r from-purple-50/50 via-indigo-50/50 to-purple-50/50 rounded-full blur-2xl animate-pulse delay-1000"></div>
-            </div>
-
-            {/* Cards Container */}
-            <div className="relative w-full h-[350px] sm:h-[500px] flex justify-center items-center">
-              {roles.map((role, index) => {
-                const isActive = index === activeIndex
-                const isPrev = index === (activeIndex - 1 + roles.length) % roles.length
-                const isNext = index === (activeIndex + 1) % roles.length
-
-                let transform = ""
-                let zIndex = 10
-                let opacity = 0.4
-                let scale = 0.8
-
-                if (isActive) {
-                  transform = "translateX(0px) translateY(0px)"
-                  zIndex = 30
-                  opacity = 1
-                  scale = 1
-                } else if (isPrev) {
-                  transform = "translateX(-120px) translateY(20px)"
-                  zIndex = 20
-                  opacity = 0.7
-                  scale = 0.85
-                } else if (isNext) {
-                  transform = "translateX(120px) translateY(20px)"
-                  zIndex = 20
-                  opacity = 0.7
-                  scale = 0.85
-                } else {
-                  transform = "translateX(0px) translateY(40px)"
-                  zIndex = 10
-                  opacity = 0.3
-                  scale = 0.75
-                }
-
-                const IconComponent = role.icon
-
-                return (
-                  <div
-                    key={role.id}
-                    className={`absolute w-[260px] sm:w-[600px] h-48 sm:h-80 ${role.color} rounded-xl sm:rounded-3xl shadow-lg transition-all duration-700 ease-out cursor-pointer hover:shadow-xl border ${role.borderColor} backdrop-blur-sm group`}
-                    style={{
-                      transform: `${transform} scale(${scale})`,
-                      zIndex,
-                      opacity,
-                      willChange: "transform, opacity",
-                    }}
-                    onClick={() => {
-                      setActiveIndex(index)
-                      handleRoleCardClick(role.title)
-                    }}
-                  >
-                    <div className="p-4 sm:p-10 h-full flex flex-col justify-between relative overflow-hidden">
-                      {/* Enhanced background overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-white/20 rounded-xl sm:rounded-3xl group-hover:from-white/70 transition-all duration-300"></div>
-                      <div className="absolute top-0 right-0 w-16 sm:w-32 h-16 sm:h-32 bg-white/30 rounded-full -translate-y-8 sm:-translate-y-16 translate-x-8 sm:translate-x-16"></div>
-
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-2 sm:gap-4 mb-3 sm:mb-6">
-                          <div className="p-1.5 sm:p-3 bg-white/70 rounded-lg sm:rounded-2xl backdrop-blur-sm border border-white/60 group-hover:scale-105 transition-transform duration-300 shadow-sm">
-                            <IconComponent className={`w-4 h-4 sm:w-7 sm:h-7 ${role.textColor}`} />
-                          </div>
-                          <h3
-                            className={`text-lg sm:text-3xl font-bold ${role.textColor} transition-all duration-500 ${
-                              isActive ? "translate-y-0 opacity-100" : "translate-y-2 opacity-80"
-                            }`}
-                          >
-                            {role.title}
-                          </h3>
-                        </div>
-
-                        <p
-                          className={`leading-relaxed font-medium text-xs sm:text-xl ${role.textColor} mb-2 sm:mb-4 transition-all duration-600 ${
-                            isActive ? "translate-y-0 opacity-95" : "translate-y-4 opacity-0"
-                          }`}
-                        >
-                          {role.description}
-                        </p>
-                      </div>
-                    </div>
+          {/* Role Cards with enhanced 3D effects */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 relative z-10">
+            {roles.map((role, index) => (
+              <div
+                key={role.id}
+                onClick={() => handleRoleCardClick(role.title)}
+                className={`group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl hover:shadow-2xl transform transition-all duration-500 cursor-pointer overflow-hidden ${
+                  activeIndex === index ? "scale-105 -translate-y-2" : "hover:scale-102 hover:-translate-y-1"
+                } ${role.color} ${role.borderColor} border-2`}
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                {/* Animated background pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent animate-gradient-shift"></div>
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <role.icon className={`w-10 h-10 sm:w-12 sm:h-12 ${role.textColor} group-hover:scale-110 transition-transform`} />
+                    <span className={`text-xs sm:text-sm font-bold ${role.textColor} bg-white/50 px-3 py-1 rounded-full`}>
+                      {role.stats}
+                    </span>
                   </div>
-                )
-              })}
-            </div>
-
-            {/* Enhanced Navigation */}
-            <div className="absolute bottom-[-60px] sm:bottom-[-100px] flex flex-col items-center gap-2 sm:gap-4 z-40">
-              <div className="flex gap-2 sm:gap-4">
-                {roles.map((role, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setActiveIndex(index)
-                      console.log("Role Navigation Clicked", { role: role.title })
-                    }}
-                    className={`relative transition-all duration-500 hover:scale-125 group ${
-                      index === activeIndex ? "w-6 sm:w-12 h-2 sm:h-4" : "w-2 sm:w-4 h-2 sm:h-4"
-                    }`}
-                  >
-                    <div
-                      className={`w-full h-full rounded-full transition-all duration-500 ${
-                        index === activeIndex
-                          ? "bg-gradient-to-r from-indigo-500 to-purple-600"
-                          : "bg-slate-300 group-hover:bg-indigo-200"
-                      }`}
-                    />
-                    {index === activeIndex && (
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 animate-ping opacity-30" />
-                    )}
-                    {/* Professional hover glow */}
-                    <div className="absolute inset-0 rounded-full bg-indigo-400 opacity-0 group-hover:opacity-30 group-hover:animate-pulse transition-opacity duration-300"></div>
-                  </button>
-                ))}
+                  
+                  <h3 className={`text-xl sm:text-2xl font-bold mb-3 ${role.textColor}`}>{role.title}</h3>
+                  <p className="text-sm sm:text-base text-slate-700 leading-relaxed">{role.description}</p>
+                  
+                  <div className={`mt-6 flex items-center gap-2 ${role.textColor} font-semibold group-hover:gap-3 transition-all`}>
+                    <span>Learn More</span>
+                    <Target className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+                
+                {/* Active indicator with glow */}
+                {activeIndex === index && (
+                  <div className="absolute inset-0 border-4 border-white/30 rounded-2xl sm:rounded-3xl animate-pulse"></div>
+                )}
               </div>
+            ))}
+          </div>
+        </section>
 
-              {/* Enhanced Progress Bar */}
-              <div className="w-24 sm:w-48 h-1 sm:h-2 bg-slate-200 rounded-full overflow-hidden hover:h-1.5 sm:hover:h-3 transition-all duration-300 cursor-pointer group">
-                <div
-                  className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 rounded-full transition-all duration-1200 ease-out group-hover:animate-pulse"
-                  style={{
-                    width: `${((activeIndex + 1) / roles.length) * 100}%`,
-                  }}
-                />
-              </div>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium hover:text-slate-700 transition-colors duration-300">
-                {activeIndex + 1} of {roles.length} • Auto-advancing
+        {/* Skill Pillars Section with particle effects */}
+        <section className="px-4 sm:px-8 py-16 sm:py-24 relative overflow-hidden">
+          {/* Section background with animated mesh */}
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute inset-0 bg-gradient-to-b from-purple-50/50 via-white to-indigo-50/50"></div>
+            <div className="absolute inset-0 animate-gradient-shift bg-gradient-to-tr from-purple-100/10 via-transparent to-indigo-100/10"></div>
+          </div>
+          
+          <div className="max-w-7xl mx-auto relative z-10">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6">
+                <span className="bg-gradient-to-r from-purple-700 to-indigo-700 bg-clip-text text-transparent">
+                  The 5 Skill Pillars
+                </span>
+              </h2>
+              <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
+                Our comprehensive approach covers every aspect of athletic development
               </p>
             </div>
-          </div>
-        </div>
 
-        {/* Skills Section */}
-        <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-8 sm:mb-16">
-            <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-gray-800 hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
-              SkillSnap - Our Five-Pillar Skills Framework
-            </h2>
-            <p className="text-lg sm:text-2xl text-gray-600 max-w-3xl mx-auto hover:text-gray-700 transition-colors duration-300 px-4 font-medium leading-relaxed">
-              A comprehensive approach to athletic development, with every skill supporting your growth.
-            </p>
-          </div>
-
-          <div className="bg-gradient-to-br from-white/98 to-indigo-50/95 backdrop-blur-sm rounded-xl sm:rounded-3xl p-6 sm:p-16 hover:shadow-xl transition-all duration-500 border border-indigo-100/60 shadow-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
-              {skillPillars.map((skill, index) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+              {skillPillars.map((pillar, index) => (
                 <div
-                  key={skill.title}
-                  className="group bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-3 cursor-pointer relative overflow-hidden border border-slate-100/60 w-full max-w-xs mx-auto"
-                  style={{
-                    animation: "fadeInUp 0.6s ease-out forwards",
-                    animationDelay: `${0.1 + index * 0.1}s`,
-                    opacity: 0,
-                    transform: "translateY(30px)",
-                  }}
-                  onClick={() => console.log("Skill Pillar Clicked", { skill: skill.title })}
+                  key={index}
+                  className={`group relative p-6 rounded-2xl ${pillar.bgColor} backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300 overflow-hidden animate-fade-in`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  {/* Enhanced background gradient */}
-                  <div
-                    className={`absolute inset-0 ${skill.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg sm:rounded-2xl`}
-                  ></div>
-
-                  {/* Subtle floating particles effect */}
-                  <div
-                    className={`absolute top-2 right-2 sm:top-4 sm:right-4 w-1.5 h-1.5 sm:w-2 sm:h-2 ${skill.particleColor} rounded-full opacity-0 group-hover:opacity-60 transition-all duration-700 group-hover:animate-bounce`}
-                    style={{ animationDelay: `${0.2 + index * 0.1}s` }}
-                  ></div>
-
-                  <div className="relative z-10">
-                    <div className="mb-4 sm:mb-8 flex justify-center">
+                  {/* Floating particles */}
+                  <div className="absolute inset-0">
+                    {[...Array(3)].map((_, i) => (
                       <div
-                        className={`p-3 sm:p-5 ${skill.bgColor} backdrop-blur-sm rounded-xl sm:rounded-2xl hover:scale-110 hover:rotate-3 transition-all duration-300 shadow-sm`}
-                      >
-                        <div
-                          className={`text-2xl sm:text-5xl ${skill.textColor} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}
-                        >
-                          {skill.icon}
-                        </div>
-                      </div>
+                        key={i}
+                        className={`absolute w-2 h-2 ${pillar.particleColor} rounded-full animate-floatingOrb opacity-30`}
+                        style={{
+                          left: `${20 + i * 30}%`,
+                          animationDelay: `${i * 0.5}s`,
+                          animationDuration: `${3 + i}s`
+                        }}
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="relative z-10">
+                    <div className="text-4xl mb-4 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                      {pillar.icon}
                     </div>
-
-                    <h3
-                      className={`text-base sm:text-2xl font-bold text-slate-800 mb-3 sm:mb-6 text-center ${skill.textColor} group-hover:scale-105 transition-all duration-300`}
-                    >
-                      {skill.title}
-                    </h3>
-
-                    <p className="text-slate-600 text-sm sm:text-base leading-relaxed text-center group-hover:text-slate-700 transition-colors duration-300 min-h-[3rem] sm:min-h-[4rem]">
-                      {skill.description}
-                    </p>
+                    <h3 className={`text-xl font-bold mb-2 ${pillar.textColor}`}>{pillar.title}</h3>
+                    <p className="text-sm text-slate-600 leading-relaxed">{pillar.description}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Coaching Marketplace */}
-        <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
-          <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 rounded-xl sm:rounded-3xl p-6 sm:p-16 shadow-2xl border border-indigo-500/30 relative overflow-hidden">
-            {/* Enhanced dark background animations */}
-            <div className="absolute inset-0 opacity-15">
-              <div
-                className="absolute w-80 h-80 bg-gradient-to-r from-indigo-400/25 to-purple-400/25 rounded-full blur-3xl animate-floating-orb"
-                style={{ top: "10%", left: "10%" }}
-              ></div>
-              <div
-                className="absolute w-64 h-64 bg-gradient-to-r from-purple-400/20 to-indigo-400/20 rounded-full blur-2xl animate-floating-orb-reverse"
-                style={{ bottom: "20%", right: "15%" }}
-              ></div>
-              <div
-                className="absolute w-48 h-48 bg-gradient-to-r from-indigo-300/15 to-purple-300/15 rounded-full blur-xl animate-ambient-pulse"
-                style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
-              ></div>
-            </div>
-
-            <div className="text-center mb-8 sm:mb-16 relative z-10">
-              <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-white hover:scale-105 transition-transform duration-500 cursor-default tracking-tight">
-                Specialized Coach Marketplace
+        {/* Coaching Marketplace Section with gradient cards */}
+        <section className="px-4 sm:px-8 py-16 sm:py-24 relative">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6">
+                <span className="bg-gradient-to-r from-purple-700 to-indigo-700 bg-clip-text text-transparent">
+                  Elite Coaching Marketplace
+                </span>
               </h2>
-              <p className="text-lg sm:text-2xl text-slate-300 max-w-3xl mx-auto hover:text-slate-200 transition-colors duration-300 px-4 font-medium leading-relaxed">
-                Connect with expert coaches for personalized guidance
+              <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
+                Connect with professional coaches who understand your goals
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 relative z-10">
-              <div className="bg-slate-200/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
-                <div className="inline-flex p-3 sm:p-4 rounded-2xl bg-indigo-500 text-white mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Video className="w-6 h-6 sm:w-8 sm:h-8" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+              {coachingOptions.map((option, index) => (
+                <div
+                  key={index}
+                  className="group relative p-8 rounded-3xl bg-white shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 overflow-hidden"
+                  style={{ animationDelay: `${index * 0.15}s` }}
+                >
+                  {/* Gradient background on hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${option.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                  
+                  <div className="relative z-10">
+                    <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${option.color} text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                      <option.icon className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3 text-slate-800">{option.title}</h3>
+                    <p className="text-slate-600">{option.description}</p>
+                  </div>
                 </div>
-                <h3 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4 text-slate-900">Video Call Sessions</h3>
-                <p className="text-sm sm:text-lg text-slate-700 font-medium leading-relaxed">
-                  Get real-time feedback from anywhere.
-                </p>
-              </div>
-
-              <div className="bg-slate-200/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
-                <div className="inline-flex p-3 sm:p-4 rounded-2xl bg-emerald-500 text-white mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <MapPin className="w-6 h-6 sm:w-8 sm:h-8" />
-                </div>
-                <h3 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4 text-slate-900">In-Person Training</h3>
-                <p className="text-sm sm:text-lg text-slate-700 font-medium leading-relaxed">
-                  Enjoy hands-on guidance tailored to you.
-                </p>
-              </div>
-
-              <div className="bg-slate-200/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
-                <div className="inline-flex p-3 sm:p-4 rounded-2xl bg-orange-500 text-white mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Monitor className="w-6 h-6 sm:w-8 sm:h-8" />
-                </div>
-                <h3 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4 text-slate-900">Video Analysis</h3>
-                <p className="text-sm sm:text-lg text-slate-700 font-medium leading-relaxed">
-                  Review and improve your performance effectively.
-                </p>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Venue Section - Light Theme */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
@@ -1249,10 +701,6 @@ export default function PeakPlayLanding() {
         {/* Values Section */}
         <div className="px-6 sm:px-8 py-12 sm:py-20 max-w-7xl mx-auto relative z-10">
           <div className="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 backdrop-blur-sm rounded-xl sm:rounded-3xl p-6 sm:p-12 shadow-2xl border border-purple-400/30 hover:shadow-3xl transition-all duration-500 relative overflow-hidden">
-  {/* Enhanced background overlay for depth */}
-  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-indigo-500/10 to-violet-500/20 rounded-xl sm:rounded-3xl"></div>
-  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(168,85,247,0.3),transparent_50%)] rounded-xl sm:rounded-3xl"></div>
-  <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(99,102,241,0.2),transparent_50%)] rounded-xl sm:rounded-3xl"></div>
             <h2 className="text-3xl sm:text-6xl font-bold mb-4 sm:mb-8 text-white tracking-tight relative z-10">Our Values</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {values.map((value, index) => (
