@@ -518,74 +518,156 @@ skillCategories.forEach(category => {
 });
 
 // Helper function to calculate aggregate scores for each category
-const calculatePhysicalAggregateScore = (skillData: SkillData | null): number => {
-  if (!skillData) return 0;
+// Age-group based performance benchmarks (percentile-based scoring)
+interface AgeBenchmarks {
+  [key: string]: {
+    poor: number;      // 10th percentile
+    belowAvg: number;  // 25th percentile  
+    average: number;   // 50th percentile
+    good: number;      // 75th percentile
+    excellent: number; // 90th percentile
+    elite: number;     // 95th percentile
+  };
+}
 
-  // Normalize raw scores to 0-10 scale based on the new logical ranges
+// Research-based performance benchmarks for different age groups
+const physicalBenchmarks: { [ageGroup: string]: AgeBenchmarks } = {
+  "10-13": {
+    pushupScore: { poor: 5, belowAvg: 8, average: 12, good: 18, excellent: 25, elite: 35 },
+    pullupScore: { poor: 0, belowAvg: 1, average: 3, good: 6, excellent: 10, elite: 15 },
+    verticalJump: { poor: 20, belowAvg: 25, average: 30, good: 35, excellent: 42, elite: 50 },
+    gripStrength: { poor: 12, belowAvg: 16, average: 20, good: 25, excellent: 30, elite: 38 },
+    sprint50m: { poor: 10.5, belowAvg: 9.8, average: 9.0, good: 8.2, excellent: 7.5, elite: 6.8 },
+    shuttleRun: { poor: 18, belowAvg: 16.5, average: 15.0, good: 13.8, excellent: 12.5, elite: 11.2 },
+    run5kTime: { poor: 35, belowAvg: 30, average: 26, good: 23, excellent: 20, elite: 18 },
+    yoyoTest: { poor: 3, belowAvg: 6, average: 9, good: 12, excellent: 15, elite: 18 },
+    sprintTime: { poor: 18, belowAvg: 16, average: 14, good: 12.5, excellent: 11, elite: 9.5 }
+  },
+  "14-18": {
+    pushupScore: { poor: 8, belowAvg: 15, average: 25, good: 35, excellent: 50, elite: 70 },
+    pullupScore: { poor: 1, belowAvg: 3, average: 6, good: 12, excellent: 18, elite: 25 },
+    verticalJump: { poor: 25, belowAvg: 32, average: 40, good: 48, excellent: 55, elite: 65 },
+    gripStrength: { poor: 20, belowAvg: 28, average: 35, good: 42, excellent: 50, elite: 60 },
+    sprint50m: { poor: 9.5, belowAvg: 8.8, average: 8.0, good: 7.2, excellent: 6.5, elite: 5.8 },
+    shuttleRun: { poor: 16, belowAvg: 14.5, average: 13.0, good: 11.8, excellent: 10.5, elite: 9.2 },
+    run5kTime: { poor: 30, belowAvg: 25, average: 22, good: 19, excellent: 17, elite: 15 },
+    yoyoTest: { poor: 6, belowAvg: 10, average: 14, good: 17, excellent: 20, elite: 21 },
+    sprintTime: { poor: 15, belowAvg: 13, average: 11, good: 9.5, excellent: 8.5, elite: 7.5 }
+  },
+  "18+": {
+    pushupScore: { poor: 10, belowAvg: 20, average: 35, good: 50, excellent: 70, elite: 100 },
+    pullupScore: { poor: 2, belowAvg: 5, average: 10, good: 15, excellent: 22, elite: 30 },
+    verticalJump: { poor: 30, belowAvg: 38, average: 45, good: 55, excellent: 65, elite: 75 },
+    gripStrength: { poor: 25, belowAvg: 35, average: 45, good: 55, excellent: 65, elite: 80 },
+    sprint50m: { poor: 8.5, belowAvg: 7.8, average: 7.0, good: 6.5, excellent: 6.0, elite: 5.5 },
+    shuttleRun: { poor: 15, belowAvg: 13.5, average: 12.0, good: 10.5, excellent: 9.5, elite: 8.5 },
+    run5kTime: { poor: 28, belowAvg: 23, average: 20, good: 18, excellent: 16, elite: 14 },
+    yoyoTest: { poor: 8, belowAvg: 12, average: 16, good: 19, excellent: 21, elite: 21 },
+    sprintTime: { poor: 13, belowAvg: 11, average: 9.5, good: 8.5, excellent: 7.5, elite: 6.5 }
+  }
+};
+
+// Helper function to get age group
+const getAgeGroup = (age: number): string => {
+  if (age <= 13) return "10-13";
+  if (age <= 18) return "14-18";
+  return "18+";
+};
+
+// Helper function to calculate percentile-based score (0-10 scale)
+const calculatePercentileScore = (value: number, benchmarks: any, isLowerBetter: boolean = false): number => {
+  if (!benchmarks) return 0;
+  
+  const { poor, belowAvg, average, good, excellent, elite } = benchmarks;
+  
+  let score: number;
+  
+  if (isLowerBetter) {
+    // For time-based metrics (lower is better)
+    if (value >= poor) score = 0;
+    else if (value >= belowAvg) score = 2;
+    else if (value >= average) score = 4;
+    else if (value >= good) score = 6;
+    else if (value >= excellent) score = 8;
+    else if (value >= elite) score = 9.5;
+    else score = 10;
+  } else {
+    // For count/distance-based metrics (higher is better)
+    if (value <= poor) score = 0;
+    else if (value <= belowAvg) score = 2;
+    else if (value <= average) score = 4;
+    else if (value <= good) score = 6;
+    else if (value <= excellent) score = 8;
+    else if (value <= elite) score = 9.5;
+    else score = 10;
+  }
+  
+  return Math.round(score * 10) / 10; // Round to 1 decimal place
+};
+
+const calculatePhysicalAggregateScore = (skillData: SkillData | null): number => {
+  if (!skillData || !skillData.student?.age) return 0;
+
+  const ageGroup = getAgeGroup(skillData.student.age);
+  const benchmarks = physicalBenchmarks[ageGroup];
+  
+  if (!benchmarks) return 0;
+
   const normalizedScores = [];
   
-  // Strength Skills
-  // Push-ups (0-100 range, normalize to 0-10)
+  // Strength Skills (higher is better)
   if (skillData.pushupScore !== undefined && skillData.pushupScore !== null) {
-    const pushupNormalized = Math.min(10, Math.max(0, (skillData.pushupScore / 100) * 10));
-    normalizedScores.push(pushupNormalized);
+    const score = calculatePercentileScore(skillData.pushupScore, benchmarks.pushupScore, false);
+    normalizedScores.push(score);
   }
   
-  // Pull-ups (0-50 range, normalize to 0-10)
   if (skillData.pullupScore !== undefined && skillData.pullupScore !== null) {
-    const pullupNormalized = Math.min(10, Math.max(0, (skillData.pullupScore / 50) * 10));
-    normalizedScores.push(pullupNormalized);
+    const score = calculatePercentileScore(skillData.pullupScore, benchmarks.pullupScore, false);
+    normalizedScores.push(score);
   }
   
-  // Vertical Jump (0-80 cm range, normalize to 0-10)
   if (skillData.verticalJump !== undefined && skillData.verticalJump !== null) {
-    const verticalJumpNormalized = Math.min(10, Math.max(0, (skillData.verticalJump / 80) * 10));
-    normalizedScores.push(verticalJumpNormalized);
+    const score = calculatePercentileScore(skillData.verticalJump, benchmarks.verticalJump, false);
+    normalizedScores.push(score);
   }
   
-  // Grip Strength (0-70 kg range, normalize to 0-10)
   if (skillData.gripStrength !== undefined && skillData.gripStrength !== null) {
-    const gripStrengthNormalized = Math.min(10, Math.max(0, (skillData.gripStrength / 70) * 10));
-    normalizedScores.push(gripStrengthNormalized);
+    const score = calculatePercentileScore(skillData.gripStrength, benchmarks.gripStrength, false);
+    normalizedScores.push(score);
   }
   
-  // Speed & Agility Skills
-  // 50m Sprint time (5-15 seconds, lower is better)
+  // Speed & Agility Skills (lower time is better)
   if (skillData.sprint50m !== undefined && skillData.sprint50m !== null) {
-    const sprint50mNormalized = Math.min(10, Math.max(0, 10 - ((skillData.sprint50m - 5) / (15 - 5)) * 10));
-    normalizedScores.push(sprint50mNormalized);
+    const score = calculatePercentileScore(skillData.sprint50m, benchmarks.sprint50m, true);
+    normalizedScores.push(score);
   }
   
-  // Shuttle Run time (10-20 seconds, lower is better)
   if (skillData.shuttleRun !== undefined && skillData.shuttleRun !== null) {
-    const shuttleRunNormalized = Math.min(10, Math.max(0, 10 - ((skillData.shuttleRun - 10) / (20 - 10)) * 10));
-    normalizedScores.push(shuttleRunNormalized);
+    const score = calculatePercentileScore(skillData.shuttleRun, benchmarks.shuttleRun, true);
+    normalizedScores.push(score);
   }
   
   // Endurance Skills
-  // 5K time (15-40 minutes, lower is better)
   if (skillData.run5kTime !== undefined && skillData.run5kTime !== null) {
-    const run5kNormalized = Math.min(10, Math.max(0, 10 - ((skillData.run5kTime - 15) / (40 - 15)) * 10));
-    normalizedScores.push(run5kNormalized);
+    const score = calculatePercentileScore(skillData.run5kTime, benchmarks.run5kTime, true);
+    normalizedScores.push(score);
   }
   
-  // Yo-Yo Test (0-21 levels, higher is better)
   if (skillData.yoyoTest !== undefined && skillData.yoyoTest !== null) {
-    const yoyoTestNormalized = Math.min(10, Math.max(0, (skillData.yoyoTest / 21) * 10));
-    normalizedScores.push(yoyoTestNormalized);
+    const score = calculatePercentileScore(skillData.yoyoTest, benchmarks.yoyoTest, false);
+    normalizedScores.push(score);
   }
   
   // Legacy Skills (for backward compatibility)
-  // Sprint time (8-20 seconds, lower is better)
   if (skillData.sprintTime !== undefined && skillData.sprintTime !== null) {
-    const sprintNormalized = Math.min(10, Math.max(0, 10 - ((skillData.sprintTime - 8) / (20 - 8)) * 10));
-    normalizedScores.push(sprintNormalized);
+    const score = calculatePercentileScore(skillData.sprintTime, benchmarks.sprintTime, true);
+    normalizedScores.push(score);
   }
 
   if (normalizedScores.length === 0) return 0;
 
   const average = normalizedScores.reduce((a, b) => a + b, 0) / normalizedScores.length;
-  return Math.min(10, Math.max(0, Math.round(average * 10) / 10)); // Round to 1 decimal and ensure 0-10 range
+  return Math.min(10, Math.max(0, Math.round(average * 10) / 10));
 };
 
 const calculateMentalAggregateScore = (skillData: SkillData | null): number => {
@@ -878,6 +960,16 @@ const calculatePersonalizedNutrition = (weight: number, height: number, age: num
   };
 };
 
+// Helper function to get age-appropriate benchmarks for UI display
+const getPhysicalBenchmarkForSkill = (skillId: string, age: number | undefined) => {
+  if (!age) return null;
+  
+  const ageGroup = getAgeGroup(age);
+  const benchmarks = physicalBenchmarks[ageGroup];
+  
+  return benchmarks ? benchmarks[skillId] : null;
+};
+
 // Enhanced Skill comparison bar component (removed comparison for mental skills)
 const SkillBar: React.FC<{
   skill: SkillItem;
@@ -888,7 +980,8 @@ const SkillBar: React.FC<{
   showComparison?: boolean; // New prop to control comparison display
   personalizedTarget?: number; // For nutrition values
   onClick?: () => void; // New prop for click handling
-}> = ({ skill, userScore, averageScore, isEditing, onScoreChange, showComparison = true, personalizedTarget, onClick }) => {
+  skillData?: SkillData | null; // Add skillData prop for age access
+}> = ({ skill, userScore, averageScore, isEditing, onScoreChange, showComparison = true, personalizedTarget, onClick, skillData }) => {
   const score = userScore || 0;
   const average = averageScore || 0;
 
@@ -939,26 +1032,28 @@ const SkillBar: React.FC<{
     // Handle invalid or zero scores
     if (!score || score <= 0 || isNaN(score)) return 0;
     
-    // Ensure we have valid range values
+    // For physical skills, use age-based percentile scoring
+    if (skill.id && skillData?.student?.age) {
+      const benchmark = getPhysicalBenchmarkForSkill(skill.id, skillData.student.age);
+      if (benchmark) {
+        const isLowerBetter = skill.type === "time";
+        const percentileScore = calculatePercentileScore(score, benchmark, isLowerBetter);
+        return (percentileScore / 10) * 100; // Convert 0-10 scale to 0-100 percentage
+      }
+    }
+    
+    // Fallback to original logic for non-physical skills or when benchmarks aren't available
+    const range = getSkillRange();
     if (!range.max || range.max <= 0 || isNaN(range.max)) return 0;
     
     if (skill.type === "time") {
       // For time-based skills, lower times are better (invert the percentage)
-      // Formula: ((maxTime - actualTime) / maxTime) * 100
-      // This gives higher percentage for better (lower) times
-      
       const rawPercentage = ((range.max - score) / range.max) * 100;
-      const clampedPercentage = Math.max(0, Math.min(100, rawPercentage));
-      
-      return clampedPercentage;
+      return Math.max(0, Math.min(100, rawPercentage));
     } else {
       // For other skills (count, score, grams, calories), higher values are better
-      // Formula: (actualScore / maxScore) * 100
-      
       const rawPercentage = (score / range.max) * 100;
-      const clampedPercentage = Math.max(0, Math.min(100, rawPercentage));
-      
-      return clampedPercentage;
+      return Math.max(0, Math.min(100, rawPercentage));
     }
   };
 
@@ -2163,6 +2258,7 @@ export default function SkillSnap({
                                 })()
                               : undefined
                           }
+                          skillData={skillData}
                         />
                       ))}
                     </div>
@@ -2211,6 +2307,7 @@ export default function SkillSnap({
                   })()
                 : undefined
             }
+            skillData={skillData}
           />
         ))}
       </div>
