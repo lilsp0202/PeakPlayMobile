@@ -79,6 +79,7 @@ export async function GET(request: Request) {
         protein: true,
         carbohydrates: true,
         fats: true,
+        waterIntake: true,
       },
     });
     
@@ -106,6 +107,7 @@ export async function GET(request: Request) {
           protein: 0,
           carbohydrates: 0,
           fats: 0,
+          waterIntake: 0,
         },
         sampleSize: 0,
       });
@@ -144,10 +146,12 @@ export async function GET(request: Request) {
       protein: number;
       carbohydrates: number;
       fats: number;
+      waterIntake: number;
       caloriesCount: number;
       proteinCount: number;
       carbohydratesCount: number;
       fatsCount: number;
+      waterIntakeCount: number;
     }
 
     const totals = skillsInAgeGroup.reduce<TotalsAccumulator>(
@@ -187,10 +191,12 @@ export async function GET(request: Request) {
         protein: acc.protein + (skills.protein || 0),
         carbohydrates: acc.carbohydrates + (skills.carbohydrates || 0),
         fats: acc.fats + (skills.fats || 0),
+        waterIntake: acc.waterIntake + (skills.waterIntake || 0),
         caloriesCount: acc.caloriesCount + (skills.totalCalories ? 1 : 0),
         proteinCount: acc.proteinCount + (skills.protein ? 1 : 0),
         carbohydratesCount: acc.carbohydratesCount + (skills.carbohydrates ? 1 : 0),
         fatsCount: acc.fatsCount + (skills.fats ? 1 : 0),
+        waterIntakeCount: acc.waterIntakeCount + (skills.waterIntake ? 1 : 0),
       }),
       {
         // Physical - Strength
@@ -228,10 +234,12 @@ export async function GET(request: Request) {
         protein: 0,
         carbohydrates: 0,
         fats: 0,
+        waterIntake: 0,
         caloriesCount: 0,
         proteinCount: 0,
         carbohydratesCount: 0,
         fatsCount: 0,
+        waterIntakeCount: 0,
       }
     );
     
@@ -260,6 +268,7 @@ export async function GET(request: Request) {
       protein: totals.proteinCount > 0 ? Number((totals.protein / totals.proteinCount).toFixed(1)) : 0,
       carbohydrates: totals.carbohydratesCount > 0 ? Number((totals.carbohydrates / totals.carbohydratesCount).toFixed(1)) : 0,
       fats: totals.fatsCount > 0 ? Number((totals.fats / totals.fatsCount).toFixed(1)) : 0,
+      waterIntake: totals.waterIntakeCount > 0 ? Number((totals.waterIntake / totals.waterIntakeCount).toFixed(1)) : 0,
     };
     
     return NextResponse.json({

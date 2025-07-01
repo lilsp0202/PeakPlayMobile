@@ -120,6 +120,7 @@ model Skills {
   updatedAt             DateTime @updatedAt
   carbohydrates         Float?
   fats                  Float?
+  waterIntake           Float?   // Water intake in liters per day
   moodScore             Int?
   protein               Float?
   sleepScore            Int?

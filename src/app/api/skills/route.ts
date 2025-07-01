@@ -145,6 +145,7 @@ export async function POST(request: Request) {
       protein,
       carbohydrates,
       fats,
+      waterIntake,
       // Technical skills - Batting
       battingGrip,
       battingStance,
@@ -306,6 +307,7 @@ export async function POST(request: Request) {
     if (protein !== undefined) updateData.protein = protein;
     if (carbohydrates !== undefined) updateData.carbohydrates = carbohydrates;
     if (fats !== undefined) updateData.fats = fats;
+    if (waterIntake !== undefined) updateData.waterIntake = waterIntake;
 
     // Technical skills - Batting
     if (battingGrip !== undefined) updateData.battingGrip = battingGrip;

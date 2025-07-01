@@ -30,6 +30,7 @@ interface SkillData {
   protein?: number;
   carbohydrates?: number;
   fats?: number;
+  waterIntake?: number;
   // Technical skills - Batting
   battingGrip?: number;
   battingStance?: number;
@@ -80,7 +81,7 @@ interface SkillItem {
   id: string;
   name: string;
   unit: string;
-  type: "count" | "time" | "score" | "grams" | "calories";
+  type: "count" | "time" | "score" | "grams" | "calories" | "liters";
   icon: React.ReactNode;
   description: string;
   colorScheme: {
@@ -443,6 +444,20 @@ const skillCategories: SkillCategory[] = [
           </svg>
         ),
       },
+      {
+        id: "waterIntake",
+        name: "Water Intake",
+        unit: "L",
+        type: "liters",
+        description: "Daily water consumption",
+        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C7.79 2 4.18 5.13 3.31 9.34C3.11 10.13 3 10.96 3 11.8c0 4.97 4.03 9 9 9s9-4.03 9-9c0-.84-.11-1.67-.31-2.46C19.82 5.13 16.21 2 12 2zm0 16c-3.86 0-7-3.14-7-7 0-.62.07-1.24.21-1.84C5.94 6.34 8.7 4 12 4s6.06 2.34 6.79 5.16c.14.6.21 1.22.21 1.84 0 3.86-3.14 7-7 7z"/>
+            <path d="M7.5 12c0 2.49 2.01 4.5 4.5 4.5s4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5-4.5 2.01-4.5 4.5z"/>
+          </svg>
+        ),
+      },
     ]
   },
   {
@@ -720,6 +735,12 @@ const calculateNutritionAggregateScore = (skillData: SkillData | null): number =
       scores.push(fatScore);
     }
 
+    // Normalize water intake (0-5L range to 0-10 scale)
+    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
+      const waterScore = Math.min(10, Math.max(0, (skillData.waterIntake / 5) * 10));
+      scores.push(waterScore);
+    }
+
     if (scores.length === 0) return 0;
     const average = scores.reduce((a, b) => a + b, 0) / scores.length;
     return Math.min(10, Math.max(0, Math.round(average * 10) / 10));
@@ -748,6 +769,11 @@ const calculateNutritionAggregateScore = (skillData: SkillData | null): number =
   if (skillData.fats !== undefined && skillData.fats !== null) {
     const fatScore = Math.max(0, 10 - Math.abs((skillData.fats - nutrition.fats) / nutrition.fats) * 10);
     scores.push(Math.min(10, fatScore));
+  }
+  
+  if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
+    const waterScore = Math.max(0, 10 - Math.abs((skillData.waterIntake - nutrition.waterIntake) / nutrition.waterIntake) * 10);
+    scores.push(Math.min(10, waterScore));
   }
 
   if (scores.length === 0) return 0;
@@ -914,6 +940,7 @@ type NutritionData = {
   protein: number;
   carbohydrates: number;
   fats: number;
+  waterIntake: number;
   bmi: number;
 };
 
@@ -951,11 +978,20 @@ const calculatePersonalizedNutrition = (weight: number, height: number, age: num
   const fatCalories = baseCalories * 0.25;
   const fatGrams = Math.round(fatCalories / 9); // 9 calories per gram of fat
   
+  // Water intake: Age-based recommendations (in liters)
+  // Based on Institute of Medicine recommendations for athletes
+  const waterIntakeL = age <= 13 
+    ? 2.0 + (weight * 0.02) // Kids: base 2L + 20ml per kg
+    : age <= 18 
+      ? 2.5 + (weight * 0.025) // Teens: base 2.5L + 25ml per kg
+      : 3.0 + (weight * 0.03); // Adults: base 3L + 30ml per kg
+  
   return {
     totalCalories: baseCalories,
     protein: proteinGrams,
     carbohydrates: carbGrams,
     fats: fatGrams,
+    waterIntake: Math.round(waterIntakeL * 10) / 10, // Round to 1 decimal place
     bmi: Math.round(bmi * 10) / 10, // Round to 1 decimal place
   };
 };
@@ -1021,6 +1057,8 @@ const SkillBar: React.FC<{
         }
       case "calories":
         return { min: 0, max: 5000, step: 10 };
+      case "liters":
+        return { min: 0, max: 5, step: 0.1 }; // Water intake: 0-5 liters
       default:
         return { min: 0, max: 100, step: 1 };
     }
@@ -1109,6 +1147,8 @@ const SkillBar: React.FC<{
         return `${value}g`;
       case "calories":
         return `${value} kcal`;
+      case "liters":
+        return `${value.toFixed(1)}L`;
       default:
         return value.toString();
     }
@@ -1149,6 +1189,8 @@ const SkillBar: React.FC<{
         return "0";
       case "calories":
         return "0";
+      case "liters":
+        return "e.g., 2.5";
       default:
         return "0";
     }
@@ -1466,8 +1508,8 @@ const BMICard: React.FC<{
 
       {/* Macronutrient Breakdown */}
       <div className="bg-white rounded-lg p-4 shadow-sm border border-green-100">
-        <h4 className="font-medium text-gray-900 mb-4">Recommended Daily Macronutrients</h4>
-        <div className="grid grid-cols-3 gap-4">
+        <h4 className="font-medium text-gray-900 mb-4">Recommended Daily Nutrition</h4>
+        <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
             <div className="text-lg font-bold text-blue-600">{personalizedNutrition.protein}g</div>
             <div className="text-xs text-gray-600">Protein</div>
@@ -1482,6 +1524,11 @@ const BMICard: React.FC<{
             <div className="text-lg font-bold text-purple-600">{personalizedNutrition.fats}g</div>
             <div className="text-xs text-gray-600">Fats</div>
             <div className="text-xs text-gray-500">25% of total calories</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-cyan-600">{personalizedNutrition.waterIntake}L</div>
+            <div className="text-xs text-gray-600">Water</div>
+            <div className="text-xs text-gray-500">Age + activity based</div>
           </div>
         </div>
       </div>
@@ -2089,6 +2136,8 @@ export default function SkillSnap({
         }
       case "calories":
         return { min: 0, max: 5000, step: 10 };
+      case "liters":
+        return { min: 0, max: 5, step: 0.1 }; // Water intake: 0-5 liters  
       default:
         return { min: 0, max: 100, step: 1 };
     }
