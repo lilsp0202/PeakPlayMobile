@@ -289,7 +289,7 @@ export default function PeakPlayLanding() {
             transform: translateY(0px);
           }
           50% {
-            transform: translateY(-20px);
+            transform: translateY(-30px);
           }
         }
 
@@ -331,34 +331,55 @@ export default function PeakPlayLanding() {
       `}</style>
 
       <div className="relative min-h-screen text-slate-900 overflow-hidden">
-        {/* Modern Animated Background - More Subtle */}
+        {/* Modern Animated Background - More Visible but Professional */}
         <div className="fixed inset-0 -z-10">
-          {/* Base gradient layer - softer */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-indigo-50/40" />
+          {/* Base gradient layer - more vibrant */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-indigo-50" />
           
-          {/* Animated gradient mesh - more subtle */}
-          <div className="absolute inset-0 animate-gradient-shift bg-gradient-to-tr from-purple-50/20 via-transparent to-indigo-50/20" />
+          {/* Animated gradient mesh - more visible */}
+          <div className="absolute inset-0 animate-gradient-shift bg-gradient-to-tr from-purple-100/30 via-transparent to-indigo-100/30" />
           
-          {/* Fewer, more subtle floating shapes */}
-          <div className="absolute top-20 left-[10%] w-72 h-72 animate-subtle-float">
-            <div className="w-full h-full bg-gradient-to-br from-purple-100/20 to-indigo-100/20 rounded-full blur-3xl" />
+          {/* More visible floating gradient orbs */}
+          <div className="absolute top-20 left-[10%] w-96 h-96 animate-subtle-float">
+            <div className="w-full h-full bg-gradient-to-br from-purple-200/40 to-indigo-200/30 rounded-full blur-2xl" />
           </div>
           
-          <div className="absolute bottom-20 right-[15%] w-96 h-96 animate-subtle-float" style={{ animationDelay: '2s' }}>
-            <div className="w-full h-full bg-gradient-to-tr from-indigo-100/15 to-purple-100/15 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-[15%] w-80 h-80 animate-subtle-float" style={{ animationDelay: '2s' }}>
+            <div className="w-full h-full bg-gradient-to-tr from-indigo-200/35 to-purple-200/25 rounded-full blur-2xl" />
           </div>
           
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] animate-subtle-float" style={{ animationDelay: '4s' }}>
-            <div className="w-full h-full bg-gradient-to-br from-purple-50/10 to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] animate-subtle-float" style={{ animationDelay: '4s' }}>
+            <div className="w-full h-full bg-gradient-to-br from-purple-100/30 to-indigo-100/20 rounded-full blur-3xl" />
           </div>
           
-          {/* Very subtle grid pattern */}
-          <div className="absolute inset-0 opacity-[0.01]"
+          {/* Additional subtle orbs for depth */}
+          <div className="absolute top-3/4 left-[20%] w-64 h-64 animate-subtle-float" style={{ animationDelay: '3s' }}>
+            <div className="w-full h-full bg-gradient-to-bl from-indigo-200/25 to-transparent rounded-full blur-2xl" />
+          </div>
+          
+          <div className="absolute top-1/4 right-[25%] w-72 h-72 animate-subtle-float" style={{ animationDelay: '1s' }}>
+            <div className="w-full h-full bg-gradient-to-tl from-purple-200/30 to-transparent rounded-full blur-2xl" />
+          </div>
+          
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 opacity-[0.02]"
                style={{
-                 backgroundImage: `linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
-                                  linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px)`,
-                 backgroundSize: '80px 80px'
+                 backgroundImage: `linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
+                                  linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px)`,
+                 backgroundSize: '60px 60px'
                }} />
+          
+          {/* Subtle radial gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          
+          {/* Animated diagonal lines for movement */}
+          <div className="absolute inset-0 overflow-hidden opacity-[0.03]">
+            <div className="absolute inset-0 animate-gradient-shift"
+                 style={{
+                   backgroundImage: `linear-gradient(45deg, transparent 48%, rgba(139, 92, 246, 0.1) 50%, transparent 52%)`,
+                   backgroundSize: '30px 30px'
+                 }} />
+          </div>
         </div>
 
         {/* Mobile Menu Button */}
