@@ -396,14 +396,26 @@ export default function PeakPlayLanding() {
             <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
             <div className="absolute right-0 top-0 h-full w-64 bg-white/95 backdrop-blur-xl shadow-2xl p-8 pt-20">
               <nav className="space-y-6">
-                <Link href="/auth/signin" className="block text-lg font-medium text-slate-700 hover:text-purple-700 transition-colors">
-                  Sign In
+                <Link href="/auth/signin" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full bg-white hover:bg-gray-50 text-indigo-600 border-2 border-indigo-100 py-6 text-lg font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                    Sign In
+                  </Button>
                 </Link>
-                <Link href="/auth/signup" className="block">
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
+                <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
                     Get Started
                   </Button>
                 </Link>
+                <button
+                  onClick={() => {
+                    handleWatchDemo();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-6 text-lg font-semibold text-purple-700 bg-white/90 backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-purple-100"
+                >
+                  <Play className="w-5 h-5" />
+                  Watch Demo
+                </button>
               </nav>
             </div>
           </div>
@@ -480,6 +492,13 @@ export default function PeakPlayLanding() {
                 <Button className="group relative px-8 py-6 text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
                   <span className="relative z-10">Start Your Journey</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </Button>
+              </Link>
+
+              <Link href="/auth/signin">
+                <Button className="group relative px-8 py-6 text-lg font-semibold bg-white hover:bg-gray-50 text-indigo-600 border-2 border-indigo-100 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+                  <span className="relative z-10">Sign In</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Button>
               </Link>
               
