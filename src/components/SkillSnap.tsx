@@ -732,22 +732,24 @@ const SkillBar: React.FC<{
         return { min: 0, max: 100, step: 1 };
       case "time":
         if (skill.id === "sprintTime") {
-          return { min: 0, max: 30, step: 0.1 };
+          return { min: 0, max: 30, step: 0.01 }; // More precise for 100m times
+        } else if (skill.id === "run5kTime") {
+          return { min: 0, max: 40, step: 0.01 }; // More precise for 5K times (in minutes)
         } else {
           return { min: 0, max: 60, step: 1 };
         }
       case "score":
-        return { min: 0, max: 10, step: 1 };
+        return { min: 0, max: 10, step: 0.1 }; // Allow decimal scores
       case "grams":
         if (skill.id === "protein") {
-          return { min: 0, max: 200, step: 5 };
+          return { min: 0, max: 200, step: 1 };
         } else if (skill.id === "carbohydrates") {
-          return { min: 0, max: 500, step: 10 };
+          return { min: 0, max: 500, step: 1 };
         } else {
-          return { min: 0, max: 150, step: 5 };
+          return { min: 0, max: 150, step: 1 };
         }
       case "calories":
-        return { min: 0, max: 5000, step: 50 };
+        return { min: 0, max: 5000, step: 10 };
       default:
         return { min: 0, max: 100, step: 1 };
     }
@@ -793,11 +795,17 @@ const SkillBar: React.FC<{
   const formatValue = (value: number) => {
     switch (skill.type) {
       case "time":
-        return skill.id === "sprintTime" ? `${value.toFixed(1)}s` : `${value} min`;
+        if (skill.id === "sprintTime") {
+          return `${value.toFixed(2)}s`; // Show 2 decimal places for sprint
+        } else if (skill.id === "run5kTime") {
+          return `${value.toFixed(2)} min`; // Show 2 decimal places for 5K
+        } else {
+          return `${value} min`;
+        }
       case "count":
         return `${value} reps`;
       case "score":
-        return `${value}/10`;
+        return `${value.toFixed(1)}/10`; // Show 1 decimal place for scores
       case "grams":
         return `${value}g`;
       case "calories":
@@ -807,14 +815,45 @@ const SkillBar: React.FC<{
     }
   };
 
+  const getInputType = () => {
+    // Use number input for all types but with appropriate attributes
+    return "number";
+  };
+
+  const getPlaceholder = () => {
+    switch (skill.type) {
+      case "time":
+        if (skill.id === "sprintTime") {
+          return "e.g., 12.50";
+        } else if (skill.id === "run5kTime") {
+          return "e.g., 25.30";
+        } else {
+          return "0";
+        }
+      case "count":
+        return "0";
+      case "score":
+        return "0.0";
+      case "grams":
+        return "0";
+      case "calories":
+        return "0";
+      default:
+        return "0";
+    }
+  };
+
+  const isValidInput = (value: number) => {
+    return value >= range.min && value <= range.max && !isNaN(value);
+  };
+
   return (
     <div 
-      className={`bg-white rounded-xl p-4 sm:p-6 border-2 shadow-sm hover:shadow-md transition-all duration-200 ${
+      className={`bg-white rounded-xl p-4 sm:p-6 border-2 shadow-sm transition-all duration-200 ${
         isEditing 
           ? 'border-blue-300 ring-2 ring-blue-100 bg-blue-50' 
-          : 'border-gray-200 hover:border-gray-300'
-      } ${onClick ? 'cursor-pointer' : ''}`}
-      onClick={onClick}
+          : 'border-gray-200'
+      }`}
     >
       <div className="flex items-start justify-between mb-3 sm:mb-4">
         <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
@@ -828,19 +867,46 @@ const SkillBar: React.FC<{
       </div>
         <div className="text-right ml-3 sm:ml-4 flex-shrink-0">
       {isEditing ? (
-            <div className="flex items-center space-x-2">
-          <input
-                type="number"
-                value={score}
-                onChange={(e) => onScoreChange(skill.id, parseFloat(e.target.value) || 0)}
-            min={range.min}
-            max={range.max}
-            step={range.step}
-                className="w-20 sm:w-24 px-3 py-3 text-lg font-semibold border-2 border-blue-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200"
-                inputMode="decimal"
-                autoComplete="off"
-              />
-              <span className="text-sm font-medium text-gray-600">{skill.unit}</span>
+            <div className="flex flex-col items-end space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type={getInputType()}
+                  value={score || ''}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    if (!isNaN(value) || e.target.value === '') {
+                      onScoreChange(skill.id, value || 0);
+                    }
+                  }}
+                  min={range.min}
+                  max={range.max}
+                  step={range.step}
+                  placeholder={getPlaceholder()}
+                  className={`w-24 sm:w-28 px-3 py-3 text-base font-semibold border-2 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 ${
+                    isValidInput(score) ? 'border-blue-300' : 'border-red-300'
+                  }`}
+                  inputMode="decimal"
+                  autoComplete="off"
+                />
+                <span className="text-sm font-medium text-gray-600 min-w-0">{skill.unit}</span>
+              </div>
+              {/* Validation feedback */}
+              <div className="text-xs text-center">
+                {score < range.min && score !== 0 && (
+                  <span className="text-red-500 font-medium">Min: {range.min}</span>
+                )}
+                {score > range.max && (
+                  <span className="text-red-500 font-medium">Max: {range.max}</span>
+                )}
+                {isValidInput(score) && score > 0 && (
+                  <span className="text-green-600 font-medium flex items-center justify-center">
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Valid
+                  </span>
+                )}
+              </div>
         </div>
       ) : (
         <>
@@ -871,27 +937,37 @@ const SkillBar: React.FC<{
         </div>
       </div>
 
-      {/* Validation feedback for editing */}
+      {/* Enhanced validation feedback for editing with tips */}
       {isEditing && (
-        <div className="mt-2 flex justify-between items-center">
-          <p className="text-xs text-gray-600">
-            Range: {range.min} - {range.max} {skill.unit}
-          </p>
-          <div className="flex items-center space-x-2">
-            {score < range.min && (
-              <span className="text-xs text-red-500 font-medium">Too low</span>
+        <div className="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
+          <div className="flex justify-between items-center mb-2">
+            <p className="text-xs font-medium text-gray-700">
+              Valid Range: {range.min} - {range.max} {skill.unit}
+            </p>
+            {personalizedTarget && (
+              <p className="text-xs text-blue-600 font-medium">
+                Target: {formatValue(personalizedTarget)}
+              </p>
             )}
-            {score > range.max && (
-              <span className="text-xs text-red-500 font-medium">Too high</span>
+          </div>
+          
+          {/* Tips for different skill types */}
+          <div className="text-xs text-gray-600">
+            {skill.type === "time" && skill.id === "sprintTime" && (
+              <p className="italic">💡 Elite runners typically achieve 10-12 seconds</p>
             )}
-            {score >= range.min && score <= range.max && score > 0 && (
-              <span className="text-xs text-green-600 font-medium flex items-center">
-                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                Valid
-              </span>
-              )}
+            {skill.type === "time" && skill.id === "run5kTime" && (
+              <p className="italic">💡 Good 5K times range from 20-30 minutes</p>
+            )}
+            {skill.type === "count" && skill.id === "pushupScore" && (
+              <p className="italic">💡 Average adults can do 15-25 push-ups in a minute</p>
+            )}
+            {skill.type === "count" && skill.id === "pullupScore" && (
+              <p className="italic">💡 Being able to do 10+ pull-ups shows good strength</p>
+            )}
+            {skill.type === "score" && (
+              <p className="italic">💡 Rate from 1-10 based on your performance level</p>
+            )}
           </div>
         </div>
           )}
@@ -1447,7 +1523,6 @@ export default function SkillSnap({
   const [editedScores, setEditedScores] = useState<Record<string, number>>({});
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<SkillCategory | null>(null);
-  const [selectedSkill, setSelectedSkill] = useState<SkillItem | null>(null);
   const [averages, setAverages] = useState<SkillAverages | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1455,11 +1530,11 @@ export default function SkillSnap({
 
   // Add effect to manage body scroll when modals are open
   useEffect(() => {
-    if (selectedCategory || selectedSkill) {
+    if (selectedCategory) {
       // Prevent background scroll when modal is open
       lockBodyScroll();
     } else {
-      // Restore scroll when modal is closed
+      // Restore background scroll when modal is closed
       unlockBodyScroll();
     }
 
@@ -1467,7 +1542,7 @@ export default function SkillSnap({
     return () => {
       unlockBodyScroll();
     };
-  }, [selectedCategory, selectedSkill]);
+  }, [selectedCategory]);
 
   // Prevent scroll restoration on page navigation
   useEffect(() => {
@@ -1591,13 +1666,7 @@ export default function SkillSnap({
 
   const handleStartEdit = (categoryId: string) => {
     // Initialize editedScores with current values when starting to edit
-    if (selectedSkill) {
-      // For individual skill editing, only initialize that specific skill
-      setEditedScores(prev => ({
-        ...prev,
-        [selectedSkill.id]: skillData?.[selectedSkill.id as keyof SkillData] as number || 0
-      }));
-    } else if (categoryId === "TECHNIQUE") {
+    if (categoryId === "TECHNIQUE") {
       const technicalSkillIds = [
         'battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift', 
         'topHandDominance', 'highElbow', 'runningBetweenWickets', 'calling',
@@ -1627,84 +1696,89 @@ export default function SkillSnap({
   };
 
   const handleSave = async (categoryId: string) => {
+    setIsSaving(true);
     try {
-      setIsSaving(true);
-      setLoading(true);
+      // Only include non-zero scores and valid ranges for each skill type
+      const validScores: Record<string, number> = {};
+      const category = skillCategories.find(cat => cat.id === categoryId);
       
-      let categoryScores: Record<string, number> = {};
-      
-      if (selectedSkill) {
-        // For individual skill editing, only save that specific skill
-        categoryScores[selectedSkill.id] = editedScores[selectedSkill.id] || 0;
-      } else if (categoryId === "TECHNIQUE") {
-        // For TECHNIQUE category, use all technical skills directly
-        const technicalSkillIds = [
-          'battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift', 
-          'topHandDominance', 'highElbow', 'runningBetweenWickets', 'calling',
-          'bowlingGrip', 'runUp', 'backFootLanding', 'frontFootLanding', 'hipDrive', 
-          'backFootDrag', 'nonBowlingArm', 'release', 'followThrough',
-          'positioningOfBall', 'pickUp', 'aim', 'throw', 'softHands', 'receiving', 'highCatch', 'flatCatch'
-        ];
-        
-        technicalSkillIds.forEach(skillId => {
-          categoryScores[skillId] = editedScores[skillId] || 0;
-        });
-      } else {
-        // For other categories, use the skills from the category definition
-        const categorySkills = skillCategories.find(cat => cat.id === categoryId)?.skills || [];
-        categorySkills.forEach(skill => {
-          categoryScores[skill.id] = editedScores[skill.id] || 0;
-        });
+      for (const [skillId, score] of Object.entries(editedScores)) {
+        const skill = category?.skills.find(s => s.id === skillId);
+        if (skill && score > 0) {
+          const range = getSkillRange(skill);
+          if (score >= range.min && score <= range.max) {
+            validScores[skillId] = score;
+          }
+        }
       }
 
-      const requestBody = {
-        ...categoryScores,
-        studentId,
-        category: categoryId,
-      };
+      if (Object.keys(validScores).length === 0) {
+        alert("Please enter at least one valid score before saving.");
+        setIsSaving(false);
+        return;
+      }
 
-      const response = await fetch("/api/skills", {
+      const endpoint = studentId 
+        ? `/api/skills?studentId=${studentId}` 
+        : "/api/skills";
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify(validScores),
       });
 
-      if (response.ok) {
-        const responseData = await response.json();
-        
-        // Update local state immediately for better UX
-        setSkillData(prev => ({
-          ...prev,
-          ...categoryScores
-        }));
-        
-        // Reset editing state
-        setIsEditing(null);
-        setSelectedCategory(null);
-        setSelectedSkill(null);
-        
-        // Call callback if provided
-        onSkillsUpdated?.();
-        
-        // Fetch fresh data in background
-        setTimeout(() => {
-          fetchSkillData();
-        }, 100);
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to save skills:", response.status, errorData);
-        
-        // Show user-friendly error message
-        alert("Failed to save skills. Please try again.");
+      if (!response.ok) {
+        throw new Error("Failed to save skills");
       }
+
+      // Refresh skill data to get the latest values
+      await fetchSkillData();
+      setIsEditing(null);
+      setEditedScores({});
+      onSkillsUpdated?.();
+      
+      // Show success feedback
+      const savedCount = Object.keys(validScores).length;
+      alert(`✅ Successfully saved ${savedCount} skill${savedCount !== 1 ? 's' : ''}!`);
+      
     } catch (error) {
-      console.error("Error saving skills:", error);
-      alert("Network error. Please check your connection and try again.");
+      console.error("Failed to save skills:", error);
+      alert("❌ Failed to save skills. Please check your internet connection and try again.");
     } finally {
       setIsSaving(false);
-      setLoading(false);
+    }
+  };
+
+  // Helper function to get skill range for validation
+  const getSkillRange = (skill: SkillItem) => {
+    switch (skill.type) {
+      case "count":
+        return { min: 0, max: 100, step: 1 };
+      case "time":
+        if (skill.id === "sprintTime") {
+          return { min: 0, max: 30, step: 0.01 };
+        } else if (skill.id === "run5kTime") {
+          return { min: 0, max: 40, step: 0.01 };
+        } else {
+          return { min: 0, max: 60, step: 1 };
+        }
+      case "score":
+        return { min: 0, max: 10, step: 0.1 };
+      case "grams":
+        if (skill.id === "protein") {
+          return { min: 0, max: 200, step: 1 };
+        } else if (skill.id === "carbohydrates") {
+          return { min: 0, max: 500, step: 1 };
+        } else {
+          return { min: 0, max: 150, step: 1 };
+        }
+      case "calories":
+        return { min: 0, max: 5000, step: 10 };
+      default:
+        return { min: 0, max: 100, step: 1 };
     }
   };
 
@@ -1735,27 +1809,10 @@ export default function SkillSnap({
     setEditedScores(prev => ({ ...prev, ...resetScores }));
     setIsEditing(null);
     setSelectedCategory(null);
-    setSelectedSkill(null);
   };
 
   const openCategoryModal = (category: SkillCategory) => {
     setSelectedCategory(category);
-    setSelectedSkill(null);
-    // Lock body scroll when modal opens
-    lockBodyScroll();
-    // Notify parent component
-    onModalChange?.(true);
-  };
-
-  const openSkillModal = (skill: SkillItem, category: SkillCategory) => {
-    setSelectedCategory(category);
-    setSelectedSkill(skill);
-    
-    // Initialize edit state for this skill
-      setEditedScores(prev => ({
-        ...prev,
-        [skill.id]: skillData?.[skill.id as keyof SkillData] as number || 0
-      }));
     
     // Lock body scroll when modal opens
     lockBodyScroll();
@@ -1765,7 +1822,6 @@ export default function SkillSnap({
 
   const closeModal = () => {
     setSelectedCategory(null);
-    setSelectedSkill(null);
     // Cancel any ongoing edits
     if (isEditing) {
       handleCancel(isEditing);
@@ -1825,7 +1881,7 @@ export default function SkillSnap({
                   })()
                 : undefined
             }
-            onClick={() => openSkillModal(skill, category)}
+            // Remove onClick prop - no more individual skill modals
           />
         ))}
       </div>
@@ -1864,7 +1920,7 @@ export default function SkillSnap({
       </div>
 
       {/* Category Modal */}
-      {selectedCategory && !selectedSkill && (
+      {selectedCategory && (
         <>
           {/* Background overlay - separate from modal content */}
         <div 
@@ -1879,7 +1935,7 @@ export default function SkillSnap({
               <div className="w-full h-full bg-white flex flex-col">
                 {/* Fixed Header */}
                 <div className="bg-white border-b border-gray-200 shadow-sm">
-                  <div className="p-6 max-w-5xl mx-auto">
+                  <div className="p-4 sm:p-6 max-w-5xl mx-auto">
                     {/* Close button */}
                     <button
                       onClick={closeModal}
@@ -1890,14 +1946,14 @@ export default function SkillSnap({
                     </button>
 
                     {/* Modal header */}
-                    <div className="mb-6">
-                      <div className="flex items-center space-x-4 pr-16">
-                        <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                    <div className="mb-4 sm:mb-6 pr-16">
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>
                           {selectedCategory.icon}
                         </div>
-                        <div className="flex-1">
-                          <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedCategory.name}</h2>
-                          <p className="text-base text-gray-700 leading-relaxed">{selectedCategory.description}</p>
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 truncate">{selectedCategory.name}</h2>
+                          <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{selectedCategory.description}</p>
                         </div>
                       </div>
                     </div>
@@ -1909,160 +1965,62 @@ export default function SkillSnap({
                           <button
                             onClick={() => handleSave(selectedCategory.id)}
                             disabled={isSaving}
-                            className="flex items-center justify-center px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-1"
+                            className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-1"
                           >
-                            <FiSave className="mr-2 w-5 h-5" />
+                            <FiSave className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
                             {isSaving ? 'Saving...' : 'Save Changes'}
                           </button>
                           <button
                             onClick={() => handleCancel(selectedCategory.id)}
-                            className="flex items-center justify-center px-6 py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl order-2 sm:order-2"
+                            className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-semibold text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl order-2 sm:order-2"
                           >
-                            <FiX className="mr-2 w-5 h-5" />
+                            <FiX className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
                             Cancel
                           </button>
                         </>
                       ) : (
                         <button
                           onClick={() => handleStartEdit(selectedCategory.id)}
-                          className="flex items-center justify-center px-6 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl"
+                          className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl"
                         >
-                          <FiEdit className="mr-2 w-5 h-5" />
+                          <FiEdit className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
                           Edit All Skills
                         </button>
                       )}
-                    </div>
+                      
+                      {/* Progress indicator for mobile */}
+                      {isEditing === selectedCategory.id && (
+                        <div className="flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium sm:hidden">
+                          <FiActivity className="mr-2 w-4 h-4" />
+                          {Object.keys(editedScores).length} skills being edited
+                        </div>
+                      )}
                     </div>
                   </div>
+                </div>
 
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                  <div className="p-6 pb-32 max-w-5xl mx-auto min-h-full">
+                  <div className="p-4 sm:p-6 pb-32 max-w-5xl mx-auto min-h-full">
+                    {isEditing === selectedCategory.id && (
+                      <div className="mb-6 p-4 rounded-xl bg-blue-50 border-2 border-blue-200">
+                        <div className="flex items-center mb-2">
+                          <FiEdit className="w-5 h-5 text-blue-600 mr-2" />
+                          <h3 className="text-lg font-semibold text-blue-900">Editing Mode</h3>
+                        </div>
+                        <p className="text-blue-700 text-sm leading-relaxed">
+                          Update all your {selectedCategory.name.toLowerCase()} skills in one place. 
+                          Enter your scores using decimal numbers where appropriate (e.g., 12.45 seconds for sprints).
+                        </p>
+                        {selectedCategory.id === "PHYSICAL" && (
+                          <p className="text-blue-600 text-xs mt-2 italic">
+                            💡 Tip: Lower times are better for sprints and runs. Higher numbers are better for reps and scores.
+                          </p>
+                        )}
+                      </div>
+                    )}
                     {renderSkillsForCategory(selectedCategory)}
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Individual Skill Modal */}
-      {selectedSkill && selectedCategory && (
-        <>
-          {/* Background overlay - separate from modal content */}
-          <div 
-            className="fixed inset-0 z-[9998] bg-black bg-opacity-80 backdrop-blur-sm"
-            onClick={closeModal}
-            aria-hidden="true"
-          />
-          
-          {/* Modal container - independent of scroll context */}
-          <div className="fixed inset-0 z-[9999] pointer-events-none">
-            <div className="fixed inset-0 pointer-events-auto">
-              <div className="w-full h-full bg-white overflow-y-auto custom-scrollbar">
-                {/* Close button */}
-                  <button
-                    onClick={closeModal}
-                  className="fixed top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-[10000] shadow-lg"
-                    aria-label="Close modal"
-                  >
-                  <X className="w-6 h-6" />
-                  </button>
-
-                {/* Modal content */}
-                <div className="p-6 pt-16 max-w-5xl mx-auto">
-                  {/* Modal header */}
-                  <div className="mb-8">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${selectedCategory.colorScheme.gradient} flex items-center justify-center shadow-lg`}>
-                        {selectedSkill.icon}
-                      </div>
-                      <div>
-                        <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                          {selectedSkill.name}
-                        </h3>
-                        <p className="text-base text-gray-700 capitalize">
-                          {selectedSkill.description}
-                        </p>
-                      </div>
-                </div>
-              </div>
-
-                  {/* Action Buttons */}
-                  <div className="mb-8">
-                {isEditing === selectedCategory.id ? (
-                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
-                    <button
-                      onClick={() => handleCancel(selectedCategory.id)}
-                          className="flex items-center justify-center px-6 py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl order-2 sm:order-1"
-                    >
-                          <X className="w-5 h-5 mr-2" />
-                          <span>Cancel</span>
-                    </button>
-                    <button
-                      onClick={() => handleSave(selectedCategory.id)}
-                          disabled={isSaving}
-                          className="flex items-center justify-center px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
-                    >
-                          <Check className="w-5 h-5 mr-2" />
-                          <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => handleStartEdit(selectedCategory.id)}
-                          className="flex items-center justify-center px-6 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl"
-                    >
-                          <Edit className="w-5 h-5 mr-2" />
-                          <span>Edit</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-                  {/* Modal content */}
-                  <div className="pb-8">
-                    <div className="space-y-6">
-                      <div className={`bg-gradient-to-r ${selectedCategory.colorScheme.gradient} rounded-xl p-6 border border-${selectedCategory.colorScheme.primary}-200 shadow-lg`}>
-                        <h4 className={`text-xl font-bold text-${selectedCategory.colorScheme.primary}-900 mb-3 flex items-center`}>
-                          <FiActivity className="mr-3 w-6 h-6" />
-                          Skill Development Tracking
-                        </h4>
-                        <p className={`text-${selectedCategory.colorScheme.primary}-700 text-base mb-4`}>
-                          Track and monitor your {selectedSkill.name.toLowerCase()} progress.
-                        </p>
-              </div>
-                      <div className="pb-8">
-                        <SkillBar
-                          skill={selectedSkill}
-                          userScore={
-                            isEditing === selectedCategory.id
-                              ? editedScores[selectedSkill.id]
-                              : skillData?.[selectedSkill.id as keyof SkillData] as number
-                          }
-                          averageScore={averages?.averages?.[selectedSkill.id] || 0}
-                          isEditing={isEditing === selectedCategory.id}
-                          onScoreChange={handleScoreChange}
-                          showComparison={selectedCategory.id !== "MENTAL"}
-                          personalizedTarget={
-                            selectedCategory.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
-                              ? (() => {
-                                  const nutrition = calculatePersonalizedNutrition(
-                                    skillData.student.weight,
-                                    skillData.student.height,
-                                    skillData.student.age
-                                  );
-                                  const nutritionKey = selectedSkill.id as keyof NutritionData;
-                                  return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
-                                })()
-                              : undefined
-                          }
-                        />
-            </div>
-          </div>
-        </div>
                 </div>
               </div>
             </div>
