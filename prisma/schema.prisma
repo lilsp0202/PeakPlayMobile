@@ -102,10 +102,18 @@ model Skills {
   studentName           String
   studentEmail          String
   age                   Int
+  // Physical Skills - Strength
   pushupScore           Int?
   pullupScore           Int?
-  sprintTime            Float?
-  run5kTime             Float?
+  verticalJump          Float?   // Vertical jump height in cm
+  gripStrength          Float?   // Grip strength in kg
+  // Physical Skills - Speed & Agility
+  sprintTime            Float?   // Legacy 100m sprint time (backwards compatibility)
+  sprint50m             Float?   // 50m sprint time in seconds
+  shuttleRun            Float?   // Shuttle run time in seconds
+  // Physical Skills - Endurance
+  run5kTime             Float?   // 5K run time in minutes
+  yoyoTest              Int?     // Yo-Yo test level (0-21)
   category              String   @default("PHYSICAL")
   lastUpdated           DateTime @default(now())
   createdAt             DateTime @default(now())

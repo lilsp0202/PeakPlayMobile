@@ -59,11 +59,18 @@ export async function GET(request: Request) {
         age: ageFilter,
       },
       select: {
-        // Physical skills
+        // Physical skills - Strength
         pushupScore: true,
         pullupScore: true,
+        verticalJump: true,
+        gripStrength: true,
+        // Physical skills - Speed & Agility
         sprintTime: true,
+        sprint50m: true,
+        shuttleRun: true,
+        // Physical skills - Endurance
         run5kTime: true,
+        yoyoTest: true,
         // Mental skills
         moodScore: true,
         sleepScore: true,
@@ -79,11 +86,18 @@ export async function GET(request: Request) {
       return NextResponse.json({
         ageGroup,
         averages: {
-          // Physical
+          // Physical - Strength
           pushupScore: 0,
           pullupScore: 0,
+          verticalJump: 0,
+          gripStrength: 0,
+          // Physical - Speed & Agility
           sprintTime: 0,
+          sprint50m: 0,
+          shuttleRun: 0,
+          // Physical - Endurance
           run5kTime: 0,
+          yoyoTest: 0,
           // Mental
           moodScore: 0,
           sleepScore: 0,
@@ -99,18 +113,33 @@ export async function GET(request: Request) {
     
     // Calculate averages
     interface TotalsAccumulator {
+      // Physical - Strength
       pushupScore: number;
       pullupScore: number;
-      sprintTime: number;
-      run5kTime: number;
+      verticalJump: number;
+      gripStrength: number;
       pushupCount: number;
       pullupCount: number;
+      verticalJumpCount: number;
+      gripStrengthCount: number;
+      // Physical - Speed & Agility
+      sprintTime: number;
+      sprint50m: number;
+      shuttleRun: number;
       sprintCount: number;
+      sprint50mCount: number;
+      shuttleRunCount: number;
+      // Physical - Endurance
+      run5kTime: number;
+      yoyoTest: number;
       run5kCount: number;
+      yoyoTestCount: number;
+      // Mental
       moodScore: number;
       sleepScore: number;
       moodCount: number;
       sleepCount: number;
+      // Nutrition
       totalCalories: number;
       protein: number;
       carbohydrates: number;
@@ -123,15 +152,29 @@ export async function GET(request: Request) {
 
     const totals = skillsInAgeGroup.reduce<TotalsAccumulator>(
       (acc, skills) => ({
-        // Physical skills
+        // Physical skills - Strength
         pushupScore: acc.pushupScore + (skills.pushupScore || 0),
         pullupScore: acc.pullupScore + (skills.pullupScore || 0),
-        sprintTime: acc.sprintTime + (skills.sprintTime || 0),
-        run5kTime: acc.run5kTime + (skills.run5kTime || 0),
+        verticalJump: acc.verticalJump + (skills.verticalJump || 0),
+        gripStrength: acc.gripStrength + (skills.gripStrength || 0),
         pushupCount: acc.pushupCount + (skills.pushupScore ? 1 : 0),
         pullupCount: acc.pullupCount + (skills.pullupScore ? 1 : 0),
+        verticalJumpCount: acc.verticalJumpCount + (skills.verticalJump ? 1 : 0),
+        gripStrengthCount: acc.gripStrengthCount + (skills.gripStrength ? 1 : 0),
+        
+        // Physical skills - Speed & Agility
+        sprintTime: acc.sprintTime + (skills.sprintTime || 0),
+        sprint50m: acc.sprint50m + (skills.sprint50m || 0),
+        shuttleRun: acc.shuttleRun + (skills.shuttleRun || 0),
         sprintCount: acc.sprintCount + (skills.sprintTime ? 1 : 0),
+        sprint50mCount: acc.sprint50mCount + (skills.sprint50m ? 1 : 0),
+        shuttleRunCount: acc.shuttleRunCount + (skills.shuttleRun ? 1 : 0),
+        
+        // Physical skills - Endurance
+        run5kTime: acc.run5kTime + (skills.run5kTime || 0),
+        yoyoTest: acc.yoyoTest + (skills.yoyoTest || 0),
         run5kCount: acc.run5kCount + (skills.run5kTime ? 1 : 0),
+        yoyoTestCount: acc.yoyoTestCount + (skills.yoyoTest ? 1 : 0),
         
         // Mental skills
         moodScore: acc.moodScore + (skills.moodScore || 0),
@@ -150,15 +193,29 @@ export async function GET(request: Request) {
         fatsCount: acc.fatsCount + (skills.fats ? 1 : 0),
       }),
       {
-        // Physical
+        // Physical - Strength
         pushupScore: 0,
         pullupScore: 0,
-        sprintTime: 0,
-        run5kTime: 0,
+        verticalJump: 0,
+        gripStrength: 0,
         pushupCount: 0,
         pullupCount: 0,
+        verticalJumpCount: 0,
+        gripStrengthCount: 0,
+        
+        // Physical - Speed & Agility
+        sprintTime: 0,
+        sprint50m: 0,
+        shuttleRun: 0,
         sprintCount: 0,
+        sprint50mCount: 0,
+        shuttleRunCount: 0,
+        
+        // Physical - Endurance
+        run5kTime: 0,
+        yoyoTest: 0,
         run5kCount: 0,
+        yoyoTestCount: 0,
         
         // Mental
         moodScore: 0,
@@ -179,11 +236,20 @@ export async function GET(request: Request) {
     );
     
     const averages = {
-      // Physical skills
+      // Physical skills - Strength
       pushupScore: totals.pushupCount > 0 ? Math.round(totals.pushupScore / totals.pushupCount) : 0,
       pullupScore: totals.pullupCount > 0 ? Math.round(totals.pullupScore / totals.pullupCount) : 0,
+      verticalJump: totals.verticalJumpCount > 0 ? Number((totals.verticalJump / totals.verticalJumpCount).toFixed(1)) : 0,
+      gripStrength: totals.gripStrengthCount > 0 ? Number((totals.gripStrength / totals.gripStrengthCount).toFixed(1)) : 0,
+      
+      // Physical skills - Speed & Agility
       sprintTime: totals.sprintCount > 0 ? Number((totals.sprintTime / totals.sprintCount).toFixed(2)) : 0,
+      sprint50m: totals.sprint50mCount > 0 ? Number((totals.sprint50m / totals.sprint50mCount).toFixed(2)) : 0,
+      shuttleRun: totals.shuttleRunCount > 0 ? Number((totals.shuttleRun / totals.shuttleRunCount).toFixed(2)) : 0,
+      
+      // Physical skills - Endurance
       run5kTime: totals.run5kCount > 0 ? Number((totals.run5kTime / totals.run5kCount).toFixed(2)) : 0,
+      yoyoTest: totals.yoyoTestCount > 0 ? Math.round(totals.yoyoTest / totals.yoyoTestCount) : 0,
       
       // Mental skills
       moodScore: totals.moodCount > 0 ? Number((totals.moodScore / totals.moodCount).toFixed(1)) : 0,

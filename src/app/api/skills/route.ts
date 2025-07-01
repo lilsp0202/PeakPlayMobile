@@ -125,11 +125,18 @@ export async function POST(request: Request) {
     console.log("Skills API - Received request body:", JSON.stringify(requestBody, null, 2));
     
     const {
-      // Physical skills
+      // Physical skills - Strength
       pushupScore,
       pullupScore,
+      verticalJump,
+      gripStrength,
+      // Physical skills - Speed & Agility
       sprintTime,
+      sprint50m,
+      shuttleRun,
+      // Physical skills - Endurance
       run5kTime,
+      yoyoTest,
       // Mental skills
       moodScore,
       sleepScore,
@@ -275,11 +282,20 @@ export async function POST(request: Request) {
     // Prepare update data - only include fields that are actually provided
     const updateData: any = {};
     
-    // Physical skills
+    // Physical skills - Strength
     if (pushupScore !== undefined) updateData.pushupScore = pushupScore;
     if (pullupScore !== undefined) updateData.pullupScore = pullupScore;
+    if (verticalJump !== undefined) updateData.verticalJump = verticalJump;
+    if (gripStrength !== undefined) updateData.gripStrength = gripStrength;
+    
+    // Physical skills - Speed & Agility
     if (sprintTime !== undefined) updateData.sprintTime = sprintTime;
+    if (sprint50m !== undefined) updateData.sprint50m = sprint50m;
+    if (shuttleRun !== undefined) updateData.shuttleRun = shuttleRun;
+    
+    // Physical skills - Endurance
     if (run5kTime !== undefined) updateData.run5kTime = run5kTime;
+    if (yoyoTest !== undefined) updateData.yoyoTest = yoyoTest;
 
     // Mental skills
     if (moodScore !== undefined) updateData.moodScore = moodScore;
