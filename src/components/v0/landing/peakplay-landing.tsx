@@ -331,74 +331,49 @@ export default function PeakPlayLanding() {
       `}</style>
 
       <div className="relative min-h-screen text-slate-900 overflow-hidden">
-        {/* Modern Animated Background */}
+        {/* Modern Animated Background - More Subtle */}
         <div className="fixed inset-0 -z-10">
-          {/* Base gradient layer */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-indigo-50" />
+          {/* Base gradient layer - softer */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-indigo-50/40" />
           
-          {/* Animated gradient mesh */}
-          <div className="absolute inset-0 animate-gradient-shift bg-gradient-to-tr from-purple-100/40 via-transparent to-indigo-100/40" />
+          {/* Animated gradient mesh - more subtle */}
+          <div className="absolute inset-0 animate-gradient-shift bg-gradient-to-tr from-purple-50/20 via-transparent to-indigo-50/20" />
           
-          {/* Floating geometric shapes */}
-          <div className="absolute top-10 left-10 w-64 h-64 animate-float-path-1">
-            <div className="w-full h-full bg-gradient-to-br from-purple-200/50 to-indigo-200/50 rounded-full animate-morphingShape" />
+          {/* Fewer, more subtle floating shapes */}
+          <div className="absolute top-20 left-[10%] w-72 h-72 animate-subtle-float">
+            <div className="w-full h-full bg-gradient-to-br from-purple-100/20 to-indigo-100/20 rounded-full blur-3xl" />
           </div>
           
-          <div className="absolute top-1/3 right-10 w-48 h-48 animate-float-path-2">
-            <div className="w-full h-full bg-gradient-to-tr from-indigo-200/40 to-purple-200/40 animate-rotateShape" 
-                 style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
+          <div className="absolute bottom-20 right-[15%] w-96 h-96 animate-subtle-float" style={{ animationDelay: '2s' }}>
+            <div className="w-full h-full bg-gradient-to-tr from-indigo-100/15 to-purple-100/15 rounded-full blur-3xl" />
           </div>
           
-          <div className="absolute bottom-20 left-1/4 w-56 h-56 animate-subtle-float">
-            <div className="w-full h-full bg-gradient-to-bl from-purple-300/40 to-transparent rounded-full animate-glow-pulse" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] animate-subtle-float" style={{ animationDelay: '4s' }}>
+            <div className="w-full h-full bg-gradient-to-br from-purple-50/10 to-transparent rounded-full blur-3xl" />
           </div>
           
-          <div className="absolute top-1/2 right-1/3 w-40 h-40 animate-float-path-1">
-            <div className="w-full h-full bg-gradient-to-br from-indigo-300/40 to-purple-300/40" 
-                 style={{ clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)' }} />
-          </div>
-          
-          {/* Particle field */}
-          <div className="absolute inset-0">
-            {[...Array(20)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-2 h-2 bg-purple-400/50 rounded-full animate-floatingOrb"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 10}s`,
-                  animationDuration: `${15 + Math.random() * 10}s`
-                }}
-              />
-            ))}
-          </div>
-          
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 opacity-[0.02]"
+          {/* Very subtle grid pattern */}
+          <div className="absolute inset-0 opacity-[0.01]"
                style={{
-                 backgroundImage: `linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px),
-                                  linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px)`,
-                 backgroundSize: '50px 50px'
+                 backgroundImage: `linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+                                  linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px)`,
+                 backgroundSize: '80px 80px'
                }} />
-          
-          {/* Radial gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
         </div>
 
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="fixed top-6 right-6 z-50 md:hidden glass-morphism p-3 rounded-xl"
+          className="fixed top-6 right-6 z-50 md:hidden bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-sm"
         >
-          {isMenuOpen ? <X className="w-6 h-6 text-purple-700" /> : <Menu className="w-6 h-6 text-purple-700" />}
+          {isMenuOpen ? <X className="w-6 h-6 text-slate-700" /> : <Menu className="w-6 h-6 text-slate-700" />}
         </button>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="fixed inset-0 z-40 md:hidden">
-            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
-            <div className="absolute right-0 top-0 h-full w-64 bg-white/90 backdrop-blur-xl shadow-2xl p-8 pt-20">
+            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
+            <div className="absolute right-0 top-0 h-full w-64 bg-white/95 backdrop-blur-xl shadow-2xl p-8 pt-20">
               <nav className="space-y-6">
                 <Link href="/auth/signin" className="block text-lg font-medium text-slate-700 hover:text-purple-700 transition-colors">
                   Sign In
@@ -413,21 +388,42 @@ export default function PeakPlayLanding() {
           </div>
         )}
 
-        {/* Navigation with glass morphism effect */}
+        {/* Navigation with Lightning Bolt Logo */}
         <div className="flex items-center justify-center px-4 sm:px-8 py-6 sm:py-12 max-w-7xl mx-auto relative z-10">
-          {/* Logo positioned directly on page background */}
-          <Link href="/" className="flex items-center space-x-2 group">
-            <div className="relative w-10 h-10 sm:w-14 sm:h-14 group-hover:scale-110 transition-transform duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 rounded-xl rotate-45 group-hover:rotate-90 transition-transform duration-500 shadow-lg"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white font-black text-xl sm:text-3xl transform -rotate-12 group-hover:rotate-0 transition-transform duration-500">
-                  P
-                </span>
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
+            {/* Lightning Bolt Logo */}
+            <div className="relative group-hover:scale-110 transition-transform duration-500">
+              {/* Subtle glow effect */}
+              <div className="absolute -inset-2 bg-gradient-to-r from-indigo-200/20 to-purple-200/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-lg"></div>
+              
+              {/* Lightning Bolt SVG */}
+              <div className="relative w-8 h-10 sm:w-12 sm:h-14 flex items-center justify-center">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="w-6 h-8 sm:w-10 sm:h-12 text-indigo-600"
+                  style={{
+                    filter: "drop-shadow(0 0 4px rgba(99, 102, 241, 0.1))",
+                  }}
+                >
+                  <path
+                    d="M13 1L2 15h7l-2 9 11-13h-7l2-9z"
+                    fill="url(#lightningGradient)"
+                    className="group-hover:filter group-hover:brightness-110 transition-all duration-300"
+                  />
+                  <defs>
+                    <linearGradient id="lightningGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#6366f1" />
+                      <stop offset="50%" stopColor="#8b5cf6" />
+                      <stop offset="100%" stopColor="#6366f1" />
+                    </linearGradient>
+                  </defs>
+                </svg>
               </div>
-              {/* Glow effect on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-indigo-400 rounded-xl rotate-45 opacity-0 group-hover:opacity-50 blur-xl transition-all duration-500"></div>
             </div>
-            <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-700 to-indigo-700 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:to-indigo-600 transition-all duration-300">
+            
+            {/* Text Logo */}
+            <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:to-purple-700 transition-all duration-300">
               PeakPlay
             </span>
           </Link>
@@ -460,7 +456,7 @@ export default function PeakPlayLanding() {
             
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
               <Link href="/auth/signup">
-                <Button className="group relative px-8 py-6 text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                <Button className="group relative px-8 py-6 text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
                   <span className="relative z-10">Start Your Journey</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </Button>
@@ -468,24 +464,23 @@ export default function PeakPlayLanding() {
               
               <button
                 onClick={handleWatchDemo}
-                className="group flex items-center gap-3 px-8 py-6 text-lg font-semibold text-purple-700 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 border border-purple-200"
+                className="group flex items-center gap-3 px-8 py-6 text-lg font-semibold text-purple-700 bg-white/90 backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 border border-purple-100"
               >
                 <div className="relative">
                   <Play className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                  <div className="absolute inset-0 bg-purple-400 blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
                 </div>
                 Watch Demo
               </button>
             </div>
           </div>
 
-          {/* Feature badges with floating animation */}
+          {/* Feature badges with subtle animation */}
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-12 sm:mb-20 relative z-10">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="group flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-white/80 backdrop-blur-sm rounded-full shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 animate-subtle-float"
-                style={{ animationDelay: `${index * 0.2}s` }}
+                className="group flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 group-hover:scale-110 transition-transform" />
                 <span className="text-sm sm:text-base font-medium text-slate-700">{feature.text}</span>
@@ -493,20 +488,20 @@ export default function PeakPlayLanding() {
             ))}
           </div>
 
-          {/* Role Cards with enhanced 3D effects */}
+          {/* Role Cards with subtle effects */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 relative z-10">
             {roles.map((role, index) => (
               <div
                 key={role.id}
                 onClick={() => handleRoleCardClick(role.title)}
-                className={`group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl hover:shadow-2xl transform transition-all duration-500 cursor-pointer overflow-hidden ${
-                  activeIndex === index ? "scale-105 -translate-y-2" : "hover:scale-102 hover:-translate-y-1"
-                } ${role.color} ${role.borderColor} border-2`}
+                className={`group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-lg hover:shadow-xl transform transition-all duration-500 cursor-pointer overflow-hidden ${
+                  activeIndex === index ? "scale-[1.02] shadow-xl" : "hover:scale-[1.01]"
+                } ${role.color} ${role.borderColor} border`}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                {/* Animated background pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent animate-gradient-shift"></div>
+                {/* Subtle animated background pattern */}
+                <div className="absolute inset-0 opacity-5">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent"></div>
                 </div>
                 
                 <div className="relative z-10">
@@ -526,21 +521,20 @@ export default function PeakPlayLanding() {
                   </div>
                 </div>
                 
-                {/* Active indicator with glow */}
+                {/* Active indicator - more subtle */}
                 {activeIndex === index && (
-                  <div className="absolute inset-0 border-4 border-white/30 rounded-2xl sm:rounded-3xl animate-pulse"></div>
+                  <div className="absolute inset-0 border-2 border-white/20 rounded-2xl sm:rounded-3xl"></div>
                 )}
               </div>
             ))}
           </div>
         </section>
 
-        {/* Skill Pillars Section with particle effects */}
+        {/* Skill Pillars Section with subtle effects */}
         <section className="px-4 sm:px-8 py-16 sm:py-24 relative overflow-hidden">
-          {/* Section background with animated mesh */}
+          {/* Section background - very subtle */}
           <div className="absolute inset-0 -z-10">
-            <div className="absolute inset-0 bg-gradient-to-b from-purple-50/50 via-white to-indigo-50/50"></div>
-            <div className="absolute inset-0 animate-gradient-shift bg-gradient-to-tr from-purple-100/10 via-transparent to-indigo-100/10"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-50/10 to-transparent"></div>
           </div>
           
           <div className="max-w-7xl mx-auto relative z-10">
@@ -559,26 +553,11 @@ export default function PeakPlayLanding() {
               {skillPillars.map((pillar, index) => (
                 <div
                   key={index}
-                  className={`group relative p-6 rounded-2xl ${pillar.bgColor} backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300 overflow-hidden animate-fade-in`}
+                  className={`group relative p-6 rounded-2xl ${pillar.bgColor} backdrop-blur-sm shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  {/* Floating particles */}
-                  <div className="absolute inset-0">
-                    {[...Array(3)].map((_, i) => (
-                      <div
-                        key={i}
-                        className={`absolute w-2 h-2 ${pillar.particleColor} rounded-full animate-floatingOrb opacity-30`}
-                        style={{
-                          left: `${20 + i * 30}%`,
-                          animationDelay: `${i * 0.5}s`,
-                          animationDuration: `${3 + i}s`
-                        }}
-                      />
-                    ))}
-                  </div>
-                  
                   <div className="relative z-10">
-                    <div className="text-4xl mb-4 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                    <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
                       {pillar.icon}
                     </div>
                     <h3 className={`text-xl font-bold mb-2 ${pillar.textColor}`}>{pillar.title}</h3>
@@ -590,7 +569,7 @@ export default function PeakPlayLanding() {
           </div>
         </section>
 
-        {/* Coaching Marketplace Section with gradient cards */}
+        {/* Coaching Marketplace Section with subtle gradient cards */}
         <section className="px-4 sm:px-8 py-16 sm:py-24 relative">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12 sm:mb-16">
@@ -608,14 +587,14 @@ export default function PeakPlayLanding() {
               {coachingOptions.map((option, index) => (
                 <div
                   key={index}
-                  className="group relative p-8 rounded-3xl bg-white shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 overflow-hidden"
-                  style={{ animationDelay: `${index * 0.15}s` }}
+                  className="group relative p-8 rounded-3xl bg-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  {/* Gradient background on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${option.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                  {/* Subtle gradient background on hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${option.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
                   
                   <div className="relative z-10">
-                    <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${option.color} text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                    <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${option.color} text-white mb-6 group-hover:scale-105 transition-transform duration-300`}>
                       <option.icon className="w-8 h-8" />
                     </div>
                     <h3 className="text-2xl font-bold mb-3 text-slate-800">{option.title}</h3>
