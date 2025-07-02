@@ -89,83 +89,216 @@ interface PeakScoreProps {
   isLoading?: boolean;
 }
 
-// Calculate aggregate scores for each category
-const calculatePhysicalAggregateScore = (skillData: SkillData | null): number => {
+// Calculate aggregate scores for each category (out of 100 points each)
+const calculatePhysicalScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
   
-  const scores = [];
+  let totalScore = 0;
+  let maxPossibleScore = 0;
   
-  // Strength scores (using basic scoring for now)
-  if (skillData.pushupScore) scores.push(Math.min(10, skillData.pushupScore / 5));
-  if (skillData.pullupScore) scores.push(Math.min(10, skillData.pullupScore / 2));
-  if (skillData.verticalJump) scores.push(Math.min(10, skillData.verticalJump / 3));
-  if (skillData.gripStrength) scores.push(Math.min(10, skillData.gripStrength / 10));
+  // Strength Component (40 points max)
+  const strengthScores = [];
+  if (skillData.pushupScore) {
+    // Age-based pushup scoring (0-10 points)
+    const age = skillData.student?.age || 18;
+    const pushupBenchmark = age < 16 ? 20 : age < 18 ? 30 : 40;
+    strengthScores.push(Math.min(10, (skillData.pushupScore / pushupBenchmark) * 10));
+  }
+  if (skillData.pullupScore) {
+    // Pullup scoring (0-10 points)
+    strengthScores.push(Math.min(10, (skillData.pullupScore / 10) * 10));
+  }
+  if (skillData.verticalJump) {
+    // Vertical jump scoring in cm (0-10 points)
+    strengthScores.push(Math.min(10, (skillData.verticalJump / 60) * 10));
+  }
+  if (skillData.gripStrength) {
+    // Grip strength scoring in kg (0-10 points)
+    const age = skillData.student?.age || 18;
+    const gripBenchmark = age < 16 ? 30 : age < 18 ? 40 : 50;
+    strengthScores.push(Math.min(10, (skillData.gripStrength / gripBenchmark) * 10));
+  }
   
-  // Speed & Agility (lower is better for time-based)
-  if (skillData.sprint50m) scores.push(Math.max(0, 10 - (skillData.sprint50m - 6) * 2));
-  if (skillData.shuttleRun) scores.push(Math.max(0, 10 - (skillData.shuttleRun - 15) * 0.5));
-  if (skillData.sprintTime) scores.push(Math.max(0, 10 - (skillData.sprintTime - 10) * 0.5));
+  if (strengthScores.length > 0) {
+    const strengthAvg = strengthScores.reduce((a, b) => a + b, 0) / strengthScores.length;
+    totalScore += (strengthAvg / 10) * 40; // Scale to 40 points
+    maxPossibleScore += 40;
+  }
   
-  // Endurance (lower is better for time-based)
-  if (skillData.run5kTime) scores.push(Math.max(0, 10 - (skillData.run5kTime - 20) * 0.2));
-  if (skillData.yoyoTest) scores.push(Math.min(10, skillData.yoyoTest / 10));
+  // Speed & Agility Component (30 points max)
+  const speedScores = [];
+  if (skillData.sprint50m) {
+    // 50m sprint scoring - lower time is better (0-10 points)
+    const benchmark = 7.5; // seconds
+    speedScores.push(Math.max(0, Math.min(10, (benchmark / skillData.sprint50m) * 10)));
+  }
+  if (skillData.shuttleRun) {
+    // Shuttle run scoring - lower time is better (0-10 points)
+    const benchmark = 16; // seconds
+    speedScores.push(Math.max(0, Math.min(10, (benchmark / skillData.shuttleRun) * 10)));
+  }
+  if (skillData.sprintTime) {
+    // General sprint scoring - lower time is better (0-10 points)
+    const benchmark = 12; // seconds
+    speedScores.push(Math.max(0, Math.min(10, (benchmark / skillData.sprintTime) * 10)));
+  }
   
-  if (scores.length === 0) return 0;
-  return scores.reduce((a, b) => a + b, 0) / scores.length;
+  if (speedScores.length > 0) {
+    const speedAvg = speedScores.reduce((a, b) => a + b, 0) / speedScores.length;
+    totalScore += (speedAvg / 10) * 30; // Scale to 30 points
+    maxPossibleScore += 30;
+  }
+  
+  // Endurance Component (30 points max)
+  const enduranceScores = [];
+  if (skillData.run5kTime) {
+    // 5K run scoring - lower time is better (0-10 points)
+    const age = skillData.student?.age || 18;
+    const benchmark = age < 16 ? 25 : age < 18 ? 22 : 20; // minutes
+    enduranceScores.push(Math.max(0, Math.min(10, (benchmark / skillData.run5kTime) * 10)));
+  }
+  if (skillData.yoyoTest) {
+    // Yo-yo test scoring - higher is better (0-10 points)
+    enduranceScores.push(Math.min(10, (skillData.yoyoTest / 15) * 10));
+  }
+  
+  if (enduranceScores.length > 0) {
+    const enduranceAvg = enduranceScores.reduce((a, b) => a + b, 0) / enduranceScores.length;
+    totalScore += (enduranceAvg / 10) * 30; // Scale to 30 points
+    maxPossibleScore += 30;
+  }
+  
+  // Return score out of 100, scaled based on available data
+  return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
 };
 
-const calculateMentalAggregateScore = (skillData: SkillData | null): number => {
+const calculateMentalScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
   
-  const scores = [];
-  if (skillData.moodScore) scores.push(skillData.moodScore);
-  if (skillData.sleepScore) scores.push(skillData.sleepScore);
+  let totalScore = 0;
+  let maxPossibleScore = 0;
   
-  if (scores.length === 0) return 0;
-  return scores.reduce((a, b) => a + b, 0) / scores.length;
+  // Mood Score Component (50 points max)
+  if (skillData.moodScore) {
+    totalScore += (skillData.moodScore / 10) * 50;
+    maxPossibleScore += 50;
+  }
+  
+  // Sleep Score Component (50 points max)
+  if (skillData.sleepScore) {
+    totalScore += (skillData.sleepScore / 10) * 50;
+    maxPossibleScore += 50;
+  }
+  
+  // Return score out of 100
+  return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
 };
 
-const calculateNutritionAggregateScore = (skillData: SkillData | null): number => {
+const calculateNutritionScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
   
-  const scores = [];
+  let totalScore = 0;
+  let maxPossibleScore = 0;
   
-  // Basic nutrition scoring (you can enhance this with age-based recommendations)
-  if (skillData.totalCalories) scores.push(Math.min(10, skillData.totalCalories / 300));
-  if (skillData.protein) scores.push(Math.min(10, skillData.protein / 15));
-  if (skillData.carbohydrates) scores.push(Math.min(10, skillData.carbohydrates / 40));
-  if (skillData.fats) scores.push(Math.min(10, skillData.fats / 8));
-  if (skillData.waterIntake) scores.push(Math.min(10, skillData.waterIntake * 3.33)); // 0-3L -> 0-10
+  const age = skillData.student?.age || 18;
+  const weight = skillData.student?.weight || 70; // kg
   
-  if (scores.length === 0) return 0;
-  return scores.reduce((a, b) => a + b, 0) / scores.length;
+  // Calorie intake scoring (25 points max)
+  if (skillData.totalCalories) {
+    const calorieTarget = age < 16 ? 2200 : age < 18 ? 2500 : 2800;
+    const calorieRatio = Math.min(1, skillData.totalCalories / calorieTarget);
+    // Penalize if too far from target (both under and over)
+    const calorieScore = calorieRatio > 1.2 ? 5 : calorieRatio < 0.7 ? 3 : 10;
+    totalScore += (calorieScore / 10) * 25;
+    maxPossibleScore += 25;
+  }
+  
+  // Protein intake scoring (25 points max)
+  if (skillData.protein) {
+    const proteinTarget = weight * 1.6; // g per kg body weight for athletes
+    const proteinRatio = Math.min(1.5, skillData.protein / proteinTarget);
+    const proteinScore = proteinRatio < 0.8 ? 5 : proteinRatio > 1.3 ? 7 : 10;
+    totalScore += (proteinScore / 10) * 25;
+    maxPossibleScore += 25;
+  }
+  
+  // Carbohydrate intake scoring (25 points max)
+  if (skillData.carbohydrates) {
+    const carbTarget = weight * 5; // g per kg body weight for athletes
+    const carbRatio = Math.min(1.5, skillData.carbohydrates / carbTarget);
+    const carbScore = carbRatio < 0.7 ? 4 : carbRatio > 1.4 ? 6 : 10;
+    totalScore += (carbScore / 10) * 25;
+    maxPossibleScore += 25;
+  }
+  
+  // Water intake scoring (25 points max)
+  if (skillData.waterIntake) {
+    const waterTarget = 3.0; // liters per day for athletes
+    const waterRatio = Math.min(1.3, skillData.waterIntake / waterTarget);
+    const waterScore = waterRatio < 0.6 ? 3 : waterRatio > 1.2 ? 7 : 10;
+    totalScore += (waterScore / 10) * 25;
+    maxPossibleScore += 25;
+  }
+  
+  // Return score out of 100
+  return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
 };
 
-const calculateTechnicalAggregateScore = (skillData: SkillData | null): number => {
+const calculateTechnicalScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
   
+  // Batting skills (out of 10 each)
   const battingSkills = [
     skillData.battingGrip, skillData.battingStance, skillData.battingBalance,
     skillData.cockingOfWrist, skillData.backLift, skillData.topHandDominance,
     skillData.highElbow, skillData.runningBetweenWickets, skillData.calling
   ].filter(score => score !== undefined && score !== null) as number[];
   
+  // Bowling skills (out of 10 each)
   const bowlingSkills = [
     skillData.bowlingGrip, skillData.runUp, skillData.backFootLanding,
     skillData.frontFootLanding, skillData.hipDrive, skillData.backFootDrag,
     skillData.nonBowlingArm, skillData.release, skillData.followThrough
   ].filter(score => score !== undefined && score !== null) as number[];
   
+  // Fielding skills (out of 10 each)
   const fieldingSkills = [
     skillData.positioningOfBall, skillData.pickUp, skillData.aim,
     skillData.throw, skillData.softHands, skillData.receiving,
     skillData.highCatch, skillData.flatCatch
   ].filter(score => score !== undefined && score !== null) as number[];
   
-  const allSkills = [...battingSkills, ...bowlingSkills, ...fieldingSkills];
+  let totalScore = 0;
+  let maxPossibleScore = 0;
   
-  if (allSkills.length === 0) return 0;
-  return allSkills.reduce((a, b) => a + b, 0) / allSkills.length;
+  // Batting component (35 points max)
+  if (battingSkills.length > 0) {
+    const battingAvg = battingSkills.reduce((a, b) => a + b, 0) / battingSkills.length;
+    totalScore += (battingAvg / 10) * 35;
+    maxPossibleScore += 35;
+  }
+  
+  // Bowling component (35 points max)
+  if (bowlingSkills.length > 0) {
+    const bowlingAvg = bowlingSkills.reduce((a, b) => a + b, 0) / bowlingSkills.length;
+    totalScore += (bowlingAvg / 10) * 35;
+    maxPossibleScore += 35;
+  }
+  
+  // Fielding component (30 points max)
+  if (fieldingSkills.length > 0) {
+    const fieldingAvg = fieldingSkills.reduce((a, b) => a + b, 0) / fieldingSkills.length;
+    totalScore += (fieldingAvg / 10) * 30;
+    maxPossibleScore += 30;
+  }
+  
+  // Return score out of 100
+  return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
+};
+
+const calculateTacticalScore = (): number => {
+  // Placeholder tactical score - convert 6.5/10 to 65/100
+  return 65;
 };
 
 const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) => {
@@ -174,58 +307,45 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
   const [showDetails, setShowDetails] = useState(false);
 
   // Calculate scores for each category
-  const physicalScore = calculatePhysicalAggregateScore(skillData);
-  const mentalScore = calculateMentalAggregateScore(skillData);
-  const nutritionScore = calculateNutritionAggregateScore(skillData);
-  const technicalScore = calculateTechnicalAggregateScore(skillData);
-  const tacticalScore = 6.5; // Placeholder for tactical skills
+  const physicalScore = calculatePhysicalScore(skillData);
+  const mentalScore = calculateMentalScore(skillData);
+  const nutritionScore = calculateNutritionScore(skillData);
+  const technicalScore = calculateTechnicalScore(skillData);
+  const tacticalScore = calculateTacticalScore();
 
-  // Calculate overall PeakScore (weighted average)
-  const validScores = [
-    { score: physicalScore, weight: 0.25 },
-    { score: mentalScore, weight: 0.2 },
-    { score: nutritionScore, weight: 0.2 },
-    { score: technicalScore, weight: 0.25 },
-    { score: tacticalScore, weight: 0.1 }
-  ].filter(item => item.score > 0);
+  // Calculate overall PeakScore (sum of all categories out of 500)
+  const peakScore = Math.round(physicalScore + mentalScore + nutritionScore + technicalScore + tacticalScore);
 
-  const peakScore = validScores.length > 0 
-    ? validScores.reduce((acc, item) => acc + (item.score * item.weight), 0) / 
-      validScores.reduce((acc, item) => acc + item.weight, 0)
-    : 0;
-
-  const peakScoreScaled = Math.round(peakScore * 27.3); // Scale to match the 273 in the screenshot
-
-  // Prepare radar chart data
+  // Prepare radar chart data (normalized to 0-100 scale for visualization)
   const radarData = [
     {
       skill: 'Physical',
       score: physicalScore,
-      fullMark: 10,
+      fullMark: 100,
       icon: '💪'
     },
     {
       skill: 'Mental',
       score: mentalScore,
-      fullMark: 10,
+      fullMark: 100,
       icon: '🧠'
     },
     {
       skill: 'Nutrition',
       score: nutritionScore,
-      fullMark: 10,
+      fullMark: 100,
       icon: '🥗'
     },
     {
       skill: 'Technical',
       score: technicalScore,
-      fullMark: 10,
+      fullMark: 100,
       icon: '⚡'
     },
     {
       skill: 'Tactical',
       score: tacticalScore,
-      fullMark: 10,
+      fullMark: 100,
       icon: '🎯'
     }
   ];
@@ -239,12 +359,9 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
       score: physicalScore,
       color: 'from-red-500 to-orange-500',
       details: [
-        { name: 'Upper Strength', value: physicalScore * 0.8, max: 10 },
-        { name: 'Lower Strength', value: physicalScore * 0.9, max: 10 },
-        { name: 'Short Duration', value: physicalScore * 0.7, max: 10 },
-        { name: 'Medium Duration', value: physicalScore * 0.85, max: 10 },
-        { name: 'Longer Duration', value: physicalScore * 0.75, max: 10 },
-        { name: 'Aerobic Endurance', value: physicalScore * 0.8, max: 10 }
+        { name: 'Strength', value: physicalScore * 0.4, max: 40 },
+        { name: 'Speed & Agility', value: physicalScore * 0.3, max: 30 },
+        { name: 'Endurance', value: physicalScore * 0.3, max: 30 }
       ]
     },
     {
@@ -254,8 +371,8 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
       score: mentalScore,
       color: 'from-purple-500 to-pink-500',
       details: [
-        { name: 'Mood Score', value: skillData?.moodScore || 0, max: 10 },
-        { name: 'Sleep Quality', value: skillData?.sleepScore || 0, max: 10 }
+        { name: 'Mood Score', value: skillData?.moodScore ? (skillData.moodScore / 10) * 50 : 0, max: 50 },
+        { name: 'Sleep Quality', value: skillData?.sleepScore ? (skillData.sleepScore / 10) * 50 : 0, max: 50 }
       ]
     },
     {
@@ -265,11 +382,10 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
       score: nutritionScore,
       color: 'from-green-500 to-teal-500',
       details: [
-        { name: 'Calories', value: skillData?.totalCalories ? Math.min(10, skillData.totalCalories / 300) : 0, max: 10 },
-        { name: 'Protein', value: skillData?.protein ? Math.min(10, skillData.protein / 15) : 0, max: 10 },
-        { name: 'Carbs', value: skillData?.carbohydrates ? Math.min(10, skillData.carbohydrates / 40) : 0, max: 10 },
-        { name: 'Fats', value: skillData?.fats ? Math.min(10, skillData.fats / 8) : 0, max: 10 },
-        { name: 'Water', value: skillData?.waterIntake ? Math.min(10, skillData.waterIntake * 3.33) : 0, max: 10 }
+        { name: 'Calories', value: nutritionScore * 0.25, max: 25 },
+        { name: 'Protein', value: nutritionScore * 0.25, max: 25 },
+        { name: 'Carbs', value: nutritionScore * 0.25, max: 25 },
+        { name: 'Water', value: nutritionScore * 0.25, max: 25 }
       ]
     },
     {
@@ -279,9 +395,9 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
       score: technicalScore,
       color: 'from-blue-500 to-indigo-500',
       details: [
-        { name: 'Batting', value: technicalScore * 0.85, max: 10 },
-        { name: 'Bowling', value: technicalScore * 0.9, max: 10 },
-        { name: 'Fielding', value: technicalScore * 0.8, max: 10 }
+        { name: 'Batting', value: technicalScore * 0.35, max: 35 },
+        { name: 'Bowling', value: technicalScore * 0.35, max: 35 },
+        { name: 'Fielding', value: technicalScore * 0.3, max: 30 }
       ]
     },
     {
@@ -291,9 +407,9 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
       score: tacticalScore,
       color: 'from-yellow-500 to-orange-500',
       details: [
-        { name: 'Game Reading', value: tacticalScore * 0.9, max: 10 },
-        { name: 'Decision Making', value: tacticalScore * 0.85, max: 10 },
-        { name: 'Strategy', value: tacticalScore * 0.8, max: 10 }
+        { name: 'Game Reading', value: tacticalScore * 0.35, max: 35 },
+        { name: 'Decision Making', value: tacticalScore * 0.35, max: 35 },
+        { name: 'Strategy', value: tacticalScore * 0.3, max: 30 }
       ]
     }
   ];
@@ -342,7 +458,7 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5, duration: 0.8 }}
                 >
-                  {peakScoreScaled}
+                  {peakScore}
                 </motion.div>
               </motion.div>
               
@@ -353,6 +469,14 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                 transition={{ delay: 0.7 }}
               >
                 A 360 view of YOU
+              </motion.p>
+              <motion.p 
+                className="text-xs text-gray-500 mt-1"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+              >
+                Score out of 500 (100 per skill category)
               </motion.p>
             </div>
 
@@ -428,7 +552,7 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                       />
                       <PolarRadiusAxis 
                         angle={0} 
-                        domain={[0, 10]} 
+                        domain={[0, 100]} 
                         tickCount={6}
                         tick={{ fontSize: 10, fill: '#9ca3af' }}
                         axisLine={false}
@@ -478,9 +602,9 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                           <h5 className="font-semibold text-gray-800">{category.name}</h5>
                           <div className="flex items-center gap-2">
                             <span className="text-2xl font-bold text-gray-900">
-                              {category.score.toFixed(1)}
+                              {category.score.toFixed(0)}
                             </span>
-                            <span className="text-sm text-gray-500">/10</span>
+                            <span className="text-sm text-gray-500">/100</span>
                           </div>
                         </div>
                       </div>
@@ -497,7 +621,7 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                       <motion.div
                         className={`h-2 rounded-full bg-gradient-to-r ${category.color}`}
                         initial={{ width: 0 }}
-                        animate={{ width: `${(category.score / 10) * 100}%` }}
+                        animate={{ width: `${category.score}%` }}
                         transition={{ delay: 0.5 + index * 0.1, duration: 1, ease: "easeOut" }}
                       />
                     </div>
@@ -531,7 +655,7 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                                   />
                                 </div>
                                 <span className="text-xs font-medium text-gray-800 min-w-[2rem]">
-                                  {detail.value.toFixed(1)}
+                                  {detail.value.toFixed(0)}
                                 </span>
                               </div>
                             </motion.div>
@@ -560,36 +684,46 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                 </div>
                 
                 <div className="space-y-3">
-                  {peakScore >= 8 && (
+                  {peakScore >= 400 && (
                     <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-green-800 text-sm">🎉 Excellent overall performance! You're in the top tier of athletes.</p>
+                      <p className="text-green-800 text-sm">🎉 Excellent overall performance! You're in the top tier of athletes with a score of {peakScore}/500.</p>
                     </div>
                   )}
-                  {peakScore >= 6 && peakScore < 8 && (
+                  {peakScore >= 300 && peakScore < 400 && (
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-blue-800 text-sm">👍 Good progress! Focus on your weaker areas to reach the next level.</p>
+                      <p className="text-blue-800 text-sm">👍 Good progress! Focus on your weaker areas to reach the next level. Current score: {peakScore}/500.</p>
                     </div>
                   )}
-                  {peakScore < 6 && (
+                  {peakScore >= 200 && peakScore < 300 && (
                     <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-yellow-800 text-sm">💪 Keep pushing! Every champion started somewhere. Consistency is key.</p>
+                      <p className="text-yellow-800 text-sm">💪 Keep pushing! Every champion started somewhere. Consistency is key. Score: {peakScore}/500.</p>
+                    </div>
+                  )}
+                  {peakScore < 200 && (
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="text-orange-800 text-sm">🚀 Great potential ahead! Focus on building fundamentals across all areas. Score: {peakScore}/500.</p>
                     </div>
                   )}
                   
                   {/* Specific recommendations */}
-                  {physicalScore < 5 && (
+                  {physicalScore < 50 && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-red-800 text-sm">🏋️‍♂️ Focus on physical training to build your foundation.</p>
+                      <p className="text-red-800 text-sm">🏋️‍♂️ Focus on physical training to build your foundation. Current physical score: {physicalScore.toFixed(0)}/100.</p>
                     </div>
                   )}
-                  {mentalScore < 5 && (
+                  {mentalScore < 50 && (
                     <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                      <p className="text-purple-800 text-sm">🧘‍♂️ Consider meditation and sleep optimization for mental wellness.</p>
+                      <p className="text-purple-800 text-sm">🧘‍♂️ Consider meditation and sleep optimization for mental wellness. Current mental score: {mentalScore.toFixed(0)}/100.</p>
                     </div>
                   )}
-                  {nutritionScore < 5 && (
+                  {nutritionScore < 50 && (
                     <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <p className="text-orange-800 text-sm">🥗 Track your nutrition more consistently for better performance.</p>
+                      <p className="text-orange-800 text-sm">🥗 Track your nutrition more consistently for better performance. Current nutrition score: {nutritionScore.toFixed(0)}/100.</p>
+                    </div>
+                  )}
+                  {technicalScore < 50 && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-800 text-sm">⚡ Work on your technical skills through focused practice. Current technical score: {technicalScore.toFixed(0)}/100.</p>
                     </div>
                   )}
                 </div>

@@ -335,10 +335,10 @@ export default function PeakPlayLanding() {
         <div className="fixed inset-0 -z-10">
           {/* Base gradient layer - more vibrant */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-indigo-50" />
-          
+
           {/* Animated gradient mesh - more visible */}
           <div className="absolute inset-0 animate-gradient-shift bg-gradient-to-tr from-purple-100/30 via-transparent to-indigo-100/30" />
-          
+
           {/* More visible floating gradient orbs */}
           <div className="absolute top-20 left-[10%] w-96 h-96 animate-subtle-float">
             <div className="w-full h-full bg-gradient-to-br from-purple-200/40 to-indigo-200/30 rounded-full blur-2xl" />
@@ -351,7 +351,7 @@ export default function PeakPlayLanding() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] animate-subtle-float" style={{ animationDelay: '4s' }}>
             <div className="w-full h-full bg-gradient-to-br from-purple-100/30 to-indigo-100/20 rounded-full blur-3xl" />
           </div>
-          
+
           {/* Additional subtle orbs for depth */}
           <div className="absolute top-3/4 left-[20%] w-64 h-64 animate-subtle-float" style={{ animationDelay: '3s' }}>
             <div className="w-full h-full bg-gradient-to-bl from-indigo-200/25 to-transparent rounded-full blur-2xl" />
@@ -371,7 +371,7 @@ export default function PeakPlayLanding() {
           
           {/* Subtle radial gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          
+
           {/* Animated diagonal lines for movement */}
           <div className="absolute inset-0 overflow-hidden opacity-[0.03]">
             <div className="absolute inset-0 animate-gradient-shift"
@@ -485,8 +485,8 @@ export default function PeakPlayLanding() {
 
             <p className="text-lg sm:text-2xl text-slate-600 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed">
               Join the revolution in sports training. Track progress, connect with elite coaches, and unlock your peak performance.
-            </p>
-            
+          </p>
+
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
               <Link href="/auth/signup">
                 <Button className="group relative px-8 py-6 text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
@@ -538,7 +538,7 @@ export default function PeakPlayLanding() {
                   activeIndex === index ? "scale-[1.02] shadow-xl" : "hover:scale-[1.01]"
                 } ${role.color} ${role.borderColor} border`}
                 style={{ animationDelay: `${index * 0.1}s` }}
-              >
+                  >
                 {/* Subtle animated background pattern */}
                 <div className="absolute inset-0 opacity-5">
                   <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent"></div>
