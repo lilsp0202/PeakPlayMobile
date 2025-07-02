@@ -5,18 +5,59 @@ import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight } from "react-icons/fi";
 import { Check } from "lucide-react";
+import dynamic from 'next/dynamic';
 import PeakPlayLogo from "@/components/PeakPlayLogo";
-import SkillSnap from "@/components/SkillSnap";
-import BadgeDisplay from "@/components/BadgeDisplay";
-import BadgeManager from "@/components/BadgeManager";
-import SessionTodoStudent from "@/components/SessionTodoStudent";
-import SessionTodoCoach from "@/components/SessionTodoCoach";
-import RecentMatchScores from "@/components/RecentMatchScores";
-import CoachFeedback from "@/components/CoachFeedback";
-import CreateFeedbackModal from "@/components/CreateFeedbackModal";
-import OverallStats from "@/components/OverallStats";
 import Portal from '../../components/Portal';
-import PeakScore from "@/components/PeakScore";
+
+// Enhanced dynamic imports with better error handling and loading states
+const SkillSnap = dynamic(() => import("@/components/SkillSnap").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Component temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-64 flex items-center justify-center"><div className="text-gray-500">Loading SkillSnap...</div></div>
+});
+
+const BadgeDisplay = dynamic(() => import("@/components/BadgeDisplay").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Badges temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-32 flex items-center justify-center"><div className="text-gray-500">Loading badges...</div></div>
+});
+
+const BadgeManager = dynamic(() => import("@/components/BadgeManager").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Badge manager temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-48"></div>
+});
+
+const SessionTodoStudent = dynamic(() => import("@/components/SessionTodoStudent").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Session todos temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-40"></div>
+});
+
+const SessionTodoCoach = dynamic(() => import("@/components/SessionTodoCoach").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Coach todos temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-40"></div>
+});
+
+const RecentMatchScores = dynamic(() => import("@/components/RecentMatchScores").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Match scores temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-48"></div>
+});
+
+const CoachFeedback = dynamic(() => import("@/components/CoachFeedback").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Feedback temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-48"></div>
+});
+
+const CreateFeedbackModal = dynamic(() => import("@/components/CreateFeedbackModal").catch(() => ({ default: () => null })), { 
+  ssr: false
+});
+
+const OverallStats = dynamic(() => import("@/components/OverallStats").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Stats temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-32"></div>
+});
+
+const PeakScore = dynamic(() => import("@/components/PeakScore").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">PeakScore temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96 flex items-center justify-center"><div className="text-gray-500">Loading PeakScore...</div></div>
+});
 
 interface ProfileData {
   id: string;

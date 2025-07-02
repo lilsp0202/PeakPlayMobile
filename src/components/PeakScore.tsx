@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Radar, 
@@ -18,9 +18,22 @@ import {
   FiAward,
   FiChevronRight,
   FiInfo,
-  FiUser
+  FiUser,
+  FiCalendar
 } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
+import dynamic from 'next/dynamic';
+
+// Dynamic import for DailyCheckInModal to prevent chunk loading issues
+const DailyCheckInModal = dynamic(() => import('./DailyCheckInModal'), {
+  ssr: false,
+  loading: () => <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+      <p className="text-sm text-gray-600 mt-2">Loading...</p>
+    </div>
+  </div>
+});
 
 // Note: We'll implement our own calculation functions since SkillSnap exports are complex
 
@@ -178,17 +191,26 @@ const calculateMentalScore = (skillData: SkillData | null): number => {
   let totalScore = 0;
   let maxPossibleScore = 0;
   
-  // Mood Score Component (50 points max)
+  // Mood Score Component (40 points max)
   if (skillData.moodScore) {
-    totalScore += (skillData.moodScore / 10) * 50;
-    maxPossibleScore += 50;
+    totalScore += (skillData.moodScore / 10) * 40;
+    maxPossibleScore += 40;
   }
   
-  // Sleep Score Component (50 points max)
+  // Sleep Score Component (40 points max)
   if (skillData.sleepScore) {
-    totalScore += (skillData.sleepScore / 10) * 50;
-    maxPossibleScore += 50;
+    totalScore += (skillData.sleepScore / 10) * 40;
+    maxPossibleScore += 40;
   }
+  
+  // Hooper Index Component (20 points max)
+  // Note: This will be enhanced when we have hooper data integrated
+  // For now, we'll add a placeholder to maintain 100 point scale
+  // Lower Hooper Index is better (8-20 is good, 21-35 is average, 36+ needs attention)
+  // We'll invert the score so lower hooper index gives more points
+  maxPossibleScore += 20;
+  // Placeholder: assume average wellness for now
+  totalScore += 15; // 75% of max points as default
   
   // Return score out of 100
   return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
@@ -305,6 +327,57 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
   const { data: session } = useSession();
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showCheckInModal, setShowCheckInModal] = useState(false);
+  const [showHooperInfoModal, setShowHooperInfoModal] = useState(false);
+  const [todaysEntry, setTodaysEntry] = useState<any>(null);
+  const [isLoadingEntry, setIsLoadingEntry] = useState(false);
+
+  // Fetch today's Hooper Index entry
+  const fetchTodaysEntry = async () => {
+    if (!session?.user?.id) return;
+    
+    setIsLoadingEntry(true);
+    try {
+      const response = await fetch('/api/hooper-index');
+      if (response.ok) {
+        const data = await response.json();
+        setTodaysEntry(data.entry);
+      }
+    } catch (error) {
+      console.error('Error fetching today\'s entry:', error);
+    } finally {
+      setIsLoadingEntry(false);
+    }
+  };
+
+  // Handle Hooper Index submission
+  const handleHooperSubmit = async (data: any) => {
+    try {
+      const response = await fetch('/api/hooper-index', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setTodaysEntry(result.entry);
+        setShowCheckInModal(false);
+      } else {
+        throw new Error('Failed to save check-in');
+      }
+    } catch (error) {
+      console.error('Error saving check-in:', error);
+      alert('Failed to save your check-in. Please try again.');
+    }
+  };
+
+  // Load today's entry when component mounts
+  useEffect(() => {
+    fetchTodaysEntry();
+  }, [session?.user?.id]);
 
   // Calculate scores for each category
   const physicalScore = calculatePhysicalScore(skillData);
@@ -371,8 +444,10 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
       score: mentalScore,
       color: 'from-purple-500 to-pink-500',
       details: [
-        { name: 'Mood Score', value: skillData?.moodScore ? (skillData.moodScore / 10) * 50 : 0, max: 50 },
-        { name: 'Sleep Quality', value: skillData?.sleepScore ? (skillData.sleepScore / 10) * 50 : 0, max: 50 }
+        { name: 'Mood Score', value: skillData?.moodScore ? (skillData.moodScore / 10) * 40 : 0, max: 40 },
+        { name: 'Sleep Quality', value: skillData?.sleepScore ? (skillData.sleepScore / 10) * 40 : 0, max: 40 },
+        { name: 'Wellness Index', value: 15, max: 20 },
+        { name: 'Daily Check-in', value: 0, max: 0, isAction: true }
       ]
     },
     {
@@ -434,6 +509,104 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.2 }}
     >
+      {/* Daily Check-in Notification Banner */}
+      <AnimatePresence>
+        {!todaysEntry && !isLoadingEntry && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="mb-4"
+          >
+            <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-7 h-7 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <FiCalendar className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      Complete daily check-in
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      Quick wellness questionnaire
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowHooperInfoModal(true)}
+                    className="text-orange-600 hover:text-orange-700 p-1"
+                    title="Learn about Hooper Index"
+                  >
+                    <FiInfo className="w-4 h-4" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowCheckInModal(true)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-md text-sm font-medium"
+                  >
+                    Start
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        
+        {/* Daily Check-in Completed Banner */}
+        {todaysEntry && !isLoadingEntry && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="mb-4"
+          >
+            <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <FiCalendar className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      Daily check-in complete ✓
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      Wellness data recorded • Hooper Index: {todaysEntry?.hooperIndex || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowHooperInfoModal(true)}
+                    className="text-green-600 hover:text-green-700 p-1"
+                    title="Learn about Hooper Index"
+                  >
+                    <FiInfo className="w-4 h-4" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowCheckInModal(true)}
+                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-md text-sm font-medium"
+                  >
+                    Update
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* PeakScore Header */}
       <motion.div 
         className="card-modern glass overflow-hidden"
@@ -451,7 +624,7 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", bounce: 0.5, delay: 0.3 }}
               >
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Your PEAKPLAY Score</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">PeakScore</h3>
                 <motion.div 
                   className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-green-600 bg-clip-text text-transparent"
                   initial={{ opacity: 0 }}
@@ -461,15 +634,6 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                   {peakScore}
                 </motion.div>
               </motion.div>
-              
-              <motion.p 
-                className="text-sm text-gray-600 mt-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7 }}
-              >
-                A 360 view of YOU
-              </motion.p>
               <motion.p 
                 className="text-xs text-gray-500 mt-1"
                 initial={{ opacity: 0 }}
@@ -487,9 +651,6 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
             >
-              <p>Your PEAKPLAY score (above) shows how your strength and cardio stack up.</p>
-              <p>We benchmark your best efforts against people like you (age, weight, gender).</p>
-              <p>Use it to adjust your focus and become a more complete athlete.</p>
             </motion.div>
 
             {/* Show Details Toggle */}
@@ -645,19 +806,44 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                               className="flex items-center justify-between text-sm"
                             >
                               <span className="text-gray-600">{detail.name}</span>
-                              <div className="flex items-center gap-2">
-                                <div className="w-16 bg-gray-200 rounded-full h-1">
-                                  <motion.div
-                                    className={`h-1 rounded-full bg-gradient-to-r ${category.color}`}
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${(detail.value / detail.max) * 100}%` }}
-                                    transition={{ delay: 0.2, duration: 0.5 }}
-                                  />
+                              {detail.isAction ? (
+                                // Daily Check-in Button
+                                <motion.button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowCheckInModal(true);
+                                  }}
+                                  className={`
+                                    px-3 py-1.5 rounded-lg text-xs font-medium transition-all
+                                    ${todaysEntry 
+                                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                                      : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                                    }
+                                  `}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  <div className="flex items-center gap-1">
+                                    <FiCalendar className="w-3 h-3" />
+                                    {todaysEntry ? 'Update' : 'Start'} Check-in
+                                  </div>
+                                </motion.button>
+                              ) : (
+                                // Regular progress bar
+                                <div className="flex items-center gap-2">
+                                  <div className="w-16 bg-gray-200 rounded-full h-1">
+                                    <motion.div
+                                      className={`h-1 rounded-full bg-gradient-to-r ${category.color}`}
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${detail.max > 0 ? (detail.value / detail.max) * 100 : 0}%` }}
+                                      transition={{ delay: 0.2, duration: 0.5 }}
+                                    />
+                                  </div>
+                                  <span className="text-xs font-medium text-gray-800 min-w-[2rem]">
+                                    {detail.value.toFixed(0)}
+                                  </span>
                                 </div>
-                                <span className="text-xs font-medium text-gray-800 min-w-[2rem]">
-                                  {detail.value.toFixed(0)}
-                                </span>
-                              </div>
+                              )}
                             </motion.div>
                           ))}
                         </motion.div>
@@ -732,6 +918,120 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Hooper Index Information Modal */}
+      <AnimatePresence>
+        {showHooperInfoModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowHooperInfoModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-xl shadow-xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                    <FiInfo className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-800">Hooper Index</h3>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowHooperInfoModal(false)}
+                  className="text-gray-400 hover:text-gray-600 p-1"
+                >
+                  <FiTarget className="w-5 h-5 rotate-45" />
+                </motion.button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">What is the Hooper Index?</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    The Hooper Index is a simple wellness questionnaire that measures your daily readiness to train and perform. 
+                    It tracks key recovery indicators that directly impact your athletic performance.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">What it measures:</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-start space-x-2">
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-600"><strong>Sleep Quality:</strong> How well you slept</p>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-600"><strong>Stress Level:</strong> Mental and physical stress</p>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <div className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-600"><strong>Fatigue Level:</strong> Overall energy levels</p>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-600"><strong>Muscle Soreness:</strong> Recovery status</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">Understanding your score:</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center p-2 bg-green-50 rounded-lg">
+                      <span className="text-sm font-medium text-green-800">Low (4-8)</span>
+                      <span className="text-xs text-green-600">Ready to train hard</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-yellow-50 rounded-lg">
+                      <span className="text-sm font-medium text-yellow-800">Medium (9-15)</span>
+                      <span className="text-xs text-yellow-600">Moderate training</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-red-50 rounded-lg">
+                      <span className="text-sm font-medium text-red-800">High (16-20)</span>
+                      <span className="text-xs text-red-600">Focus on recovery</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-xs text-blue-800">
+                    💡 <strong>Pro tip:</strong> Track this daily to identify patterns and optimize your training schedule based on your body's readiness.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowHooperInfoModal(false)}
+                  className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Got it!
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Daily Check-in Modal */}
+      <DailyCheckInModal
+        isOpen={showCheckInModal}
+        onClose={() => setShowCheckInModal(false)}
+        onSubmit={handleHooperSubmit}
+        existingEntry={todaysEntry}
+      />
     </motion.div>
   );
 };

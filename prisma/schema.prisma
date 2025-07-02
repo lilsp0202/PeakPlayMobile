@@ -78,6 +78,7 @@ model Student {
   coachingBookings  CoachingBooking[]
   coachReviews      CoachReview[]
   sessionTodoLinks  SessionTodoStudent[]
+  hooperEntries     HooperIndex[]
 }
 
 model Coach {
@@ -368,4 +369,31 @@ model SessionTodoStudent {
   studentId String
   todo      SessionTodo @relation(fields: [todoId], references: [id], onDelete: Cascade)
   student   Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+// Hooper Index Daily Check-in Model
+model HooperIndex {
+  id                    String   @id @default(cuid())
+  studentId             String
+  student               Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date                  DateTime @default(now()) @db.Date
+  
+  // Hooper Index Questions (1-7 scale where 1=best/very low, 7=worst/very high)
+  fatigue               Int      // How fatigued do you feel?
+  stress                Int      // How stressed do you feel?
+  muscleSoreness        Int      // Are your muscles sore?
+  sleepQuality          Int      // How is your sleep quality?
+  enjoyingTraining      Int      // Are you enjoying training?
+  irritable             Int      // Do you feel irritable?
+  healthyOverall        Int      // Do you feel healthy overall?
+  wellRested            Int      // Do you feel well-rested today?
+  
+  // Calculated Hooper Index (sum of all scores, range 8-56)
+  hooperIndex           Int
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@unique([studentId, date])
+  @@index([studentId, date])
 }

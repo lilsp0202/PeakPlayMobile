@@ -4,6 +4,8 @@ const withPWA = require("next-pwa")({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  buildExcludes: [/middleware-manifest\.json$/, /_middleware\.js$/, /_middleware\.js\.map$/, /\.map$/],
+  publicExcludes: ['!robots.txt', '!sitemap.xml'],
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
@@ -81,50 +83,51 @@ const nextConfig = {
     // Disable ESLint during production builds
     ignoreDuringBuilds: true,
   },
+  // Allow cross-origin requests from network IP
+  allowedDevOrigins: [
+    '192.168.1.75:3000', '192.168.1.75:3001', '192.168.1.75:3002', 
+    '192.168.1.75:3003', '192.168.1.75:3004', '192.168.1.75:3005', 
+    '192.168.1.75:3006', '192.168.1.75:3007', '192.168.1.75:3008'
+  ],
   experimental: {
     serverActions: {
-      allowedOrigins: ['localhost:3000', '192.168.1.75:3000'],
+      allowedOrigins: [
+        'localhost:3000', '192.168.1.75:3000', '192.168.1.75:3001', 
+        '192.168.1.75:3002', '192.168.1.75:3003', '192.168.1.75:3004', 
+        '192.168.1.75:3005', '192.168.1.75:3006', '192.168.1.75:3007', 
+        '192.168.1.75:3008'
+      ],
       bodySizeLimit: '2mb',
     },
+    scrollRestoration: true,
   },
-  webpack: (config, { isServer }) => {
-    // Fixes npm packages that depend on `fs` module
+  // Simplified webpack configuration to prevent chunk loading errors
+  webpack: (config, { isServer, dev }) => {
+    // Basic fallback configuration
     if (!isServer) {
       config.resolve.fallback = {
-        ...config.resolve.fallback,
         fs: false,
         net: false,
         tls: false,
         crypto: false,
+        os: false,
+        path: false,
+        buffer: false,
+        process: false,
       };
     }
     
-    // Add externals for problematic packages
-    if (isServer) {
-      config.externals.push({
-        '@opentelemetry/api': 'commonjs @opentelemetry/api',
-        '@opentelemetry/instrumentation': 'commonjs @opentelemetry/instrumentation',
-        '@opentelemetry/sdk-trace-base': 'commonjs @opentelemetry/sdk-trace-base',
-      });
+    // Disable chunk splitting in development to prevent MODULE_NOT_FOUND errors
+    if (dev) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: false,
+        runtimeChunk: false,
+      };
     }
-    
-    // Ignore specific modules that cause issues
-    config.module = {
-      ...config.module,
-      exprContextCritical: false,
-    };
-    
-    // Handle OpenTelemetry in edge runtime
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@opentelemetry/api': false,
-      '@opentelemetry/instrumentation': false,
-      '@opentelemetry/sdk-trace-base': false,
-    };
     
     return config;
   },
-  serverExternalPackages: ['bcryptjs', '@opentelemetry/api', '@opentelemetry/instrumentation'],
   images: {
     domains: ['localhost', 'peakplay.com'],
     formats: ['image/avif', 'image/webp'],
@@ -180,18 +183,9 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: '/manifest.json',
-        headers: [
-          {
-            key: 'Content-Type',
-            value: 'application/manifest+json',
-          },
-        ],
-      },
     ];
   },
-  // Redirects for old URLs
+  // Simplified redirects
   async redirects() {
     return [
       {
@@ -203,18 +197,21 @@ const nextConfig = {
   },
 };
 
-// Sentry configuration
-const sentryWebpackPluginOptions = {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  silent: true,
-  hideSourceMaps: true,
-  widenClientFileUpload: true,
-  transpileClientSDK: true,
-};
+// Apply PWA first, then Sentry
+const configWithPWA = withPWA(nextConfig);
 
 module.exports = process.env.NODE_ENV === 'production' 
-  ? withSentryConfig(withPWA(nextConfig), sentryWebpackPluginOptions)
-  : withPWA(nextConfig);
+  ? withSentryConfig(configWithPWA, {
+      org: "peakplay",
+      project: "peakplay-frontend",
+      silent: !process.env.CI,
+      widenClientFileUpload: true,
+      reactComponentAnnotation: {
+        enabled: true,
+      },
+      hideSourceMaps: true,
+      disableLogger: true,
+      automaticVercelMonitors: true,
+    })
+  : configWithPWA;
  
