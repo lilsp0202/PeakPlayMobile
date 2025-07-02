@@ -80,8 +80,12 @@ const withPWA = require("next-pwa")({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    // Disable ESLint during production builds
-    ignoreDuringBuilds: true,
+    // Only ignore during builds in development, enable for CI
+    ignoreDuringBuilds: process.env.NODE_ENV === 'development',
+  },
+  typescript: {
+    // Only ignore type checking in development
+    ignoreBuildErrors: process.env.NODE_ENV === 'development',
   },
   // Allow cross-origin requests from network IP
   allowedDevOrigins: [
@@ -101,11 +105,12 @@ const nextConfig = {
     },
     scrollRestoration: true,
   },
-  // Simplified webpack configuration to prevent chunk loading errors
-  webpack: (config, { isServer, dev }) => {
-    // Basic fallback configuration
+  // Enhanced webpack configuration for better stability
+  webpack: (config, { isServer, dev, webpack }) => {
+    // Add proper fallbacks for Node.js modules
     if (!isServer) {
       config.resolve.fallback = {
+        ...config.resolve.fallback,
         fs: false,
         net: false,
         tls: false,
@@ -114,16 +119,74 @@ const nextConfig = {
         path: false,
         buffer: false,
         process: false,
+        stream: false,
+        util: false,
+        assert: false,
+        events: false,
+        zlib: false,
+        querystring: false,
+        url: false,
+        http: false,
+        https: false,
       };
     }
     
-    // Disable chunk splitting in development to prevent MODULE_NOT_FOUND errors
-    if (dev) {
+    // Fix for webpack module loading issues
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        'process.env.NEXT_RUNTIME': JSON.stringify(isServer ? 'nodejs' : 'edge'),
+      })
+    );
+    
+    // Optimize chunk handling for better stability
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: {
+              minChunks: 2,
+              priority: -20,
+              reuseExistingChunk: true,
+            },
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              priority: -10,
+              chunks: 'all',
+              enforce: true,
+            },
+            react: {
+              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+              name: 'react',
+              chunks: 'all',
+              priority: 20,
+            },
+            icons: {
+              test: /[\\/]node_modules[\\/]react-icons[\\/]/,
+              name: 'icons',
+              chunks: 'all',
+              priority: 10,
+            },
+          },
+        },
+      };
+    } else {
+      // Simplify development configuration to prevent module errors
       config.optimization = {
         ...config.optimization,
         splitChunks: false,
         runtimeChunk: false,
       };
+    }
+    
+    // Handle external dependencies properly
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push({
+        '@prisma/client': 'commonjs @prisma/client',
+      });
     }
     
     return config;
