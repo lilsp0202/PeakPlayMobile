@@ -160,10 +160,10 @@ const skillCategories: SkillCategory[] = [
       </svg>
     ),
     colorScheme: {
-      primary: "indigo-600",
-      secondary: "indigo-100",
-      background: "indigo-50",
-      gradient: "from-indigo-50 to-blue-50"
+      primary: "blue-600",
+      secondary: "blue-100",
+      background: "blue-50",
+      gradient: "from-blue-50 via-indigo-50 to-cyan-50"
     },
     subcategories: [
       {
@@ -181,7 +181,7 @@ const skillCategories: SkillCategory[] = [
             unit: "reps",
             type: "count",
             description: "Maximum push-ups in 1 minute",
-            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" },
             icon: (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
@@ -195,7 +195,7 @@ const skillCategories: SkillCategory[] = [
             unit: "reps",
             type: "count",
             description: "Maximum pull-ups in 1 set",
-            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" },
             icon: (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
@@ -210,7 +210,7 @@ const skillCategories: SkillCategory[] = [
             unit: "cm",
             type: "count",
             description: "Maximum vertical jump height",
-            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" },
             icon: (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7l4-4m0 0l4 4m-4-4v18"/>
@@ -224,7 +224,7 @@ const skillCategories: SkillCategory[] = [
             unit: "kg",
             type: "count",
             description: "Hand grip strength measurement",
-            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" },
             icon: (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/>
@@ -287,7 +287,7 @@ const skillCategories: SkillCategory[] = [
             unit: "minutes",
             type: "time",
             description: "5 kilometer run time",
-            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            colorScheme: { primary: "cyan-600", secondary: "cyan-100", background: "cyan-50" },
             icon: (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
@@ -302,7 +302,7 @@ const skillCategories: SkillCategory[] = [
             unit: "level",
             type: "count",
             description: "Yo-Yo intermittent recovery test level",
-            colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+            colorScheme: { primary: "cyan-600", secondary: "cyan-100", background: "cyan-50" },
             icon: (
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -341,7 +341,7 @@ const skillCategories: SkillCategory[] = [
       primary: "purple-600",
       secondary: "purple-100",
       background: "purple-50",
-      gradient: "from-purple-50 to-pink-50"
+      gradient: "from-purple-50 via-violet-50 to-fuchsia-50"
     },
     skills: [
       {
@@ -363,7 +363,7 @@ const skillCategories: SkillCategory[] = [
         unit: "/10",
         type: "score",
         description: "Sleep quality and recovery rating",
-        colorScheme: { primary: "purple-600", secondary: "purple-100", background: "purple-50" },
+        colorScheme: { primary: "violet-600", secondary: "violet-100", background: "violet-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
@@ -383,10 +383,10 @@ const skillCategories: SkillCategory[] = [
       </svg>
     ),
     colorScheme: {
-      primary: "green-600",
-      secondary: "green-100",
-      background: "green-50",
-      gradient: "from-green-50 to-emerald-50"
+      primary: "emerald-600",
+      secondary: "emerald-100",
+      background: "emerald-50",
+      gradient: "from-emerald-50 via-green-50 to-teal-50"
     },
     skills: [
       {
@@ -395,7 +395,7 @@ const skillCategories: SkillCategory[] = [
         unit: "kcal",
         type: "calories",
         description: "Daily caloric intake",
-        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        colorScheme: { primary: "emerald-600", secondary: "emerald-100", background: "emerald-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
@@ -422,7 +422,7 @@ const skillCategories: SkillCategory[] = [
         unit: "g",
         type: "grams",
         description: "Daily carbohydrate intake",
-        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        colorScheme: { primary: "teal-600", secondary: "teal-100", background: "teal-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -437,7 +437,7 @@ const skillCategories: SkillCategory[] = [
         unit: "g",
         type: "grams",
         description: "Daily fat intake",
-        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        colorScheme: { primary: "lime-600", secondary: "lime-100", background: "lime-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
@@ -450,7 +450,7 @@ const skillCategories: SkillCategory[] = [
         unit: "L",
         type: "liters",
         description: "Daily water consumption",
-        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        colorScheme: { primary: "sky-600", secondary: "sky-100", background: "sky-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2C7.79 2 4.18 5.13 3.31 9.34C3.11 10.13 3 10.96 3 11.8c0 4.97 4.03 9 9 9s9-4.03 9-9c0-.84-.11-1.67-.31-2.46C19.82 5.13 16.21 2 12 2zm0 16c-3.86 0-7-3.14-7-7 0-.62.07-1.24.21-1.84C5.94 6.34 8.7 4 12 4s6.06 2.34 6.79 5.16c.14.6.21 1.22.21 1.84 0 3.86-3.14 7-7 7z"/>
@@ -470,10 +470,10 @@ const skillCategories: SkillCategory[] = [
       </svg>
     ),
     colorScheme: {
-      primary: "orange-600",
-      secondary: "orange-100",
-      background: "orange-50",
-      gradient: "from-orange-50 to-amber-50"
+      primary: "amber-600",
+      secondary: "amber-100",
+      background: "amber-50",
+      gradient: "from-amber-50 via-orange-50 to-yellow-50"
     },
     skills: [
       // Technical skills placeholders for proper counting
@@ -484,7 +484,7 @@ const skillCategories: SkillCategory[] = [
         type: "score" as const,
         description: "Batting technique mastery",
         icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>,
-        colorScheme: { primary: "orange-600", secondary: "orange-100", background: "orange-50" }
+        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" }
       },
       {
         id: "bowlingGrip", 
@@ -502,7 +502,7 @@ const skillCategories: SkillCategory[] = [
         type: "score" as const,
         description: "Fielding technique mastery",
         icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m-3-3a1.5 1.5 0 013 0"/><circle cx="12" cy="12" r="2" strokeWidth="1"/></svg>,
-        colorScheme: { primary: "orange-600", secondary: "orange-100", background: "orange-50" }
+        colorScheme: { primary: "yellow-600", secondary: "yellow-100", background: "yellow-50" }
       }
     ]
   },
@@ -516,10 +516,10 @@ const skillCategories: SkillCategory[] = [
       </svg>
     ),
     colorScheme: {
-      primary: "blue-600",
-      secondary: "blue-100",
-      background: "blue-50",
-      gradient: "from-blue-50 to-cyan-50"
+      primary: "slate-600",
+      secondary: "slate-100",
+      background: "slate-50",
+      gradient: "from-slate-50 via-gray-50 to-zinc-50"
     },
     skills: []
   }
@@ -1202,16 +1202,18 @@ const SkillBar: React.FC<{
 
   return (
     <div 
-      className={`bg-white rounded-xl p-4 sm:p-6 border-2 shadow-sm transition-all duration-200 ${
+      className={`bg-white rounded-xl p-4 sm:p-6 border-2 shadow-sm transition-all duration-200 hover:shadow-md ${
         isEditing 
-          ? 'border-blue-300 ring-2 ring-blue-100 bg-blue-50' 
-          : 'border-gray-200'
+          ? `border-${skill.colorScheme.primary}/40 ring-2 ring-${skill.colorScheme.primary}/20 bg-${skill.colorScheme.background}/50` 
+          : 'border-gray-200 hover:border-gray-300'
       }`}
     >
       <div className="flex items-start justify-between mb-3 sm:mb-4">
         <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
-          <div className={`p-2.5 sm:p-3 rounded-xl ${skill.colorScheme.background} shadow-sm flex-shrink-0`}>
-            {skill.icon}
+          <div className={`p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-${skill.colorScheme.background} to-${skill.colorScheme.background}/80 shadow-md flex-shrink-0 border border-${skill.colorScheme.primary}/20`}>
+            <div className={`text-${skill.colorScheme.primary}`}>
+              {skill.icon}
+            </div>
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="font-bold text-gray-900 text-base sm:text-lg mb-0.5 sm:mb-1 truncate">{skill.name}</h4>
@@ -1282,9 +1284,9 @@ const SkillBar: React.FC<{
           <span className="text-sm font-medium text-gray-800">Progress</span>
           <span className="text-sm text-gray-700">{Math.round(getPercentage())}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
+        <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3 shadow-inner">
           <div
-            className={`h-2 sm:h-3 rounded-full transition-all duration-300 bg-gradient-to-r ${getProgressColor()} shadow-sm`}
+            className={`h-2 sm:h-3 rounded-full transition-all duration-300 bg-gradient-to-r from-${skill.colorScheme.primary} to-${skill.colorScheme.primary}/80 shadow-sm`}
             style={{ width: `${getPercentage()}%` }}
           />
         </div>
@@ -1341,85 +1343,93 @@ const CategoryCard: React.FC<{
   return (
     <motion.div
       onClick={onOpen}
-      className="card-gradient card-modern p-6 cursor-pointer group"
-      whileHover={{ y: -5, scale: 1.02 }}
+      className={`relative overflow-hidden bg-gradient-to-br ${category.colorScheme.gradient} border-2 border-gray-200/60 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group`}
+      whileHover={{ y: -3, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-4">
-          <motion.div 
-            className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${category.colorScheme.gradient} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow`}
-            whileHover={{ rotate: 360 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="text-gray-900">{category.icon}</div>
-          </motion.div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">{category.name}</h3>
-            <p className="text-sm text-gray-600">{category.description}</p>
-          </div>
-        </div>
-        <motion.div
-          className="text-gray-400 group-hover:text-purple-600 transition-colors"
-          whileHover={{ x: 5 }}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </motion.div>
-      </div>
+      {/* Subtle pattern overlay */}
+      <div className="absolute inset-0 bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
-      <div className="mt-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">Progress</span>
-          <motion.span 
-            className="text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            {progress}%
-          </motion.span>
-        </div>
-        <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
+      <div className="relative p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-4">
+            <motion.div 
+              className={`w-14 h-14 rounded-2xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg border border-gray-200/50 group-hover:bg-white transition-all duration-300`}
+              whileHover={{ rotate: 10, scale: 1.1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className={`text-${category.colorScheme.primary}`}>{category.icon}</div>
+            </motion.div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 group-hover:text-gray-800 transition-colors">{category.name}</h3>
+              <p className="text-sm text-gray-700/80 font-medium">{category.description}</p>
+            </div>
+          </div>
           <motion.div
-            className={`absolute inset-y-0 left-0 bg-gradient-to-r ${category.colorScheme.gradient} rounded-full`}
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+            className="text-gray-500 group-hover:text-gray-700 transition-colors"
+            whileHover={{ x: 3 }}
           >
-            <div className="absolute inset-0 bg-white/30 animate-shimmer" />
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </motion.div>
         </div>
-      </div>
-      
-      {aggregateScore > 0 && (
-        <motion.div 
-          className="mt-4 flex items-center justify-center"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <div className="flex space-x-1">
-            {[...Array(5)].map((_, i) => (
-              <motion.svg
-                key={i}
-                className={`w-5 h-5 ${i < Math.round(aggregateScore / 2) ? 'text-yellow-400' : 'text-gray-300'}`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.6 + i * 0.1, type: "spring", bounce: 0.5 }}
-              >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </motion.svg>
-            ))}
+        
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-semibold text-gray-800">Progress</span>
+            <motion.span 
+              className={`text-sm font-bold text-${category.colorScheme.primary} bg-white/80 px-2.5 py-1 rounded-full shadow-sm`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              {progress}%
+            </motion.span>
           </div>
-        </motion.div>
-      )}
+          <div className="relative h-2.5 bg-white/70 rounded-full overflow-hidden shadow-inner">
+            <motion.div
+              className={`absolute inset-y-0 left-0 bg-gradient-to-r from-${category.colorScheme.primary} to-${category.colorScheme.primary}/80 rounded-full shadow-sm`}
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
+            >
+              <div className="absolute inset-0 bg-white/20 animate-pulse" />
+            </motion.div>
+          </div>
+        </div>
+        
+        {aggregateScore > 0 && (
+          <motion.div 
+            className="mt-5 flex items-center justify-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="flex space-x-1">
+              {[...Array(5)].map((_, i) => (
+                <motion.svg
+                  key={i}
+                  className={`w-4 h-4 ${i < Math.round(aggregateScore / 2) ? `text-${category.colorScheme.primary}` : 'text-gray-300'}`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.6 + i * 0.1, type: "spring", bounce: 0.4 }}
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </motion.svg>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Category-specific accent line */}
+        <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-${category.colorScheme.primary} to-${category.colorScheme.primary}/60`} />
+      </div>
     </motion.div>
   );
 };
@@ -2233,16 +2243,18 @@ export default function SkillSnap({
               <div key={subcategory.id} className="bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">
                 {/* Subcategory Header */}
                 <div 
-                  className={`flex items-center justify-between p-4 sm:p-6 bg-gradient-to-r ${category.colorScheme.gradient} cursor-pointer hover:bg-opacity-80 transition-all duration-200`}
+                  className={`flex items-center justify-between p-4 sm:p-6 bg-gradient-to-r ${category.colorScheme.gradient} cursor-pointer hover:bg-white/10 transition-all duration-200 border-l-4 border-${category.colorScheme.primary}`}
                   onClick={() => toggleSubcategory(subcategory.id)}
                 >
                   <div className="flex items-center space-x-3 sm:space-x-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/80 flex items-center justify-center shadow-md">
-                      {subcategory.icon}
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/90 flex items-center justify-center shadow-lg border border-${category.colorScheme.primary}/20`}>
+                      <div className={`text-${category.colorScheme.primary}`}>
+                        {subcategory.icon}
+                      </div>
                     </div>
                     <div>
                       <h3 className="text-lg sm:text-xl font-bold text-gray-900">{subcategory.name}</h3>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm text-gray-700 font-medium">
                         {hasSkills ? `${subcategory.skills.length} skills` : 'Coming soon'}
                       </p>
                     </div>
