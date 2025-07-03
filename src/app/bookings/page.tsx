@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import type { Session } from 'next-auth';
 import {
   Calendar,
   Clock,
@@ -65,7 +66,7 @@ const BookingsPage: React.FC = () => {
       fetchBookings();
       // Get user role from session or API
       if (session?.user) {
-        setUserRole(session.user.role || 'ATHLETE');
+        setUserRole((session as unknown as Session).user.role || 'ATHLETE');
       }
     }
   }, [status, session]);

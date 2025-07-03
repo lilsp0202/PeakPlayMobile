@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import type { Session } from 'next-auth';
 import OpenAI from 'openai';
 
 export async function POST(request: NextRequest) {
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     console.log('Cookie header exists:', !!request.headers.get('cookie'));
     
     // Get session using the same authOptions as the main auth route
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     
     console.log('Transcription API - Raw session:', JSON.stringify(session, null, 2));
     console.log('Transcription API - Session exists:', !!session);

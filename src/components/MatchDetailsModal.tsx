@@ -59,7 +59,7 @@ export default function MatchDetailsModal({ match, onClose }: MatchDetailsModalP
 
         {/* Performance Stats */}
         <div className="space-y-6">
-          {(role === "BATSMAN" || role === "ALL_ROUNDER") && (
+          {/* Batting Statistics - Available for all athletes */}
             <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Batting Statistics</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -97,9 +97,8 @@ export default function MatchDetailsModal({ match, onClose }: MatchDetailsModalP
                 </div>
               </div>
             </div>
-          )}
 
-          {(role === "BOWLER" || role === "ALL_ROUNDER") && (
+          {/* Bowling Statistics - Available for all athletes */}
             <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Bowling Statistics</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -137,9 +136,8 @@ export default function MatchDetailsModal({ match, onClose }: MatchDetailsModalP
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Fielding Stats */}
+          {/* Fielding Statistics - Available for all athletes */}
           <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Fielding Statistics</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

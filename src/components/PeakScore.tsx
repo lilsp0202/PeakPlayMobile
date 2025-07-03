@@ -23,9 +23,21 @@ import {
 } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
+import type { Session } from "next-auth";
 
 // Dynamic import for DailyCheckInModal to prevent chunk loading issues
 const DailyCheckInModal = dynamic(() => import('./DailyCheckInModal'), {
+  ssr: false,
+  loading: () => <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+      <p className="text-sm text-gray-600 mt-2">Loading...</p>
+    </div>
+  </div>
+});
+
+// Dynamic import for WellnessReportModal
+const WellnessReportModal = dynamic(() => import('./WellnessReportModal'), {
   ssr: false,
   loading: () => <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white rounded-lg p-6">
@@ -185,7 +197,7 @@ const calculatePhysicalScore = (skillData: SkillData | null): number => {
   return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
 };
 
-const calculateMentalScore = (skillData: SkillData | null): number => {
+const calculateMentalScore = (skillData: SkillData | null, wellnessData: any = null): number => {
   if (!skillData) return 0;
   
   let totalScore = 0;
@@ -203,14 +215,28 @@ const calculateMentalScore = (skillData: SkillData | null): number => {
     maxPossibleScore += 40;
   }
   
-  // Hooper Index Component (20 points max)
-  // Note: This will be enhanced when we have hooper data integrated
-  // For now, we'll add a placeholder to maintain 100 point scale
-  // Lower Hooper Index is better (8-20 is good, 21-35 is average, 36+ needs attention)
-  // We'll invert the score so lower hooper index gives more points
+  // Wellness Score Component (20 points max)
+  // Lower Wellness Score is better (8-16 is excellent, 17-24 is good, 25-32 is fair, 33-40 is poor, 41+ is very poor)
+  // We'll invert the score so lower wellness score gives more points
   maxPossibleScore += 20;
-  // Placeholder: assume average wellness for now
-  totalScore += 15; // 75% of max points as default
+  if (wellnessData?.hooperIndex) {
+    // Scale wellness score: 8-16 gets 20 points, 17-24 gets 15 points, 25-32 gets 10 points, 33-40 gets 5 points, 41+ gets 0 points
+    const wellnessScore = wellnessData.hooperIndex;
+    if (wellnessScore <= 16) {
+      totalScore += 20;
+    } else if (wellnessScore <= 24) {
+      totalScore += 15;
+    } else if (wellnessScore <= 32) {
+      totalScore += 10;
+    } else if (wellnessScore <= 40) {
+      totalScore += 5;
+    } else {
+      totalScore += 0;
+    }
+  } else {
+    // If no wellness data, give partial points
+    totalScore += 10; // 50% of max points as default
+  }
   
   // Return score out of 100
   return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
@@ -328,13 +354,14 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
-  const [showHooperInfoModal, setShowHooperInfoModal] = useState(false);
+  const [showWellnessInfoModal, setShowWellnessInfoModal] = useState(false);
+  const [showWellnessReportModal, setShowWellnessReportModal] = useState(false);
   const [todaysEntry, setTodaysEntry] = useState<any>(null);
   const [isLoadingEntry, setIsLoadingEntry] = useState(false);
 
-  // Fetch today's Hooper Index entry
+  // Fetch today's Wellness Score entry
   const fetchTodaysEntry = async () => {
-    if (!session?.user?.id) return;
+    if (!(session as unknown as Session)?.user?.id) return;
     
     setIsLoadingEntry(true);
     try {
@@ -350,8 +377,8 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
     }
   };
 
-  // Handle Hooper Index submission
-  const handleHooperSubmit = async (data: any) => {
+  // Handle Wellness Score submission
+  const handleWellnessSubmit = async (data: any) => {
     try {
       const response = await fetch('/api/hooper-index', {
         method: 'POST',
@@ -377,11 +404,11 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
   // Load today's entry when component mounts
   useEffect(() => {
     fetchTodaysEntry();
-  }, [session?.user?.id]);
+  }, [(session as unknown as Session)?.user?.id]);
 
   // Calculate scores for each category
   const physicalScore = calculatePhysicalScore(skillData);
-  const mentalScore = calculateMentalScore(skillData);
+  const mentalScore = calculateMentalScore(skillData, todaysEntry);
   const nutritionScore = calculateNutritionScore(skillData);
   const technicalScore = calculateTechnicalScore(skillData);
   const tacticalScore = calculateTacticalScore();
@@ -446,7 +473,27 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
       details: [
         { name: 'Mood Score', value: skillData?.moodScore ? (skillData.moodScore / 10) * 40 : 0, max: 40 },
         { name: 'Sleep Quality', value: skillData?.sleepScore ? (skillData.sleepScore / 10) * 40 : 0, max: 40 },
-        { name: 'Wellness Index', value: 15, max: 20 },
+        { 
+          name: 'Wellness Score', 
+          value: todaysEntry?.hooperIndex ? (() => {
+            const wellnessScore = todaysEntry.hooperIndex;
+            if (wellnessScore <= 16) return 20;
+            if (wellnessScore <= 24) return 15;
+            if (wellnessScore <= 32) return 10;
+            if (wellnessScore <= 40) return 5;
+            return 0;
+          })() : 10, 
+          max: 20,
+          actualValue: todaysEntry?.hooperIndex,
+          interpretation: todaysEntry?.hooperIndex ? (() => {
+            const score = todaysEntry.hooperIndex;
+            if (score <= 16) return 'Excellent';
+            if (score <= 24) return 'Good';
+            if (score <= 32) return 'Fair';
+            if (score <= 40) return 'Poor';
+            return 'Very Poor';
+          })() : 'Not recorded'
+        },
         { name: 'Daily Check-in', value: 0, max: 0, isAction: true }
       ]
     },
@@ -538,9 +585,9 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setShowHooperInfoModal(true)}
+                    onClick={() => setShowWellnessInfoModal(true)}
                     className="text-orange-600 hover:text-orange-700 p-1"
-                    title="Learn about Hooper Index"
+                    title="Learn about Wellness Score"
                   >
                     <FiInfo className="w-4 h-4" />
                   </motion.button>
@@ -567,36 +614,39 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
             transition={{ duration: 0.3 }}
             className="mb-4"
           >
-            <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2.5">
+            <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <FiCalendar className="w-3.5 h-3.5 text-white" />
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <FiCalendar className="w-3 h-3 text-white" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">
-                      Daily check-in complete ✓
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      Wellness data recorded • Hooper Index: {todaysEntry?.hooperIndex || 'N/A'}
-                    </p>
-                  </div>
+                  <p className="text-sm font-medium text-gray-800">
+                    Daily check-in complete
+                  </p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1.5">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setShowHooperInfoModal(true)}
-                    className="text-green-600 hover:text-green-700 p-1"
-                    title="Learn about Hooper Index"
+                    onClick={() => setShowWellnessInfoModal(true)}
+                    className="text-green-600 hover:text-green-700 p-1.5 rounded-md"
+                    title="Learn about Wellness Score"
                   >
-                    <FiInfo className="w-4 h-4" />
+                    <FiInfo className="w-3.5 h-3.5" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowWellnessReportModal(true)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-2.5 py-1 rounded-md text-xs font-medium"
+                  >
+                    View Report
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setShowCheckInModal(true)}
-                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-md text-sm font-medium"
+                    className="bg-green-500 hover:bg-green-600 text-white px-2.5 py-1 rounded-md text-xs font-medium"
                   >
                     Update
                   </motion.button>
@@ -839,9 +889,18 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                                       transition={{ delay: 0.2, duration: 0.5 }}
                                     />
                                   </div>
-                                  <span className="text-xs font-medium text-gray-800 min-w-[2rem]">
-                                    {detail.value.toFixed(0)}
-                                  </span>
+                                  <div className="flex flex-col items-end">
+                                    <span className="text-xs font-medium text-gray-800 min-w-[2rem]">
+                                      {detail.name === 'Wellness Score' && detail.actualValue ? 
+                                        `${detail.actualValue} (${detail.interpretation})` : 
+                                        detail.value.toFixed(0)}
+                                    </span>
+                                    {detail.name === 'Wellness Score' && detail.actualValue && (
+                                      <span className="text-xs text-gray-500">
+                                        Points: {detail.value.toFixed(0)}/{detail.max}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </motion.div>
@@ -919,22 +978,22 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
         )}
       </AnimatePresence>
 
-      {/* Hooper Index Information Modal */}
+      {/* Wellness Score Information Modal */}
       <AnimatePresence>
-        {showHooperInfoModal && (
+        {showWellnessInfoModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowHooperInfoModal(false)}
+            onClick={() => setShowWellnessInfoModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-white rounded-xl shadow-xl max-w-md w-full p-6"
+              className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
@@ -942,12 +1001,12 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                   <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
                     <FiInfo className="w-5 h-5 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800">Hooper Index</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">Wellness Score</h3>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => setShowHooperInfoModal(false)}
+                  onClick={() => setShowWellnessInfoModal(false)}
                   className="text-gray-400 hover:text-gray-600 p-1"
                 >
                   <FiTarget className="w-5 h-5 rotate-45" />
@@ -956,10 +1015,10 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-gray-800 mb-2">What is the Hooper Index?</h4>
+                  <h4 className="font-medium text-gray-800 mb-2">What is the Wellness Score?</h4>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    The Hooper Index is a simple wellness questionnaire that measures your daily readiness to train and perform. 
-                    It tracks key recovery indicators that directly impact your athletic performance.
+                    The Wellness Score is an 8-question daily questionnaire that measures your readiness to train and perform. 
+                    Each question is rated 1-7, with your total score ranging from 8-56 (lower scores indicate better wellness).
                   </p>
                 </div>
 
@@ -968,19 +1027,19 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                   <div className="space-y-2">
                     <div className="flex items-start space-x-2">
                       <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-gray-600"><strong>Sleep Quality:</strong> How well you slept</p>
+                      <p className="text-sm text-gray-600"><strong>Fatigue & Energy:</strong> How tired or energetic you feel</p>
                     </div>
                     <div className="flex items-start space-x-2">
                       <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-gray-600"><strong>Stress Level:</strong> Mental and physical stress</p>
+                      <p className="text-sm text-gray-600"><strong>Stress & Mood:</strong> Mental stress and irritability levels</p>
                     </div>
                     <div className="flex items-start space-x-2">
                       <div className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-gray-600"><strong>Fatigue Level:</strong> Overall energy levels</p>
+                      <p className="text-sm text-gray-600"><strong>Sleep & Recovery:</strong> Sleep quality and feeling well-rested</p>
                     </div>
                     <div className="flex items-start space-x-2">
                       <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-gray-600"><strong>Muscle Soreness:</strong> Recovery status</p>
+                      <p className="text-sm text-gray-600"><strong>Physical State:</strong> Muscle soreness and overall health</p>
                     </div>
                   </div>
                 </div>
@@ -989,15 +1048,23 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                   <h4 className="font-medium text-gray-800 mb-2">Understanding your score:</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center p-2 bg-green-50 rounded-lg">
-                      <span className="text-sm font-medium text-green-800">Low (4-8)</span>
-                      <span className="text-xs text-green-600">Ready to train hard</span>
+                      <span className="text-sm font-medium text-green-800">Excellent (8-16)</span>
+                      <span className="text-xs text-green-600">Ready for intense training</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-blue-50 rounded-lg">
+                      <span className="text-sm font-medium text-blue-800">Good (17-24)</span>
+                      <span className="text-xs text-blue-600">Normal training load</span>
                     </div>
                     <div className="flex justify-between items-center p-2 bg-yellow-50 rounded-lg">
-                      <span className="text-sm font-medium text-yellow-800">Medium (9-15)</span>
+                      <span className="text-sm font-medium text-yellow-800">Fair (25-32)</span>
                       <span className="text-xs text-yellow-600">Moderate training</span>
                     </div>
+                    <div className="flex justify-between items-center p-2 bg-orange-50 rounded-lg">
+                      <span className="text-sm font-medium text-orange-800">Poor (33-40)</span>
+                      <span className="text-xs text-orange-600">Light training</span>
+                    </div>
                     <div className="flex justify-between items-center p-2 bg-red-50 rounded-lg">
-                      <span className="text-sm font-medium text-red-800">High (16-20)</span>
+                      <span className="text-sm font-medium text-red-800">Very Poor (41+)</span>
                       <span className="text-xs text-red-600">Focus on recovery</span>
                     </div>
                   </div>
@@ -1014,7 +1081,7 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowHooperInfoModal(false)}
+                  onClick={() => setShowWellnessInfoModal(false)}
                   className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
                 >
                   Got it!
@@ -1029,8 +1096,15 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
       <DailyCheckInModal
         isOpen={showCheckInModal}
         onClose={() => setShowCheckInModal(false)}
-        onSubmit={handleHooperSubmit}
+        onSubmit={handleWellnessSubmit}
         existingEntry={todaysEntry}
+      />
+
+      {/* Wellness Report Modal */}
+      <WellnessReportModal
+        isOpen={showWellnessReportModal}
+        onClose={() => setShowWellnessReportModal(false)}
+        currentEntry={todaysEntry}
       />
     </motion.div>
   );

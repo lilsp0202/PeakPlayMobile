@@ -8,6 +8,7 @@ import { Check } from "lucide-react";
 import dynamic from 'next/dynamic';
 import PeakPlayLogo from "@/components/PeakPlayLogo";
 import Portal from '../../components/Portal';
+import type { Session } from "next-auth";
 
 // Enhanced dynamic imports with better error handling and loading states
 const SkillSnap = dynamic(() => import("@/components/SkillSnap").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Component temporarily unavailable</div> })), { 
@@ -57,6 +58,11 @@ const OverallStats = dynamic(() => import("@/components/OverallStats").catch(() 
 const PeakScore = dynamic(() => import("@/components/PeakScore").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">PeakScore temporarily unavailable</div> })), { 
   ssr: false,
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96 flex items-center justify-center"><div className="text-gray-500">Loading PeakScore...</div></div>
+});
+
+const MatchCentre = dynamic(() => import("@/components/MatchCentre").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Match Centre temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96 flex items-center justify-center"><div className="text-gray-500">Loading Match Centre...</div></div>
 });
 
 interface ProfileData {
@@ -138,7 +144,7 @@ export default function Dashboard() {
   useEffect(() => {
     console.log('🔍 Dashboard useEffect - Status:', status, 'Session exists:', !!session);
     console.log('🔍 Dashboard useEffect - Full session object:', session);
-    console.log('🔍 Dashboard useEffect - User role:', session?.user?.role);
+    console.log('🔍 Dashboard useEffect - User role:', (session as unknown as Session)?.user?.role);
     
     if (status === "loading") {
       console.log('🔍 Dashboard - Still loading session...');
@@ -171,7 +177,7 @@ export default function Dashboard() {
       setLoading(true);
       setError(null); // Clear any previous errors
       
-      const endpoint = session?.user?.role === "COACH" 
+      const endpoint = (session as unknown as Session)?.user?.role === "COACH" 
         ? "/api/coach/profile"
         : "/api/student/profile";
 
@@ -180,7 +186,7 @@ export default function Dashboard() {
       if (!response.ok) {
         if (response.status === 404) {
           // Profile doesn't exist, redirect to onboarding
-          const onboardingPath = session?.user?.role === "COACH"
+          const onboardingPath = (session as unknown as Session)?.user?.role === "COACH"
             ? "/onboarding/coach"
             : "/onboarding/athlete";
           router.push(onboardingPath);
@@ -242,15 +248,15 @@ export default function Dashboard() {
   useEffect(() => {
     if (profileData) {
       fetchResource(setSkillData, "/api/skills");
-      fetchResource(setBadges, session?.user.role === 'COACH' ? "/api/badges?manage=true" : "/api/badges?type=progress");
+      fetchResource(setBadges, (session as unknown as Session)?.user?.role === 'COACH' ? "/api/badges?manage=true" : "/api/badges?type=progress");
       
       // For coaches, also fetch their assigned and available students
-      if (session?.user.role === 'COACH' && profileData.academy) {
+      if ((session as unknown as Session)?.user?.role === 'COACH' && profileData.academy) {
         fetchAssignedStudents();
         fetchAvailableStudents(profileData.academy);
       }
     }
-  }, [profileData, session?.user.role]);
+  }, [profileData, (session as unknown as Session)?.user?.role]);
 
   // Add body scroll lock when SkillSnap modal is open
   useEffect(() => {
@@ -283,7 +289,7 @@ export default function Dashboard() {
   };
   
   const handleCompleteProfile = () => {
-    const role = session?.user.role?.toLowerCase();
+    const role = (session as unknown as Session)?.user?.role?.toLowerCase();
     router.push(`/onboarding/${role}`);
   };
 
@@ -375,15 +381,15 @@ export default function Dashboard() {
     { id: 'todo', label: 'To-Do', icon: <FiCheckSquare className="w-5 h-5" /> },
   ];
 
-  const tabs = useMemo(() => session?.user.role === 'COACH' ? coachTabs : athleteTabs, [session?.user.role]);
+  const tabs = useMemo(() => (session as unknown as Session)?.user?.role === 'COACH' ? coachTabs : athleteTabs, [(session as unknown as Session)?.user?.role]);
   
   useEffect(() => {
     // Set default tab - coaches start on 'students' tab, athletes on first tab
-    const defaultTab = session?.user.role === 'COACH' ? 'students' : tabs[0]?.id;
+    const defaultTab = (session as unknown as Session)?.user?.role === 'COACH' ? 'students' : tabs[0]?.id;
     if (defaultTab) {
       setActiveTab(defaultTab);
     }
-  }, [tabs, session?.user.role]);
+  }, [tabs, (session as unknown as Session)?.user?.role]);
 
 
   // Show loading while session is loading or profile is being fetched
@@ -397,7 +403,7 @@ export default function Dashboard() {
   }
 
   // Check if profile is incomplete - different criteria for coaches vs athletes
-  const isProfileIncomplete = session?.user.role === 'COACH' 
+  const isProfileIncomplete = (session as unknown as Session)?.user?.role === 'COACH' 
     ? !profileData?.name || !profileData?.academy
     : !profileData?.sport || !profileData?.academy;
 
@@ -602,23 +608,12 @@ export default function Dashboard() {
             case 'matches':
               return (
                 <motion.div 
-                  className="card-modern"
+                  className="space-y-6"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4 }}
                 >
-                  <div className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                      <motion.div
-                        whileHover={{ scale: 1.2 }}
-                        className="mr-2"
-                      >
-                        <FiTarget className="text-green-600" />
-                      </motion.div>
-                      Recent Match Scores
-                    </h2>
-                    <RecentMatchScores />
-                  </div>
+                  <MatchCentre />
                 </motion.div>
               );
 
@@ -1173,7 +1168,7 @@ export default function Dashboard() {
                 transition={{ delay: 0.3 }}
               >
                 <p className="text-md font-semibold text-gray-900">{profileData?.name || session?.user.name}</p>
-                <p className="text-sm text-purple-600 capitalize font-medium">{profileData?.role?.toLowerCase() || session?.user.role?.toLowerCase()}</p>
+                <p className="text-sm text-purple-600 capitalize font-medium">{profileData?.role?.toLowerCase() || (session as unknown as Session)?.user?.role?.toLowerCase()}</p>
               </motion.div>
               <motion.button
                 onClick={handleSignOut}
@@ -1243,7 +1238,7 @@ export default function Dashboard() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {session?.user.role === 'ATHLETE' ? renderAthleteContent() : renderCoachContent()}
+                                {(session as unknown as Session)?.user?.role === 'ATHLETE' ? renderAthleteContent() : renderCoachContent()}
             </motion.div>
           </AnimatePresence>
         </motion.div>
@@ -1384,7 +1379,7 @@ export default function Dashboard() {
       )}
 
       {/* Athlete SkillSnap Modal */}
-      {session?.user.role === 'ATHLETE' && isSkillSnapModalOpen && (
+              {(session as unknown as Session)?.user?.role === 'ATHLETE' && isSkillSnapModalOpen && (
         <Portal>
           <div 
             className="fixed inset-0 z-[999999] overflow-hidden"

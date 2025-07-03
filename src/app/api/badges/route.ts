@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import type { Session } from "next-auth";
 import { prisma } from '@/lib/prisma';
 import { BadgeEngine } from '@/lib/badgeEngine';
 
 // GET /api/badges - Get badges for a student or all badges for management
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log('Badges API - POST request received');
     
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     console.log('Badges API - Session:', session?.user ? { id: session.user.id, role: session.user.role } : 'No session');
     
     if (!session?.user?.id) {
@@ -346,7 +347,7 @@ export async function POST(request: NextRequest) {
 // DELETE /api/badges - Revoke a badge
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id || session.user.role !== 'COACH') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

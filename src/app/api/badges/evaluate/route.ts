@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import type { Session } from "next-auth";
 import { prisma } from '@/lib/prisma';
 import { BadgeEngine } from '@/lib/badgeEngine';
 
 // POST /api/badges/evaluate - Trigger automatic badge evaluation
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     
     // Allow both coaches and system calls (for periodic evaluation)
     if (!session?.user?.id) {
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
 // GET /api/badges/evaluate - Get evaluation status or trigger evaluation for current user
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

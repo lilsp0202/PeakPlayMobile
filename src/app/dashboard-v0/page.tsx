@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import AthleteDashboard from '@/components/v0/dashboard/athlete-dashboard'

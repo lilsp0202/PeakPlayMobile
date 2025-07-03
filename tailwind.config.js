@@ -148,6 +148,14 @@ module.exports = {
         'sparkle-delay-1': 'sparkle 1.2s ease-in-out infinite 0.3s',
         'sparkle-delay-2': 'sparkle 0.8s ease-in-out infinite 0.6s',
         'sparkle-delay-3': 'sparkle 1.4s ease-in-out infinite 0.9s',
+        // New auth UI animations
+        'float-delayed': 'float 3s ease-in-out infinite 1s',
+        'float-slow': 'float 4s ease-in-out infinite',
+        'float-up-down': 'floatUpDown 3s ease-in-out infinite',
+        'float-up-down-delayed': 'floatUpDown 3s ease-in-out infinite 1s',
+        'float-rotate': 'floatRotate 4s ease-in-out infinite',
+        'spin-slow': 'spin 8s linear infinite',
+        'bounce-slow': 'bounce 3s infinite',
       },
       keyframes: {
         'accordion-down': {
@@ -324,6 +332,15 @@ module.exports = {
             opacity: '1',
             transform: 'scale(1)',
           },
+        },
+        // New auth UI keyframes
+        floatUpDown: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        floatRotate: {
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-15px) rotate(180deg)' },
         },
       },
     },

@@ -37,7 +37,7 @@ export class MatchRatingAlgorithm {
   static calculateRating(stats: MatchStats, context: MatchContext): number {
     const { role, matchType, result } = context;
     
-    let baseRating = 5.0; // Start with average rating
+    const baseRating = 5.0; // Start with average rating
     let performanceScore = 0;
     let contextMultiplier = 1.0;
     

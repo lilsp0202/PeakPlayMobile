@@ -161,9 +161,7 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
 
   if (!isOpen) return null;
 
-  const isBatsman = role === "BATSMAN" || role === "ALL_ROUNDER";
-  const isBowler = role === "BOWLER" || role === "ALL_ROUNDER";
-  const isKeeper = role === "KEEPER";
+  // Role variables removed - all stats are now available for all athletes
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -266,7 +264,7 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
 
             {/* Performance Stats */}
             <div className="space-y-6">
-              {isBatsman && (
+              {/* Batting Stats - Available for all athletes */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-700 flex items-center">
                     <BarChart2 className="w-5 h-5 mr-2 text-indigo-500" />
@@ -342,9 +340,8 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
                     </div>
                   </div>
                 </div>
-              )}
 
-              {isBowler && (
+              {/* Bowling Stats - Available for all athletes */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-700 flex items-center">
                     <BarChart2 className="w-5 h-5 mr-2 text-teal-500" />
@@ -420,8 +417,8 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
                     </div>
                   </div>
                 </div>
-              )}
 
+              {/* Fielding Stats - Available for all athletes */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-700 flex items-center">
                   <BarChart2 className="w-5 h-5 mr-2 text-orange-500" />
@@ -450,7 +447,6 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
                     />
                   </div>
-                  {isKeeper && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Stumpings</label>
                       <input
@@ -462,7 +458,6 @@ export default function AddMatchModal({ isOpen, onClose, onSubmit, role = "BATSM
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
                       />
                     </div>
-                  )}
                 </div>
               </div>
             </div>

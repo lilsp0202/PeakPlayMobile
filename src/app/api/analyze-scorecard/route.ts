@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import type { Session } from "next-auth";
 
 export async function POST(request: NextRequest) {
   try {
     // Check if user is authenticated and is an athlete
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user || session.user.role !== "ATHLETE") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

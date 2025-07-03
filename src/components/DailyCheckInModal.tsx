@@ -21,8 +21,53 @@ interface HooperIndexData {
   irritable: number;
   healthyOverall: number;
   wellRested: number;
-  hooperIndex: number;
+  hooperIndex: number; // Keep the API field name for compatibility
 }
+
+// Wellness Score interpretation function
+const getWellnessInterpretation = (score: number) => {
+  if (score <= 16) {
+    return {
+      label: "Excellent",
+      description: "Great recovery and wellness",
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200"
+    };
+  } else if (score <= 24) {
+    return {
+      label: "Good", 
+      description: "Moderate wellness levels",
+      color: "text-blue-600",
+      bgColor: "bg-blue-50", 
+      borderColor: "border-blue-200"
+    };
+  } else if (score <= 32) {
+    return {
+      label: "Fair",
+      description: "Some fatigue or stress present",
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-50",
+      borderColor: "border-yellow-200"
+    };
+  } else if (score <= 40) {
+    return {
+      label: "Poor",
+      description: "High fatigue or stress levels",
+      color: "text-orange-600", 
+      bgColor: "bg-orange-50",
+      borderColor: "border-orange-200"
+    };
+  } else {
+    return {
+      label: "Very Poor",
+      description: "Significant fatigue and stress",
+      color: "text-red-600",
+      bgColor: "bg-red-50", 
+      borderColor: "border-red-200"
+    };
+  }
+};
 
 const questions = [
   {
@@ -387,24 +432,34 @@ const DailyCheckInModal: React.FC<DailyCheckInModalProps> = ({
               </div>
             </div>
 
-            {/* Hooper Index Preview (if all questions answered) */}
-            {allQuestionsAnswered && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mx-6 mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl"
-              >
-                <div className="text-center">
-                  <p className="text-sm text-purple-600 font-medium mb-1">Your Hooper Index</p>
-                  <p className="text-2xl font-bold text-purple-700">
-                    {Object.values(responses).reduce((sum, score) => sum + score, 0)}
-                  </p>
-                  <p className="text-xs text-purple-500">
-                    Lower = better recovery/wellness; higher = potential fatigue or overload
-                  </p>
-                </div>
-              </motion.div>
-            )}
+            {/* Wellness Score Preview (if all questions answered) */}
+            {allQuestionsAnswered && (() => {
+              const totalScore = Object.values(responses).reduce((sum, score) => sum + score, 0);
+              const interpretation = getWellnessInterpretation(totalScore);
+              
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`mx-6 mb-6 p-4 ${interpretation.bgColor} border ${interpretation.borderColor} rounded-xl`}
+                >
+                  <div className="text-center">
+                    <p className={`text-sm font-medium mb-1 ${interpretation.color}`}>Your Wellness Score</p>
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <p className={`text-2xl font-bold ${interpretation.color}`}>
+                        {totalScore}
+                      </p>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${interpretation.bgColor} ${interpretation.color} border ${interpretation.borderColor}`}>
+                        {interpretation.label}
+                      </span>
+                    </div>
+                    <p className={`text-xs ${interpretation.color.replace('600', '500')}`}>
+                      {interpretation.description}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })()}
           </motion.div>
         </div>
       )}

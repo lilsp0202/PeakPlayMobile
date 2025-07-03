@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import type { Session } from "next-auth";
 import { prisma } from '@/lib/prisma';
 
 // GET /api/badges/admin - Get all badge definitions, categories, etc.
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id || session.user.role !== 'COACH') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest) {
 // POST /api/badges/admin - Create badge definitions, categories, etc.
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id || session.user.role !== 'COACH') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -166,7 +167,7 @@ export async function POST(request: NextRequest) {
 // PUT /api/badges/admin - Update badge definitions
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id || session.user.role !== 'COACH') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -238,7 +239,7 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/badges/admin - Delete badge definitions
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id || session.user.role !== 'COACH') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

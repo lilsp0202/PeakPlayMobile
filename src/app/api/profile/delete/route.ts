@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import * as Sentry from "@sentry/nextjs";
@@ -13,7 +14,7 @@ export async function DELETE(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse;
 
     // Check authentication
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -142,7 +143,7 @@ export async function DELETE(request: NextRequest) {
     Sentry.captureException(error, {
       tags: {
         endpoint: '/api/profile/delete',
-        userId: (await getServerSession(authOptions))?.user?.id,
+        userId: ((await getServerSession(authOptions)) as Session | null)?.user?.id,
       },
     });
 
@@ -157,7 +158,7 @@ export async function DELETE(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
