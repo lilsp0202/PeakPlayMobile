@@ -172,6 +172,13 @@ export default function Dashboard() {
     }
   }, [session, status, router]);
 
+  // Handle badge centre navigation when badges tab is selected
+  useEffect(() => {
+    if (activeTab === 'badges') {
+      router.push('/badge-centre');
+    }
+  }, [activeTab, router]);
+
   const fetchProfile = async () => {
     try {
       setLoading(true);
@@ -620,24 +627,14 @@ export default function Dashboard() {
             case 'badges':
               return (
                 <motion.div 
-                  className="card-modern glass"
-                  whileHover={{ y: -5 }}
+                  className="card-modern glass flex items-center justify-center h-64"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="p-6">
-                    <div className="flex items-center mb-6">
-                      <motion.div 
-                        animate={{ rotate: [0, 10, -10, 0] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"
-                      >
-                        <FiAward className="w-6 h-6 text-white" />
-                      </motion.div>
-                      <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
-                        Your Badges
-                      </h2>
-                    </div>
-                    <BadgeDisplay />
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Opening Badge Centre...</p>
                   </div>
                 </motion.div>
               );

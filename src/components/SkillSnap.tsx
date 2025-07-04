@@ -870,8 +870,8 @@ const SkillBar: React.FC<{
       {isEditing ? (
             <div className="flex flex-col items-end space-y-2">
               <div className="flex items-center space-x-2">
-                <input
-                  type={getInputType()}
+          <input
+                type={getInputType()}
                   value={score || ''}
                   onChange={(e) => {
                     const value = parseFloat(e.target.value);
@@ -879,9 +879,9 @@ const SkillBar: React.FC<{
                       onScoreChange(skill.id, value || 0);
                     }
                   }}
-                  min={range.min}
-                  max={range.max}
-                  step={range.step}
+            min={range.min}
+            max={range.max}
+            step={range.step}
                   placeholder={getPlaceholder()}
                   className={`w-24 sm:w-28 px-3 py-3 text-base font-semibold border-2 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 ${
                     isValidInput(score) ? 'border-blue-300' : 'border-red-300'
@@ -890,7 +890,7 @@ const SkillBar: React.FC<{
                   autoComplete="off"
                 />
                 <span className="text-sm font-medium text-gray-600 min-w-0">{skill.unit}</span>
-              </div>
+        </div>
               {/* Validation feedback */}
               <div className="text-xs text-center">
                 {score < range.min && score !== 0 && (
@@ -905,25 +905,25 @@ const SkillBar: React.FC<{
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     Valid
-                  </span>
-                )}
-              </div>
+              </span>
+            )}
         </div>
+          </div>
       ) : (
         <>
               <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
                 {formatValue(score)}
-              </div>
+        </div>
               {showComparison && (
                 <div className="text-xs sm:text-sm text-gray-700">
                   Avg: {formatValue(average)}
-                </div>
+        </div>
               )}
             </>
             )}
         </div>
-          </div>
-          
+      </div>
+
       {/* Progress bar */}
       <div className="mb-3 sm:mb-4">
         <div className="flex justify-between items-center mb-2">
@@ -935,8 +935,8 @@ const SkillBar: React.FC<{
             className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${skill.colorScheme.background}`}
             style={{ width: `${Math.min(getPercentage(), 100)}%` }}
           />
+          </div>
         </div>
-      </div>
 
       {/* Enhanced validation feedback for editing with tips */}
       {isEditing && (
@@ -949,8 +949,8 @@ const SkillBar: React.FC<{
               <p className="text-xs text-blue-600 font-medium">
                 Target: {formatValue(personalizedTarget)}
               </p>
-            )}
-          </div>
+          )}
+    </div>
           
           {/* Tips for different skill types */}
           <div className="text-xs text-gray-600">
@@ -1045,7 +1045,7 @@ const CategoryCard: React.FC<{
       </div>
       
       {aggregateScore > 0 && (
-        <motion.div 
+        <motion.div
           className="mt-4 flex items-center justify-center"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1697,7 +1697,7 @@ export default function SkillSnap({
   };
 
   const handleSave = async (categoryId: string) => {
-    setIsSaving(true);
+      setIsSaving(true);
     try {
       // Only include non-zero scores and valid ranges for each skill type
       const validScores: Record<string, number> = {};
@@ -1737,10 +1737,10 @@ export default function SkillSnap({
 
       // Refresh skill data to get the latest values
       await fetchSkillData();
-      setIsEditing(null);
+        setIsEditing(null);
       setEditedScores({});
-      onSkillsUpdated?.();
-      
+        onSkillsUpdated?.();
+        
       // Show success feedback
       const savedCount = Object.keys(validScores).length;
       alert(`✅ Successfully saved ${savedCount} skill${savedCount !== 1 ? 's' : ''}!`);
@@ -1997,8 +1997,8 @@ export default function SkillSnap({
                         </div>
                       )}
                     </div>
+                    </div>
                   </div>
-                </div>
 
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -2008,7 +2008,7 @@ export default function SkillSnap({
                         <div className="flex items-center mb-2">
                           <FiEdit className="w-5 h-5 text-blue-600 mr-2" />
                           <h3 className="text-lg font-semibold text-blue-900">Editing Mode</h3>
-                        </div>
+                  </div>
                         <p className="text-blue-700 text-sm leading-relaxed">
                           Update all your {selectedCategory.name.toLowerCase()} skills in one place. 
                           Enter your scores using decimal numbers where appropriate (e.g., 12.45 seconds for sprints).
@@ -2018,10 +2018,10 @@ export default function SkillSnap({
                             💡 Tip: Lower times are better for sprints and runs. Higher numbers are better for reps and scores.
                           </p>
                         )}
-                      </div>
-                    )}
-                    {renderSkillsForCategory(selectedCategory)}
                   </div>
+                )}
+                    {renderSkillsForCategory(selectedCategory)}
+              </div>
                 </div>
               </div>
             </div>

@@ -125,7 +125,8 @@ export async function GET(request: NextRequest) {
         break;
       
       case 'progress':
-        response = await BadgeEngine.getBadgeProgress(targetStudentId);
+        const badges = await BadgeEngine.getBadgeProgress(targetStudentId);
+        response = { badges };
         break;
       
       case 'all':

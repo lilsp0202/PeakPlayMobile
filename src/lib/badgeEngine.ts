@@ -166,11 +166,6 @@ export class BadgeEngine {
     const { rules } = badge;
     const skills = student.skills;
 
-    if (!skills) {
-      console.log('BadgeEngine - No skills data for student:', student.id);
-      return { earned: false, progress: 0, score: 0 };
-    }
-
     let totalScore = 0;
     let maxScore = 0;
     let requiredRulesPassed = 0;
@@ -182,7 +177,7 @@ export class BadgeEngine {
     });
 
     for (const rule of rules) {
-      const { fieldName, operator, value, weight, isRequired } = rule;
+      const { ruleType, fieldName, operator, value, weight, isRequired, description } = rule;
       
       if (isRequired) {
         totalRequiredRules++;
@@ -190,29 +185,93 @@ export class BadgeEngine {
       
       maxScore += weight;
 
-      // Get the field value from skills
-      const fieldValue = skills[fieldName];
-      
-      console.log('BadgeEngine - Evaluating rule:', {
+      let ruleResult = false;
+
+      console.log('BadgeEngine - Rule evaluation:', {
+        ruleType,
         fieldName,
-        fieldValue,
         operator,
-        targetValue: value,
+        value,
         weight,
         isRequired
       });
 
-      if (fieldValue === null || fieldValue === undefined || fieldValue === 0) {
-        console.log('BadgeEngine - Field value is null/undefined/zero (no input), skipping rule');
-        continue;
+      switch (ruleType) {
+        case 'SKILLS_METRIC':
+          if (!skills) {
+            console.log('BadgeEngine - No skills data for SKILLS_METRIC rule');
+            continue;
+          }
+          const fieldValue = skills[fieldName];
+          if (fieldValue === null || fieldValue === undefined || fieldValue === 0) {
+            console.log('BadgeEngine - Field value is null/undefined/zero (no input), skipping rule');
+            continue;
+          }
+          ruleResult = this.evaluateRule(fieldValue, operator, value);
+          break;
+
+        case 'MATCH_COUNT':
+          // Get match count based on fieldName
+          const matchCount = await this.getMatchCount(student.id, fieldName);
+          ruleResult = this.evaluateRule(matchCount, operator, value);
+          break;
+
+        case 'MATCH_STAT':
+          // Get match statistic
+          const matchStat = await this.getMatchStat(student.id, fieldName);
+          ruleResult = this.evaluateRule(matchStat, operator, value);
+          break;
+
+        case 'WELLNESS_STREAK':
+          // Check wellness streak
+          const streakDays = await this.getWellnessStreak(student.id, fieldName, parseFloat(value), description);
+          ruleResult = streakDays > 0;
+          break;
+
+        case 'MATCH_STREAK':
+          // Check match performance streak
+          const matchStreak = await this.getMatchStreak(student.id, fieldName, parseFloat(value), description);
+          ruleResult = matchStreak > 0;
+          break;
+
+        case 'SKILLS_AVERAGE':
+          // Check skills average over time
+          const skillsAvg = await this.getSkillsAverage(student.id, description);
+          ruleResult = this.evaluateRule(skillsAvg, operator, value);
+          break;
+
+        case 'SKILLS_ANY':
+          // Check if any skill meets criteria
+          if (!skills) continue;
+          ruleResult = await this.checkAnySkill(skills, operator, value);
+          break;
+
+        case 'FITNESS_PERCENTILE':
+          // Check fitness percentile
+          const percentile = await this.getFitnessPercentile(student);
+          ruleResult = this.evaluateRule(percentile, operator, value);
+          break;
+
+        case 'MATCH_AVERAGE':
+          // Check match rating average
+          const matchAvg = await this.getMatchAverage(student.id, fieldName, description);
+          ruleResult = this.evaluateRule(matchAvg, operator, value);
+          break;
+
+        case 'PEAKSCORE_PERCENTILE':
+          // Check PeakScore percentile
+          const peakPercentile = await this.getPeakScorePercentile(student);
+          ruleResult = this.evaluateRule(peakPercentile, operator, value);
+          break;
+
+        default:
+          console.warn('BadgeEngine - Unknown rule type:', ruleType);
       }
 
-      const ruleResult = this.evaluateRule(fieldValue, operator, value);
-      
       console.log('BadgeEngine - Rule result:', {
+        ruleType,
         fieldName,
         passed: ruleResult,
-        fieldValue,
         operator,
         targetValue: value
       });
@@ -455,5 +514,206 @@ export class BadgeEngine {
       totalNewBadges,
       errors
     };
+  }
+
+  // Helper methods for new rule types
+  private static async getMatchCount(studentId: string, fieldName: string): Promise<number> {
+    const performances = await prisma.matchPerformance.findMany({
+      where: { studentId },
+      include: { match: true }
+    });
+
+    switch (fieldName) {
+      case 'matchesPlayed':
+        return performances.filter(p => p.played).length;
+      case 'matchesWon':
+        return performances.filter(p => p.match.result === 'WIN').length;
+      case 'fieldingPerformances':
+        return performances.length;
+      default:
+        return 0;
+    }
+  }
+
+  private static async getMatchStat(studentId: string, fieldName: string): Promise<number> {
+    const performances = await prisma.matchPerformance.findMany({
+      where: { studentId }
+    });
+
+    let maxValue = 0;
+    for (const perf of performances) {
+      try {
+        const stats = JSON.parse(perf.stats);
+        const value = stats[fieldName] || 0;
+        if (value > maxValue) maxValue = value;
+      } catch (e) {
+        console.error('Error parsing match stats:', e);
+      }
+    }
+    return maxValue;
+  }
+
+  private static async getWellnessStreak(studentId: string, fieldName: string, targetValue: number, description?: string): Promise<number> {
+    const days = parseInt(description?.match(/\d+/)?.[0] || '0');
+    if (days === 0) return 0;
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const skills = await prisma.skills.findMany({
+      where: {
+        studentId,
+        updatedAt: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    if (skills.length < days) return 0;
+
+    // Check if all wellness metrics meet criteria
+    if (fieldName === 'allMetrics') {
+      return skills.every(s => 
+        s.waterIntake && s.sleepScore && s.moodScore && 
+        s.protein && s.carbohydrates && s.fats && s.totalCalories
+      ) ? days : 0;
+    }
+
+    // Check specific metric
+    return skills.every(s => {
+      const value = (s as any)[fieldName];
+      return value && value >= targetValue;
+    }) ? days : 0;
+  }
+
+  private static async getMatchStreak(studentId: string, fieldName: string, targetValue: number, description?: string): Promise<number> {
+    const count = parseInt(description?.match(/\d+/)?.[0] || '0');
+    if (count === 0) return 0;
+
+    const performances = await prisma.matchPerformance.findMany({
+      where: { studentId },
+      include: { match: true },
+      orderBy: { match: { matchDate: 'desc' } },
+      take: count
+    });
+
+    if (performances.length < count) return 0;
+
+    return performances.every(p => {
+      if (fieldName === 'matchRating') {
+        return p.rating && p.rating >= targetValue;
+      }
+      try {
+        const stats = JSON.parse(p.stats);
+        return stats[fieldName] >= targetValue;
+      } catch {
+        return false;
+      }
+    }) ? count : 0;
+  }
+
+  private static async getSkillsAverage(studentId: string, description?: string): Promise<number> {
+    const skills = await prisma.skills.findUnique({
+      where: { studentId }
+    });
+
+    if (!skills) return 0;
+
+    const technicalSkills = [
+      'aim', 'backFootDrag', 'backFootLanding', 'backLift', 'battingBalance',
+      'battingGrip', 'battingStance', 'bowlingGrip', 'calling', 'cockingOfWrist',
+      'flatCatch', 'followThrough', 'frontFootLanding', 'highCatch', 'highElbow',
+      'hipDrive', 'nonBowlingArm', 'pickUp', 'positioningOfBall', 'receiving',
+      'release', 'runUp', 'runningBetweenWickets', 'softHands', 'throw', 'topHandDominance'
+    ];
+
+    let total = 0;
+    let count = 0;
+
+    for (const skill of technicalSkills) {
+      const value = (skills as any)[skill];
+      if (value && value > 0) {
+        total += value;
+        count++;
+      }
+    }
+
+    return count > 0 ? total / count : 0;
+  }
+
+  private static async checkAnySkill(skills: any, operator: string, value: string): Promise<boolean> {
+    const technicalSkills = [
+      'aim', 'backFootDrag', 'backFootLanding', 'backLift', 'battingBalance',
+      'battingGrip', 'battingStance', 'bowlingGrip', 'calling', 'cockingOfWrist',
+      'flatCatch', 'followThrough', 'frontFootLanding', 'highCatch', 'highElbow',
+      'hipDrive', 'nonBowlingArm', 'pickUp', 'positioningOfBall', 'receiving',
+      'release', 'runUp', 'runningBetweenWickets', 'softHands', 'throw', 'topHandDominance'
+    ];
+
+    for (const skill of technicalSkills) {
+      const fieldValue = skills[skill];
+      if (fieldValue && this.evaluateRule(fieldValue, operator, value)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static async getFitnessPercentile(student: any): Promise<number> {
+    // This is a simplified version - in production you'd calculate actual percentiles
+    const skills = student.skills;
+    if (!skills) return 0;
+
+    const fitnessScore = (
+      (skills.pushupScore || 0) +
+      (skills.pullupScore || 0) * 5 +
+      (skills.verticalJump || 0) +
+      (skills.gripStrength || 0) +
+      (100 - (skills.sprint50m || 100)) +
+      (100 - (skills.run5kTime || 100))
+    ) / 6;
+
+    // Simplified percentile calculation
+    if (fitnessScore > 80) return 95;
+    if (fitnessScore > 70) return 90;
+    if (fitnessScore > 60) return 75;
+    if (fitnessScore > 50) return 50;
+    return 25;
+  }
+
+  private static async getMatchAverage(studentId: string, fieldName: string, description?: string): Promise<number> {
+    const count = parseInt(description?.match(/\d+/)?.[0] || '10');
+    
+    const performances = await prisma.matchPerformance.findMany({
+      where: { studentId },
+      include: { match: true },
+      orderBy: { match: { matchDate: 'desc' } },
+      take: count
+    });
+
+    if (performances.length === 0) return 0;
+
+    const total = performances.reduce((sum, p) => sum + (p.rating || 0), 0);
+    return total / performances.length;
+  }
+
+  private static async getPeakScorePercentile(student: any): Promise<number> {
+    // This would need actual PeakScore calculation logic
+    // For now, return a simplified version
+    const skills = student.skills;
+    if (!skills) return 0;
+
+    // Calculate a simple score based on all metrics
+    const overallScore = 75; // Placeholder
+    
+    // Simplified percentile
+    if (overallScore > 90) return 95;
+    if (overallScore > 80) return 85;
+    if (overallScore > 70) return 70;
+    if (overallScore > 60) return 50;
+    return 30;
   }
 } 
