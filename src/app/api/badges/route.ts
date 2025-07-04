@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     const studentId = searchParams.get('studentId');
     const type = searchParams.get('type') || 'earned'; // earned, progress, all, manage
     const manage = searchParams.get('manage'); // for coach management view
+    const completed = searchParams.get('completed'); // for fetching only completed badges
 
     // If coach wants to manage badges
     if (manage === 'true' || type === 'manage') {
@@ -70,6 +71,37 @@ export async function GET(request: NextRequest) {
         coachBadges, 
         systemBadges,
         badges: allBadges // Keep for backward compatibility
+      });
+    }
+
+    // Handle completed badges request for a specific student
+    if (completed === 'true' && studentId) {
+      // Fetch completed badges for the student
+      const completedBadges = await prisma.studentBadge.findMany({
+        where: {
+          studentId,
+          isRevoked: false,
+          progress: 100
+        },
+        include: {
+          badge: {
+            include: {
+              category: true
+            }
+          }
+        },
+        orderBy: {
+          awardedAt: 'desc'
+        }
+      });
+
+      return NextResponse.json({ 
+        badges: completedBadges.map(sb => ({
+          badgeId: sb.badgeId,
+          awardedAt: sb.awardedAt,
+          progress: sb.progress,
+          badge: sb.badge
+        }))
       });
     }
 

@@ -1,290 +1,269 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { 
-  Edit, 
-  Trash2, 
-  X, 
-  Trophy,
-  User,
-  Settings
-} from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiAward, FiPlus, FiFilter, FiUsers, FiSearch } from "react-icons/fi";
+import CreateBadgeModal from "./CreateBadgeModal";
 
-interface BadgeManagerProps {
-  onEditBadge?: (badge: any) => void;
-  onDeleteBadge?: (badgeId: string) => void;
-  refreshTrigger?: number;
+interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  motivationalText: string;
+  level: string;
+  icon: string;
+  sport: string;
+  _count?: {
+    studentBadges: number;
+  };
+  category?: {
+    name: string;
+  };
+  createdBy?: string;
+  isCustom?: boolean;
 }
 
-type TabType = 'coach' | 'system';
+const levelColors = {
+  BRONZE: '#CD7F32',
+  SILVER: '#C0C0C0',
+  GOLD: '#FFD700',
+  PLATINUM: '#E5E4E2',
+  ROOKIE: '#10B981',
+  AMATEUR: '#3B82F6',
+  PRO: '#9333EA'
+};
 
-export default function BadgeManager({ onEditBadge, onDeleteBadge, refreshTrigger }: BadgeManagerProps = {}) {
-  const { data: session } = useSession();
-  const [coachBadges, setCoachBadges] = useState<any[]>([]);
-  const [systemBadges, setSystemBadges] = useState<any[]>([]);
+const categoryColors: Record<string, string> = {
+  'Physical Fitness': '#EF4444',
+  'Technical Skills': '#3B82F6',
+  'Wellness & Nutrition': '#10B981',
+  'Match Performance': '#F59E0B',
+  'Consistency': '#8B5CF6',
+  'Mental': '#EC4899',
+  'Custom': '#6B7280'
+};
+
+export default function BadgeManager() {
+  const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('coach');
-  const [showAll, setShowAll] = useState<{coach: boolean, system: boolean}>({coach: false, system: false});
-  const lastRefreshTrigger = useRef<number>(0);
-
-  const fetchBadges = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch('/api/badges?manage=true');
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`Failed to fetch badges: ${response.status} ${errorData}`);
-      }
-      const data = await response.json();
-      
-      // Set coach badges and system badges from the API response
-      setCoachBadges(Array.isArray(data.coachBadges) ? data.coachBadges : []);
-      setSystemBadges(Array.isArray(data.systemBadges) ? data.systemBadges : []);
-    } catch (error) {
-      console.error('Error fetching badges:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch badges');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [selectedLevel, setSelectedLevel] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showOnlyCustom, setShowOnlyCustom] = useState(false);
 
   useEffect(() => {
     fetchBadges();
-  }, [fetchBadges]);
+  }, []);
 
-  // Add effect to watch for refresh trigger - only trigger if value actually changed
-  useEffect(() => {
-    if (refreshTrigger && refreshTrigger > 0 && refreshTrigger !== lastRefreshTrigger.current) {
-      lastRefreshTrigger.current = refreshTrigger;
-      fetchBadges();
-    }
-  }, [refreshTrigger, fetchBadges]);
-
-  const handleDeleteBadge = async (badgeId: string) => {
-    if (!confirm('Are you sure you want to delete this badge?')) return;
+  const fetchBadges = async () => {
+    setLoading(true);
     try {
-      const response = await fetch(`/api/badges/${badgeId}`, { method: 'DELETE' });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete badge');
+      const response = await fetch('/api/badges?manage=true');
+      if (response.ok) {
+        const data = await response.json();
+        setBadges(data.badges || []);
       }
-      // Remove from coach badges only (since only coach badges can be deleted)
-      setCoachBadges(prev => prev.filter(badge => badge.id !== badgeId));
-      if (onDeleteBadge) onDeleteBadge(badgeId);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete badge';
-      setError(errorMessage);
-      alert(errorMessage);
+    } catch (error) {
+      console.error('Error fetching badges:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const renderBadgeGrid = (badges: any[], tab: TabType) => {
-    const badgesToShow = showAll[tab] ? badges : badges.slice(0, 6);
-
-    if (badges.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-full flex items-center justify-center">
-            <Trophy className="h-10 w-10 text-yellow-600" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            {tab === 'coach' ? 'No Custom Badges Created Yet' : 'No Default Badges Available'}
-          </h3>
-          <p className="text-gray-600 mb-6">
-            {tab === 'coach' 
-              ? 'Start creating personalized badges to motivate and reward your students for their achievements.' 
-              : 'Default system badges will appear here once available.'}
-          </p>
-          {tab === 'coach' && (
-            <button
-              onClick={() => onEditBadge && onEditBadge(null)}
-              className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-semibold rounded-xl hover:from-yellow-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              🏆 Create Your First Badge
-            </button>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {badgesToShow.map((badge, index) => (
-            <div
-              key={`badge-${badge.id}`}
-              className="group bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] hover:border-yellow-300 flex flex-col justify-between"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="flex items-start gap-4 mb-4">
-                <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-3xl font-bold shadow-lg transition-transform duration-300 group-hover:scale-110 ${
-                  badge.level === 'CHAMPION' ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white' :
-                  badge.level === 'ATHLETE' ? 'bg-gradient-to-br from-cyan-400 to-blue-500 text-white' :
-                  badge.level === 'ROOKIE' ? 'bg-gradient-to-br from-purple-400 to-pink-500 text-white' :
-                  badge.level === 'GOLD' ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white' :
-                  badge.level === 'SILVER' ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white' :
-                  badge.level === 'BRONZE' ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' :
-                  'bg-gradient-to-br from-indigo-400 to-indigo-600 text-white'
-                }`}>
-                  <Trophy />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-lg font-bold text-gray-900 group-hover:text-yellow-600 transition-colors duration-200 mb-1">
-                    {badge.name}
-                  </h4>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      badge.level === 'CHAMPION' ? 'bg-yellow-100 text-yellow-800' :
-                      badge.level === 'ATHLETE' ? 'bg-cyan-100 text-cyan-800' :
-                      badge.level === 'ROOKIE' ? 'bg-purple-100 text-purple-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {badge.level}
-                    </span>
-                    <span className="text-xs text-gray-500 font-medium">
-                      {badge.category?.name || 'General'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <p className="text-sm text-gray-700 mb-4 leading-relaxed line-clamp-3">
-                {badge.description || 'No description available'}
-              </p>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded-lg font-medium">
-                    {badge.sport || 'ALL'} Sport
-                  </span>
-                  {badge._count?.studentBadges > 0 && (
-                    <span className="text-xs text-green-600 px-2 py-1 bg-green-100 rounded-lg font-medium">
-                      {badge._count.studentBadges} awarded
-                    </span>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {tab === 'coach' && (
-                    <>
-                      {onEditBadge && (
-                        <button
-                          onClick={() => onEditBadge(badge)}
-                          className="p-2 text-blue-500 hover:text-white hover:bg-blue-500 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Edit badge"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                      )}
-                    <button
-                      onClick={() => handleDeleteBadge(badge.id)}
-                        className="p-2 text-red-500 hover:text-white hover:bg-red-500 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                      title="Delete badge"
-                    >
-                        <Trash2 className="h-4 w-4" />
-                    </button>
-                    </>
-                  )}
-                  {tab === 'system' && (
-                    <span className="text-xs text-blue-600 px-3 py-1 bg-blue-100 rounded-full font-medium">
-                      System Badge
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        {badges.length > 6 && (
-          <div className="flex justify-center mt-8">
-            <button
-              className="px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 font-semibold rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-300 hover:scale-105 shadow-lg"
-              onClick={() => setShowAll(prev => ({...prev, [tab]: !prev[tab]}))}
-            >
-              {showAll[tab] ? 'Show Less' : `Show ${badges.length - 6} More Badges`}
-            </button>
-          </div>
-        )}
-      </>
-    );
+  const getFilteredBadges = () => {
+    return badges.filter(badge => {
+      // Category filter
+      if (selectedCategory !== 'ALL' && badge.category?.name !== selectedCategory) {
+        return false;
+      }
+      
+      // Level filter
+      if (selectedLevel !== 'ALL' && badge.level !== selectedLevel) {
+        return false;
+      }
+      
+      // Custom badge filter
+      if (showOnlyCustom && !badge.isCustom) {
+        return false;
+      }
+      
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return badge.name.toLowerCase().includes(query) || 
+               badge.description.toLowerCase().includes(query);
+      }
+      
+      return true;
+    });
   };
+
+  const uniqueCategories = Array.from(new Set(badges.map(b => b.category?.name).filter(Boolean)));
+  const uniqueLevels = Array.from(new Set(badges.map(b => b.level)));
+  
+  const filteredBadges = getFilteredBadges();
+  const customBadgesCount = badges.filter(b => b.isCustom).length;
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-900">Badge Management</h3>
-        <button
-          onClick={fetchBadges}
-          className="px-3 py-1 text-sm bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
-        >
-          Refresh
-        </button>
-      </div>
-
-      {/* Add New Badge Button */}
-      <div className="mb-4">
-        <button
-          onClick={() => onEditBadge && onEditBadge(null)}
-          className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold rounded-lg shadow hover:from-yellow-500 hover:to-orange-600 transition-all duration-200"
-        >
-          + Create New Badge
-        </button>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            onClick={() => setActiveTab('coach')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-              activeTab === 'coach'
-                ? 'text-cyan-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-            style={{
-              borderBottomColor: activeTab === 'coach' ? '#06B6D4' : undefined
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              My Badges ({coachBadges.length})
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('system')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-              activeTab === 'system'
-                ? 'text-purple-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-            style={{
-              borderBottomColor: activeTab === 'system' ? '#A78BFA' : undefined
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Default Badges ({systemBadges.length})
-            </div>
-          </button>
-        </nav>
-      </div>
-
-      {/* Content */}
-      {loading ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Badge Management</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Total: {badges.length} badges • Custom: {customBadgesCount} badges
+          </p>
         </div>
-      ) : error ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">{error}</div>
+        <motion.button
+          onClick={() => setShowCreateModal(true)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="px-4 py-2 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-lg hover:from-yellow-700 hover:to-orange-700 transition-all font-medium shadow-lg flex items-center gap-2"
+        >
+          <FiPlus className="w-4 h-4" />
+          Create Custom Badge
+        </motion.button>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-gray-50 p-4 rounded-xl space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search badges by name or description..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+          />
+        </div>
+
+        {/* Filter Options */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+          >
+            <option value="ALL">All Categories</option>
+            {uniqueCategories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedLevel}
+            onChange={(e) => setSelectedLevel(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+          >
+            <option value="ALL">All Levels</option>
+            {uniqueLevels.map(level => (
+              <option key={level} value={level}>{level}</option>
+            ))}
+          </select>
+
+          <label className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+            <input
+              type="checkbox"
+              checked={showOnlyCustom}
+              onChange={(e) => setShowOnlyCustom(e.target.checked)}
+              className="w-4 h-4 text-yellow-600 rounded focus:ring-yellow-500"
+            />
+            <span className="text-sm font-medium text-gray-700">Custom Only</span>
+          </label>
+
+          <div className="flex items-center justify-center text-sm text-gray-600">
+            {filteredBadges.length} badges found
+          </div>
+        </div>
+      </div>
+
+      {/* Badge Grid */}
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-600"></div>
+        </div>
+      ) : filteredBadges.length === 0 ? (
+        <div className="text-center py-12">
+          <FiAward className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <p className="text-gray-500">No badges found matching your criteria</p>
+        </div>
       ) : (
-        <div className="mt-6">
-          {activeTab === 'coach' && renderBadgeGrid(coachBadges, 'coach')}
-          {activeTab === 'system' && renderBadgeGrid(systemBadges, 'system')}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {filteredBadges.map((badge) => {
+            const levelColor = levelColors[badge.level as keyof typeof levelColors] || '#6B7280';
+            const categoryColor = categoryColors[badge.category?.name || 'Custom'] || '#6B7280';
+            
+            return (
+              <motion.div
+                key={badge.id}
+                className="relative rounded-xl p-4 bg-white border-2 border-gray-200 hover:shadow-lg transition-all duration-300"
+                style={{
+                  borderTop: `4px solid ${categoryColor}`
+                }}
+                whileHover={{ y: -5 }}
+              >
+                {/* Custom Badge Indicator */}
+                {badge.isCustom && (
+                  <div className="absolute top-2 left-2 px-2 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">
+                    CUSTOM
+                  </div>
+                )}
+
+                {/* Level Badge */}
+                <div
+                  className="absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-bold"
+                  style={{
+                    backgroundColor: `${levelColor}20`,
+                    color: levelColor,
+                    border: `2px solid ${levelColor}`
+                  }}
+                >
+                  {badge.level}
+                </div>
+
+                {/* Badge Content */}
+                <div className="text-center mt-4">
+                  <div className="text-4xl mb-2">{badge.icon}</div>
+                  <h3 className="text-sm font-bold text-gray-800 mb-1">{badge.name}</h3>
+                  <p className="text-xs text-gray-600 mb-3 line-clamp-2">{badge.description}</p>
+                  
+                  {/* Stats */}
+                  <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                    <FiUsers className="w-3 h-3" />
+                    <span>{badge._count?.studentBadges || 0} earned</span>
+                  </div>
+                  
+                  {/* Category */}
+                  <div className="mt-2">
+                    <span 
+                      className="text-xs px-2 py-1 rounded-full"
+                      style={{
+                        backgroundColor: `${categoryColor}20`,
+                        color: categoryColor
+                      }}
+                    >
+                      {badge.category?.name || 'Custom'}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       )}
+
+      {/* Create Badge Modal */}
+      <CreateBadgeModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onBadgeCreated={() => {
+          fetchBadges();
+          setShowCreateModal(false);
+        }}
+      />
     </div>
   );
 } 

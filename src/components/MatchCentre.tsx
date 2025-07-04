@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUpload, FiBarChart, FiTarget, FiTrendingUp, FiActivity, FiAward, FiCalendar, FiUser } from 'react-icons/fi';
+import { FiUpload, FiBarChart, FiTarget, FiTrendingUp, FiActivity, FiAward, FiCalendar, FiUser, FiPlus, FiMapPin, FiClock, FiEdit2, FiTrash2, FiX } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
 import AddMatchModal from './AddMatchModal';
 import EditMatchModal from './EditMatchModal';
@@ -30,14 +30,31 @@ interface MatchStats {
   economyRate?: number;
 }
 
-type ActiveTab = 'upload' | 'statistics' | 'recent';
+// Types for upcoming matches
+interface UpcomingMatch {
+  id: string;
+  title: string;
+  opponent: string;
+  date: string;
+  time: string;
+  venue: string;
+  matchType: string;
+  notes?: string;
+}
+
+type ActiveTab = 'upcoming' | 'upload' | 'statistics' | 'recent';
 
 const MatchCentre: React.FC = () => {
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('upload');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('upcoming');
   const [stats, setStats] = useState<MatchStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Upcoming matches state
+  const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
+  const [showAddUpcomingModal, setShowAddUpcomingModal] = useState(false);
+  const [selectedUpcomingMatch, setSelectedUpcomingMatch] = useState<UpcomingMatch | null>(null);
 
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
@@ -70,8 +87,60 @@ const MatchCentre: React.FC = () => {
   useEffect(() => {
     if ((session as unknown as Session)?.user?.id) {
       fetchMatchStats();
+      loadUpcomingMatches();
     }
   }, [(session as unknown as Session)?.user?.id, fetchMatchStats]);
+
+  // Refresh stats when switching to statistics tab
+  useEffect(() => {
+    if (activeTab === 'statistics' && (session as unknown as Session)?.user?.id && stats) {
+      fetchMatchStats();
+    }
+  }, [activeTab, fetchMatchStats, (session as unknown as Session)?.user?.id]);
+
+  // Load upcoming matches (stored in localStorage for simplicity)
+  const loadUpcomingMatches = () => {
+    const stored = localStorage.getItem('upcomingMatches');
+    if (stored) {
+      setUpcomingMatches(JSON.parse(stored));
+    }
+  };
+
+  // Save upcoming matches to localStorage
+  const saveUpcomingMatches = (matches: UpcomingMatch[]) => {
+    localStorage.setItem('upcomingMatches', JSON.stringify(matches));
+    setUpcomingMatches(matches);
+  };
+
+  // Handle adding upcoming match
+  const handleAddUpcomingMatch = (matchData: Omit<UpcomingMatch, 'id'>) => {
+    const newMatch: UpcomingMatch = {
+      ...matchData,
+      id: Date.now().toString(),
+    };
+    const updatedMatches = [...upcomingMatches, newMatch];
+    saveUpcomingMatches(updatedMatches);
+    setShowAddUpcomingModal(false);
+  };
+
+  // Handle editing upcoming match
+  const handleEditUpcomingMatch = (matchData: Omit<UpcomingMatch, 'id'>) => {
+    if (!selectedUpcomingMatch) return;
+    const updatedMatches = upcomingMatches.map(match =>
+      match.id === selectedUpcomingMatch.id
+        ? { ...matchData, id: selectedUpcomingMatch.id }
+        : match
+    );
+    saveUpcomingMatches(updatedMatches);
+    setSelectedUpcomingMatch(null);
+    setShowAddUpcomingModal(false);
+  };
+
+  // Handle deleting upcoming match
+  const handleDeleteUpcomingMatch = (matchId: string) => {
+    const updatedMatches = upcomingMatches.filter(match => match.id !== matchId);
+    saveUpcomingMatches(updatedMatches);
+  };
 
   const handleMatchUpdate = useCallback(async (matchData?: any) => {
     if (matchData) {
@@ -499,6 +568,237 @@ const MatchCentre: React.FC = () => {
     );
   };
 
+  const renderUpcomingMatches = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset to start of day for accurate comparison
+    const sortedMatches = [...upcomingMatches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const upcomingCount = sortedMatches.filter(match => {
+      const matchDate = new Date(match.date);
+      matchDate.setHours(0, 0, 0, 0);
+      return matchDate >= today;
+    }).length;
+    
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-6"
+      >
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <motion.div 
+            className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 flex items-center justify-center shadow-sm border border-purple-100"
+            whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
+            transition={{ duration: 0.6 }}
+          >
+            <FiCalendar className="w-8 h-8 sm:w-10 sm:h-10 text-purple-600" />
+          </motion.div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Upcoming Matches</h2>
+            <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto">
+              Plan and track your upcoming cricket matches
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-xl p-4 border border-purple-100 shadow-sm"
+          >
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{upcomingCount}</div>
+              <div className="text-sm text-gray-600">Upcoming</div>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-xl p-4 border border-blue-100 shadow-sm"
+          >
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{sortedMatches.length}</div>
+              <div className="text-sm text-gray-600">Total Scheduled</div>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white rounded-xl p-4 border border-green-100 shadow-sm md:col-span-1 col-span-2"
+          >
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {(() => {
+                  const nextMatch = sortedMatches.find(match => {
+                    const matchDate = new Date(match.date);
+                    matchDate.setHours(0, 0, 0, 0);
+                    const todayDate = new Date();
+                    todayDate.setHours(0, 0, 0, 0);
+                    return matchDate >= todayDate;
+                  });
+                  return nextMatch ? new Date(nextMatch.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'None';
+                })()}
+              </div>
+              <div className="text-sm text-gray-600">Next Match</div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Add Match Button */}
+        <div className="text-center">
+          <motion.button
+            onClick={() => {
+              setSelectedUpcomingMatch(null);
+              setShowAddUpcomingModal(true);
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <FiPlus className="w-5 h-5" />
+            Schedule New Match
+          </motion.button>
+        </div>
+
+        {/* Matches Grid */}
+        {sortedMatches.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sortedMatches.map((match, index) => {
+              const matchDate = new Date(match.date);
+              matchDate.setHours(0, 0, 0, 0);
+              const todayDate = new Date();
+              todayDate.setHours(0, 0, 0, 0);
+              
+              const isToday = matchDate.getTime() === todayDate.getTime();
+              const isPast = matchDate < todayDate;
+              const isUpcoming = matchDate > todayDate;
+              
+              return (
+                <motion.div
+                  key={match.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border-2 ${
+                    isToday ? 'border-yellow-200 bg-yellow-50' : 
+                    isUpcoming ? 'border-purple-200 hover:border-purple-300' : 
+                    'border-gray-200 opacity-75'
+                  }`}
+                >
+                  {/* Status Badge */}
+                  <div className="absolute top-4 right-4">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      isToday ? 'bg-yellow-100 text-yellow-800' :
+                      isUpcoming ? 'bg-purple-100 text-purple-800' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {isToday ? 'Today' : isUpcoming ? 'Upcoming' : 'Past'}
+                    </span>
+                  </div>
+
+                  {/* Match Info */}
+                  <div className="mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{match.title}</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <FiTarget className="w-4 h-4" />
+                        <span>vs {match.opponent}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <FiCalendar className="w-4 h-4" />
+                        <span>{matchDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <FiClock className="w-4 h-4" />
+                        <span>{match.time}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <FiMapPin className="w-4 h-4" />
+                        <span>{match.venue}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Match Type */}
+                  <div className="mb-4">
+                    <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+                      {match.matchType}
+                    </span>
+                  </div>
+
+                  {/* Notes */}
+                  {match.notes && (
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600">{match.notes}</p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    {(isPast || isToday) && (
+                      <motion.button
+                        onClick={() => {
+                          // Pre-fill the add match modal with upcoming match data
+                          setShowAddModal(true);
+                          // You could add logic here to pre-populate the form
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors"
+                      >
+                        <FiPlus className="w-4 h-4" />
+                        <span className="text-sm">Add Result</span>
+                      </motion.button>
+                    )}
+                    <motion.button
+                      onClick={() => {
+                        setSelectedUpcomingMatch(match);
+                        setShowAddUpcomingModal(true);
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors"
+                    >
+                      <FiEdit2 className="w-4 h-4" />
+                      <span className="text-sm">Edit</span>
+                    </motion.button>
+                    <motion.button
+                      onClick={() => handleDeleteUpcomingMatch(match.id)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors"
+                    >
+                      <FiTrash2 className="w-4 h-4" />
+                      <span className="text-sm">Delete</span>
+                    </motion.button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+                     <motion.div
+             initial={{ opacity: 0, scale: 0.95 }}
+             animate={{ opacity: 1, scale: 1 }}
+             className="text-center py-12 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl border border-purple-100"
+           >
+             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
+               <FiCalendar className="w-8 h-8 text-purple-600" />
+             </div>
+             <h3 className="text-lg font-semibold text-gray-900 mb-2">No Upcoming Matches</h3>
+             <p className="text-sm text-gray-600">Use the "Schedule New Match" button above to get started with planning</p>
+           </motion.div>
+        )}
+      </motion.div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       {/* Header */}
@@ -527,6 +827,7 @@ const MatchCentre: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-1 py-3">
             {([
+              { id: 'upcoming' as const, label: 'Upcoming', icon: FiCalendar },
               { id: 'upload' as const, label: 'Upload', icon: FiUpload },
               { id: 'statistics' as const, label: 'Statistics', icon: FiBarChart },
               { id: 'recent' as const, label: 'Recent', icon: FiTarget }
@@ -553,6 +854,18 @@ const MatchCentre: React.FC = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <AnimatePresence mode="wait">
+          {activeTab === 'upcoming' && (
+            <motion.div
+              key="upcoming"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderUpcomingMatches()}
+            </motion.div>
+          )}
+
           {activeTab === 'upload' && (
             <motion.div
               key="upload"
@@ -595,7 +908,7 @@ const MatchCentre: React.FC = () => {
                     <p className="text-gray-600 text-sm">Your latest performances</p>
                   </div>
                 </div>
-                <RecentMatchScores />
+                <RecentMatchScores key={stats?.totalMatches || 0} />
               </div>
             </motion.div>
           )}
@@ -614,7 +927,223 @@ const MatchCentre: React.FC = () => {
         onClose={() => setShowUploadModal(false)}
         onAnalysisComplete={handleMatchUpdate}
       />
+
+      {/* Upcoming Match Modal */}
+      <UpcomingMatchModal
+        isOpen={showAddUpcomingModal}
+        onClose={() => {
+          setShowAddUpcomingModal(false);
+          setSelectedUpcomingMatch(null);
+        }}
+        onSubmit={selectedUpcomingMatch ? handleEditUpcomingMatch : handleAddUpcomingMatch}
+        initialData={selectedUpcomingMatch}
+      />
     </div>
+  );
+};
+
+// Upcoming Match Modal Component
+const UpcomingMatchModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: Omit<UpcomingMatch, 'id'>) => void;
+  initialData?: UpcomingMatch | null;
+}> = ({ isOpen, onClose, onSubmit, initialData }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    opponent: '',
+    date: '',
+    time: '',
+    venue: '',
+    matchType: 'T20',
+    notes: ''
+  });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        title: initialData.title,
+        opponent: initialData.opponent,
+        date: initialData.date,
+        time: initialData.time,
+        venue: initialData.venue,
+        matchType: initialData.matchType,
+        notes: initialData.notes || ''
+      });
+    } else {
+      setFormData({
+        title: '',
+        opponent: '',
+        date: '',
+        time: '',
+        venue: '',
+        matchType: 'T20',
+        notes: ''
+      });
+    }
+  }, [initialData, isOpen]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+    setFormData({
+      title: '',
+      opponent: '',
+      date: '',
+      time: '',
+      venue: '',
+      matchType: 'T20',
+      notes: ''
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-900">
+            {initialData ? 'Edit Match' : 'Schedule New Match'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <FiX className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Match Title
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="e.g., League Championship"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Opponent
+            </label>
+            <input
+              type="text"
+              value={formData.opponent}
+              onChange={(e) => setFormData({ ...formData, opponent: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="e.g., Mumbai Indians"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Date
+              </label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Time
+              </label>
+              <input
+                type="time"
+                value={formData.time}
+                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Venue
+            </label>
+            <input
+              type="text"
+              value={formData.venue}
+              onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="e.g., Wankhede Stadium"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Match Type
+            </label>
+            <select
+              value={formData.matchType}
+              onChange={(e) => setFormData({ ...formData, matchType: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="T20">T20</option>
+              <option value="ODI">ODI</option>
+              <option value="Test">Test</option>
+              <option value="Practice">Practice</option>
+              <option value="League">League</option>
+              <option value="Tournament">Tournament</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Notes (Optional)
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Additional notes about the match..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-all duration-200"
+            >
+              {initialData ? 'Update Match' : 'Schedule Match'}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
   );
 };
 

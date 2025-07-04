@@ -55,6 +55,15 @@ const OverallStats = dynamic(() => import("@/components/OverallStats").catch(() 
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-32"></div>
 });
 
+// New coach components
+const StudentDetailModal = dynamic(() => import("@/components/StudentDetailModal").catch(() => ({ default: () => null })), {
+  ssr: false
+});
+
+const MultiStudentFeedbackModal = dynamic(() => import("@/components/MultiStudentFeedbackModal").catch(() => ({ default: () => null })), {
+  ssr: false
+});
+
 const PeakScore = dynamic(() => import("@/components/PeakScore").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">PeakScore temporarily unavailable</div> })), { 
   ssr: false,
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96 flex items-center justify-center"><div className="text-gray-500">Loading PeakScore...</div></div>
@@ -140,6 +149,9 @@ export default function Dashboard() {
   const [activeModal, setActiveModal] = useState<'skillsnap' | 'badges' | 'feedback' | null>(null);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [isSkillSnapModalOpen, setIsSkillSnapModalOpen] = useState(false);
+  const [multiStudentFeedbackOpen, setMultiStudentFeedbackOpen] = useState(false);
+  const [studentDetailModalOpen, setStudentDetailModalOpen] = useState(false);
+  const [studentDetailView, setStudentDetailView] = useState<'skillsnap' | 'badges'>('skillsnap');
 
   useEffect(() => {
     console.log('🔍 Dashboard useEffect - Status:', status, 'Session exists:', !!session);
@@ -351,6 +363,9 @@ export default function Dashboard() {
     setActiveModal(modalType);
     if (modalType === 'feedback') {
       setFeedbackModalOpen(true);
+    } else if (modalType === 'skillsnap' || modalType === 'badges') {
+      setStudentDetailView(modalType);
+      setStudentDetailModalOpen(true);
     }
     // Prevent body scroll when modal is open
     if (typeof document !== 'undefined') {
@@ -362,6 +377,8 @@ export default function Dashboard() {
     setSelectedStudentModal(null);
     setActiveModal(null);
     setFeedbackModalOpen(false);
+    setStudentDetailModalOpen(false);
+    setMultiStudentFeedbackOpen(false);
     // Restore body scroll when modal is closed
     if (typeof document !== 'undefined') {
       document.body.style.overflow = '';
@@ -947,17 +964,28 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center">
                   <FiUsers className="mr-2 text-blue-600" />
                   Your Students
-                        </h2>
-                          <button 
-                  onClick={() => {
-                    console.log('🔄 Manual refresh triggered');
-                    fetchAssignedStudents();
-                  }}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
-                >
-                  Refresh
-                          </button>
-                    </div>
+                </h2>
+                <div className="flex items-center gap-2">
+                  {assignedStudents?.length > 0 && (
+                    <button 
+                      onClick={() => setMultiStudentFeedbackOpen(true)}
+                      className="px-3 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm flex items-center gap-1"
+                    >
+                      <FiMessageSquare className="w-4 h-4" />
+                      Multi-Feedback
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => {
+                      console.log('🔄 Manual refresh triggered');
+                      fetchAssignedStudents();
+                    }}
+                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </div>
                     
               {assignedStudents?.length === 0 ? (
                 <div className="text-center py-8">
@@ -1443,6 +1471,34 @@ export default function Dashboard() {
             </div>
           </div>
         </Portal>
+      )}
+
+      {/* Student Detail Modal for Coaches */}
+      {studentDetailModalOpen && selectedStudentModal && (
+        <StudentDetailModal
+          isOpen={studentDetailModalOpen}
+          onClose={() => {
+            setStudentDetailModalOpen(false);
+            setSelectedStudentModal(null);
+          }}
+          student={selectedStudentModal}
+          activeView={studentDetailView}
+        />
+      )}
+
+      {/* Multi-Student Feedback Modal */}
+      {multiStudentFeedbackOpen && (
+        <MultiStudentFeedbackModal
+          isOpen={multiStudentFeedbackOpen}
+          onClose={() => setMultiStudentFeedbackOpen(false)}
+          students={assignedStudents || []}
+          onFeedbackCreated={() => {
+            setMultiStudentFeedbackOpen(false);
+            // Optionally show success message
+            setSuccessMessage('Feedback sent successfully to selected students');
+            setTimeout(() => setSuccessMessage(null), 3000);
+          }}
+        />
       )}
     </div>
   );
