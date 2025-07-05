@@ -21,10 +21,7 @@ const BadgeDisplay = dynamic(() => import("@/components/BadgeDisplay").catch(() 
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-32 flex items-center justify-center"><div className="text-gray-500">Loading badges...</div></div>
 });
 
-const BadgeManager = dynamic(() => import("@/components/BadgeManager").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Badge manager temporarily unavailable</div> })), { 
-  ssr: false,
-  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-48"></div>
-});
+
 
 const SessionTodoStudent = dynamic(() => import("@/components/SessionTodoStudent").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Session todos temporarily unavailable</div> })), { 
   ssr: false,
@@ -73,6 +70,14 @@ const MatchCentre = dynamic(() => import("@/components/MatchCentre").catch(() =>
   ssr: false,
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96 flex items-center justify-center"><div className="text-gray-500">Loading Match Centre...</div></div>
 });
+
+const AthleteProgressTracker = dynamic(
+  () => import("@/components/AthleteProgressTracker").then((mod) => mod.default ? mod : { default: mod }),
+  {
+    ssr: false,
+    loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96 flex items-center justify-center"><div className="text-gray-500">Loading Progress Tracker...</div></div>
+  }
+);
 
 interface ProfileData {
   id: string;
@@ -261,7 +266,7 @@ export default function Dashboard() {
   };
   const fetchAssignedStudents = () => fetchResource((data: any) => {
     // The coach profile API returns the coach object directly, not wrapped in a data object
-    setAssignedStudents(data.students || []);
+    setAssignedStudents(data?.students || []);
   }, "/api/coach/profile");
   
   useEffect(() => {
@@ -401,6 +406,7 @@ export default function Dashboard() {
   const coachTabs = [
     { id: 'overview', label: 'Overview', icon: <FiGrid className="w-5 h-5" /> },
     { id: 'students', label: 'Students', icon: <FiUsers className="w-5 h-5" /> },
+    { id: 'progress', label: 'Progress', icon: <FiTrendingUp className="w-5 h-5" /> },
     { id: 'badges', label: 'Badges', icon: <FiAward className="w-5 h-5" /> },
     { id: 'todo', label: 'To-Do', icon: <FiCheckSquare className="w-5 h-5" /> },
   ];
@@ -1123,15 +1129,47 @@ export default function Dashboard() {
                             </div>
         );
 
+      case 'progress':
+        return (
+          <motion.div 
+            className="h-[calc(100vh-16rem)]"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="h-full bg-white rounded-xl shadow-lg overflow-hidden">
+              {assignedStudents && assignedStudents.length > 0 ? (
+                <AthleteProgressTracker 
+                  athletes={assignedStudents.map((student: any) => ({
+                    id: student.id,
+                    name: student.studentName || student.name,
+                    sport: student.sport || 'Basketball'
+                  }))}
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center p-8">
+                    <FiUsers className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">No Students Assigned</h3>
+                    <p className="text-gray-500">Assign students from the Students tab to track their progress.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        );
+
       case 'badges':
         return (
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-              <FiAward className="mr-2 text-yellow-600" />
-              Badge Management
-            </h2>
-            <BadgeManager />
-                          </div>
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">Redirecting to Badge Centre...</h2>
+                <p className="text-gray-600">Taking you to the complete badge management interface.</p>
+              </div>
+            </div>
+          </div>
         );
 
       case 'todo':

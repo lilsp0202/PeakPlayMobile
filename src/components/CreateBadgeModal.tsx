@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiAward, FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiX, FiAward, FiPlus, FiTrash2, FiUsers, FiCheckCircle } from "react-icons/fi";
 
 interface CreateBadgeModalProps {
   isOpen: boolean;
@@ -16,6 +16,13 @@ interface BadgeRule {
   operator: string;
   value: string;
   description: string;
+}
+
+interface Student {
+  id: string;
+  studentName: string;
+  email: string;
+  academy: string;
 }
 
 const skillFields = [
@@ -77,6 +84,31 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [badgeType, setBadgeType] = useState<'all' | 'specific'>('all');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchAssignedStudents();
+    }
+  }, [isOpen]);
+
+  const fetchAssignedStudents = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/coach/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setStudents(data.students || []);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -106,11 +138,24 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
     }
   };
 
+  const toggleStudentSelection = (studentId: string) => {
+    setSelectedStudents(prev => 
+      prev.includes(studentId)
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name.trim() || !formData.description.trim()) {
       setError('Name and description are required');
+      return;
+    }
+
+    if (badgeType === 'specific' && selectedStudents.length === 0) {
+      setError('Please select at least one student for this badge');
       return;
     }
 
@@ -133,7 +178,8 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
             description: rule.description || `${rule.fieldName} ${rule.operator} ${rule.value}`,
             isRequired: true,
             weight: 1
-          }))
+          })),
+          targetStudents: badgeType === 'specific' ? selectedStudents : []
         }),
       });
 
@@ -157,6 +203,8 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
           value: '10',
           description: ''
         }]);
+        setSelectedStudents([]);
+        setBadgeType('all');
       } else {
         const data = await response.json();
         setError(data.error || 'Failed to create badge');
@@ -173,22 +221,22 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
   return (
     <AnimatePresence>
       <motion.div 
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div 
-          className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
+          className="bg-white rounded-2xl max-w-4xl w-full min-h-0 max-h-[100vh] sm:max-h-[90vh] overflow-hidden shadow-2xl my-2 sm:my-4 flex flex-col"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: "spring", bounce: 0.3 }}
         >
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50">
+          <div className="p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
                   <FiAward className="text-yellow-600" />
                   Create Custom Badge
                 </h2>
@@ -205,16 +253,94 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
             </div>
           </div>
           
-          <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0">
             {error && (
               <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-800">{error}</p>
               </div>
             )}
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
+              {/* Badge Target Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Badge Target
+                </label>
+                <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="all"
+                      checked={badgeType === 'all'}
+                      onChange={(e) => {
+                        setBadgeType('all');
+                        setSelectedStudents([]);
+                      }}
+                      className="mr-2 text-yellow-600 focus:ring-yellow-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">All Students</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="specific"
+                      checked={badgeType === 'specific'}
+                      onChange={(e) => setBadgeType('specific')}
+                      className="mr-2 text-yellow-600 focus:ring-yellow-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Specific Students</span>
+                  </label>
+                </div>
+
+                {badgeType === 'specific' && (
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <FiUsers className="text-gray-600" />
+                      <span className="text-sm font-medium text-gray-700">Select Students</span>
+                    </div>
+                    {loading ? (
+                      <div className="text-center py-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mx-auto"></div>
+                      </div>
+                    ) : students.length === 0 ? (
+                      <p className="text-sm text-gray-500">No assigned students found</p>
+                    ) : (
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {students.map(student => (
+                          <label
+                            key={student.id}
+                            className="flex items-center p-3 sm:p-2 rounded hover:bg-gray-100 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedStudents.includes(student.id)}
+                              onChange={() => toggleStudentSelection(student.id)}
+                              className="mr-3 text-yellow-600 focus:ring-yellow-500 rounded h-4 w-4"
+                            />
+                            <div className="flex-1">
+                              <span className="text-sm font-medium text-gray-900">{student.studentName}</span>
+                              <div className="text-xs text-gray-500 mt-1 sm:mt-0 sm:ml-2 sm:inline">
+                                {student.email}
+                              </div>
+                            </div>
+                            {selectedStudents.includes(student.id) && (
+                              <FiCheckCircle className="text-green-500 w-4 h-4" />
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    {selectedStudents.length > 0 && (
+                      <div className="mt-3 text-sm text-gray-600">
+                        {selectedStudents.length} student{selectedStudents.length > 1 ? 's' : ''} selected
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Basic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                     Badge Name *
@@ -226,7 +352,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="e.g., Perfect Technique"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors text-gray-900 font-medium placeholder-gray-400 text-base"
                     required
                   />
                 </div>
@@ -240,7 +366,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                     name="level"
                     value={formData.level}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors text-gray-900 font-medium text-base bg-white"
                   >
                     <option value="BRONZE">Bronze</option>
                     <option value="SILVER">Silver</option>
@@ -255,7 +381,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Choose Icon
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-12 gap-2">
                   {badgeIcons.map(icon => (
                     <button
                       key={icon}
@@ -285,7 +411,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                   onChange={handleInputChange}
                   rows={2}
                   placeholder="Brief description of what this badge represents"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors resize-none text-gray-900 font-medium placeholder-gray-400 text-base"
                   required
                 />
               </div>
@@ -302,7 +428,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                   value={formData.motivationalText}
                   onChange={handleInputChange}
                   placeholder="e.g., Keep pushing your limits!"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors text-gray-900 font-medium placeholder-gray-400 text-base"
                 />
               </div>
 
@@ -330,7 +456,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                       animate={{ opacity: 1, y: 0 }}
                       className="p-4 bg-gray-50 rounded-lg border border-gray-200"
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">
                             Skill
@@ -338,7 +464,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                           <select
                             value={rule.fieldName}
                             onChange={(e) => handleRuleChange(rule.id, 'fieldName', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 text-gray-900 font-medium bg-white"
                           >
                             {skillFields.map(field => (
                               <option key={field.value} value={field.value}>
@@ -355,7 +481,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                           <select
                             value={rule.operator}
                             onChange={(e) => handleRuleChange(rule.id, 'operator', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 text-gray-900 font-medium bg-white"
                           >
                             {operators.map(op => (
                               <option key={op.value} value={op.value}>
@@ -373,7 +499,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                             type="number"
                             value={rule.value}
                             onChange={(e) => handleRuleChange(rule.id, 'value', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 text-gray-900 font-medium"
                             required
                           />
                         </div>
@@ -408,12 +534,12 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
           </form>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-200 bg-gray-50">
-            <div className="flex justify-end gap-3">
+          <div className="p-4 sm:p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="w-full sm:w-auto px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-base"
               >
                 Cancel
               </button>
@@ -421,10 +547,10 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                 type="submit"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="px-6 py-2.5 text-white bg-gradient-to-r from-yellow-600 to-orange-600 rounded-lg hover:from-yellow-700 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg"
+                className="w-full sm:w-auto px-6 py-3 text-white bg-gradient-to-r from-yellow-600 to-orange-600 rounded-lg hover:from-yellow-700 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg text-base"
               >
                 {isSubmitting ? (
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     Creating...
                   </span>

@@ -10,11 +10,18 @@ import type { Session } from "next-auth";
 // Types for skills and analytics
 interface SkillData {
   id?: string;
-  // Physical Skills
+  // Physical Skills - Strength
   pushupScore?: number;
   pullupScore?: number;
+  verticalJump?: number;
+  gripStrength?: number;
+  // Physical Skills - Speed & Agility
   sprintTime?: number;
+  sprint50m?: number;
+  shuttleRun?: number;
+  // Physical Skills - Endurance
   run5kTime?: number;
+  yoyoTest?: number;
   // Mental Skills
   moodScore?: number;
   sleepScore?: number;
@@ -23,6 +30,7 @@ interface SkillData {
   protein?: number;
   carbohydrates?: number;
   fats?: number;
+  waterIntake?: number;
   // Technical skills - Batting
   battingGrip?: number;
   battingStance?: number;
@@ -143,6 +151,7 @@ const skillCategories: SkillCategory[] = [
       gradient: "from-indigo-50 to-blue-50"
     },
     skills: [
+      // Strength Skills
       {
         id: "pushupScore",
         name: "Push-ups",
@@ -173,6 +182,34 @@ const skillCategories: SkillCategory[] = [
         ),
       },
       {
+        id: "verticalJump",
+        name: "Vertical Jump",
+        unit: "cm",
+        type: "score",
+        description: "Vertical jump height in centimeters",
+        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"/>
+            <path d="M12 3v18" strokeWidth="1"/>
+          </svg>
+        ),
+      },
+      {
+        id: "gripStrength",
+        name: "Grip Strength",
+        unit: "kg",
+        type: "score",
+        description: "Grip strength measured in kilograms",
+        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9 11H7v3h2v-3zm4 0h-2v3h2v-3zm4 0h-2v3h2v-3zm2-7h-2V2h-2v2H9V2H7v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/>
+          </svg>
+        ),
+      },
+      // Speed & Agility Skills
+      {
         id: "sprintTime",
         name: "100m Sprint",
         unit: "seconds",
@@ -187,6 +224,34 @@ const skillCategories: SkillCategory[] = [
         ),
       },
       {
+        id: "sprint50m",
+        name: "50m Sprint",
+        unit: "seconds",
+        type: "time",
+        description: "50 meter sprint time",
+        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            <path d="M16 6l-2-2m0 0L12 6m2-2v4" strokeWidth="1"/>
+          </svg>
+        ),
+      },
+      {
+        id: "shuttleRun",
+        name: "Shuttle Run",
+        unit: "seconds",
+        type: "time",
+        description: "Shuttle run time",
+        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16l-4-4m0 0l4-4m-4 4h18m-5 4l4-4m0 0l-4-4"/>
+          </svg>
+        ),
+      },
+      // Endurance Skills
+      {
         id: "run5kTime",
         name: "5K Run",
         unit: "minutes",
@@ -198,6 +263,20 @@ const skillCategories: SkillCategory[] = [
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
             <circle cx="12" cy="12" r="9" strokeWidth="1"/>
             <path d="M8 12l2-2m6 2l-2-2" strokeWidth="1"/>
+          </svg>
+        ),
+      },
+      {
+        id: "yoyoTest",
+        name: "Yo-Yo Test",
+        unit: "level",
+        type: "score",
+        description: "Yo-Yo intermittent recovery test level",
+        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v16l8-8 8 8V4H4z"/>
+            <circle cx="12" cy="12" r="2" strokeWidth="1"/>
           </svg>
         ),
       },
@@ -319,6 +398,20 @@ const skillCategories: SkillCategory[] = [
           </svg>
         ),
       },
+      {
+        id: "waterIntake",
+        name: "Water Intake",
+        unit: "liters",
+        type: "score",
+        description: "Daily water intake in liters",
+        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8l6 6m0-6l-6 6m6-6v12"/>
+            <path d="M19 13l-7 7-7-7c-1.5-1.5-1.5-4 0-5.5s4-1.5 5.5 0l1.5 1.5 1.5-1.5c1.5-1.5 4-1.5 5.5 0s1.5 4 0 5.5z"/>
+          </svg>
+        ),
+      },
     ]
   },
   {
@@ -393,6 +486,7 @@ const calculatePhysicalAggregateScore = (skillData: SkillData | null): number =>
   // Normalize raw scores to 0-10 scale based on the new logical ranges
   const normalizedScores = [];
   
+  // Strength Skills
   // Push-ups (0-100 range, normalize to 0-10)
   if (skillData.pushupScore !== undefined && skillData.pushupScore !== null) {
     const pushupNormalized = Math.min(10, Math.max(0, (skillData.pushupScore / 100) * 10));
@@ -405,16 +499,48 @@ const calculatePhysicalAggregateScore = (skillData: SkillData | null): number =>
     normalizedScores.push(pullupNormalized);
   }
   
+  // Vertical Jump (0-80 cm range, normalize to 0-10)
+  if (skillData.verticalJump !== undefined && skillData.verticalJump !== null) {
+    const verticalJumpNormalized = Math.min(10, Math.max(0, (skillData.verticalJump / 80) * 10));
+    normalizedScores.push(verticalJumpNormalized);
+  }
+  
+  // Grip Strength (0-70 kg range, normalize to 0-10)
+  if (skillData.gripStrength !== undefined && skillData.gripStrength !== null) {
+    const gripStrengthNormalized = Math.min(10, Math.max(0, (skillData.gripStrength / 70) * 10));
+    normalizedScores.push(gripStrengthNormalized);
+  }
+  
+  // Speed & Agility Skills
   // Sprint time (8-20 seconds, lower is better)
   if (skillData.sprintTime !== undefined && skillData.sprintTime !== null) {
     const sprintNormalized = Math.min(10, Math.max(0, 10 - ((skillData.sprintTime - 8) / (20 - 8)) * 10));
     normalizedScores.push(sprintNormalized);
   }
   
+  // 50m Sprint (6-12 seconds, lower is better)
+  if (skillData.sprint50m !== undefined && skillData.sprint50m !== null) {
+    const sprint50mNormalized = Math.min(10, Math.max(0, 10 - ((skillData.sprint50m - 6) / (12 - 6)) * 10));
+    normalizedScores.push(sprint50mNormalized);
+  }
+  
+  // Shuttle Run (12-20 seconds, lower is better)
+  if (skillData.shuttleRun !== undefined && skillData.shuttleRun !== null) {
+    const shuttleRunNormalized = Math.min(10, Math.max(0, 10 - ((skillData.shuttleRun - 12) / (20 - 12)) * 10));
+    normalizedScores.push(shuttleRunNormalized);
+  }
+  
+  // Endurance Skills
   // 5K time (15-40 minutes, lower is better)
   if (skillData.run5kTime !== undefined && skillData.run5kTime !== null) {
     const run5kNormalized = Math.min(10, Math.max(0, 10 - ((skillData.run5kTime - 15) / (40 - 15)) * 10));
     normalizedScores.push(run5kNormalized);
+  }
+  
+  // Yo-Yo Test (0-21 levels, higher is better)
+  if (skillData.yoyoTest !== undefined && skillData.yoyoTest !== null) {
+    const yoyoTestNormalized = Math.min(10, Math.max(0, (skillData.yoyoTest / 21) * 10));
+    normalizedScores.push(yoyoTestNormalized);
   }
 
   if (normalizedScores.length === 0) return 0;
@@ -472,6 +598,12 @@ const calculateNutritionAggregateScore = (skillData: SkillData | null): number =
       const fatScore = Math.min(10, Math.max(0, ((skillData.fats - 20) / (150 - 20)) * 10));
       scores.push(fatScore);
     }
+    
+    // Normalize water intake (1-5 liters range to 0-10 scale)
+    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
+      const waterScore = Math.min(10, Math.max(0, ((skillData.waterIntake - 1) / (5 - 1)) * 10));
+      scores.push(waterScore);
+    }
 
     if (scores.length === 0) return 0;
     const average = scores.reduce((a, b) => a + b, 0) / scores.length;
@@ -501,6 +633,13 @@ const calculateNutritionAggregateScore = (skillData: SkillData | null): number =
   if (skillData.fats !== undefined && skillData.fats !== null) {
     const fatScore = Math.max(0, 10 - Math.abs((skillData.fats - nutrition.fats) / nutrition.fats) * 10);
     scores.push(Math.min(10, fatScore));
+  }
+  
+  if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
+    // Recommended water intake is 2.5 liters
+    const recommendedWater = 2.5;
+    const waterScore = Math.max(0, 10 - Math.abs((skillData.waterIntake - recommendedWater) / recommendedWater) * 10);
+    scores.push(Math.min(10, waterScore));
   }
 
   if (scores.length === 0) return 0;
@@ -728,91 +867,160 @@ const SkillBar: React.FC<{
   const average = averageScore || 0;
 
   const getSkillRange = () => {
-    switch (skill.type) {
-      case "count":
+    // Define specific ranges based on skill ID for proper scoring
+    switch (skill.id) {
+      // Physical Skills - Strength
+      case "pushupScore":
         return { min: 0, max: 100, step: 1 };
-      case "time":
-        if (skill.id === "sprintTime") {
-          return { min: 0, max: 30, step: 0.01 }; // More precise for 100m times
-        } else if (skill.id === "run5kTime") {
-          return { min: 0, max: 40, step: 0.01 }; // More precise for 5K times (in minutes)
-        } else {
-          return { min: 0, max: 60, step: 1 };
-        }
-      case "score":
-        return { min: 0, max: 10, step: 0.1 }; // Allow decimal scores
-      case "grams":
-        if (skill.id === "protein") {
-          return { min: 0, max: 200, step: 1 };
-        } else if (skill.id === "carbohydrates") {
-          return { min: 0, max: 500, step: 1 };
-        } else {
-          return { min: 0, max: 150, step: 1 };
-        }
-      case "calories":
+      case "pullupScore":
+        return { min: 0, max: 50, step: 1 };
+      case "verticalJump":
+        return { min: 0, max: 100, step: 1 }; // cm
+      case "gripStrength":
+        return { min: 0, max: 80, step: 1 }; // kg
+      
+      // Physical Skills - Speed & Agility  
+      case "sprintTime":
+        return { min: 8, max: 20, step: 0.01 }; // 100m sprint in seconds
+      case "sprint50m":
+        return { min: 4, max: 15, step: 0.01 }; // 50m sprint in seconds
+      case "shuttleRun":
+        return { min: 8, max: 25, step: 0.1 }; // shuttle run in seconds
+      
+      // Physical Skills - Endurance
+      case "run5kTime":
+        return { min: 15, max: 60, step: 0.01 }; // 5K in minutes
+      case "yoyoTest":
+        return { min: 1, max: 25, step: 0.1 }; // yo-yo test level
+      
+      // Mental Skills
+      case "moodScore":
+      case "sleepScore":
+        return { min: 1, max: 10, step: 0.1 };
+      
+      // Nutrition Skills
+      case "totalCalories":
         return { min: 0, max: 5000, step: 10 };
+      case "protein":
+        return { min: 0, max: 200, step: 1 };
+      case "carbohydrates":
+        return { min: 0, max: 500, step: 1 };
+      case "fats":
+        return { min: 0, max: 150, step: 1 };
+      case "waterIntake":
+        return { min: 0, max: 5, step: 0.1 }; // liters
+      
+      // Default fallback
       default:
-        return { min: 0, max: 100, step: 1 };
+        if (skill.type === "time") {
+          return { min: 0, max: 60, step: 0.1 };
+        } else if (skill.type === "count") {
+          return { min: 0, max: 100, step: 1 };
+        } else {
+          return { min: 0, max: 10, step: 0.1 };
+        }
     }
   };
 
   const range = getSkillRange();
   
   const getPercentage = () => {
-    if (skill.type === "time") {
-      // For time-based skills, invert the percentage (lower is better)
-      if (score === 0) return 0;
-      const percentage = ((range.max - score) / range.max) * 100;
+    if (score === 0) return 0;
+    
+    // Time-based skills: lower is better
+    if (skill.type === "time" || skill.id === "sprintTime" || skill.id === "sprint50m" || skill.id === "shuttleRun" || skill.id === "run5kTime") {
+      // For time skills, lower values are better - invert the percentage
+      const percentage = ((range.max - score) / (range.max - range.min)) * 100;
       return Math.max(0, Math.min(100, percentage));
-    } else {
-      // For other skills, higher is better
-      const percentage = (score / range.max) * 100;
+    } 
+    // All other skills: higher is better
+    else {
+      const percentage = ((score - range.min) / (range.max - range.min)) * 100;
       return Math.max(0, Math.min(100, percentage));
     }
   };
 
   const getAveragePercentage = () => {
     if (!showComparison || !average) return 0;
-    if (skill.type === "time") {
-      // For time-based skills, invert the percentage (lower is better)
-      if (average === 0) return 0;
-      const percentage = ((range.max - average) / range.max) * 100;
+    if (average === 0) return 0;
+    
+    // Time-based skills: lower is better
+    if (skill.type === "time" || skill.id === "sprintTime" || skill.id === "sprint50m" || skill.id === "shuttleRun" || skill.id === "run5kTime") {
+      // For time skills, lower values are better - invert the percentage
+      const percentage = ((range.max - average) / (range.max - range.min)) * 100;
       return Math.max(0, Math.min(100, percentage));
-    } else {
-    // For other skills, higher is better
-      const percentage = (average / range.max) * 100;
+    } 
+    // All other skills: higher is better
+    else {
+      const percentage = ((average - range.min) / (range.max - range.min)) * 100;
       return Math.max(0, Math.min(100, percentage));
     }
   };
 
   const getProgressColor = () => {
-  const percentage = getPercentage();
-    if (percentage >= 80) return "bg-green-500";
-    if (percentage >= 60) return "bg-yellow-500";
-    if (percentage >= 40) return "bg-orange-500";
-    return "bg-red-500";
+    const percentage = getPercentage();
+    if (percentage >= 80) return "bg-green-600";
+    if (percentage >= 60) return "bg-yellow-600";
+    if (percentage >= 40) return "bg-orange-600";
+    return "bg-red-600";
   };
 
   const formatValue = (value: number) => {
-    switch (skill.type) {
-      case "time":
-        if (skill.id === "sprintTime") {
-          return `${value.toFixed(2)}s`; // Show 2 decimal places for sprint
-        } else if (skill.id === "run5kTime") {
-          return `${value.toFixed(2)} min`; // Show 2 decimal places for 5K
-        } else {
-          return `${value} min`;
-        }
-      case "count":
-        return `${value} reps`;
-      case "score":
-        return `${value.toFixed(1)}/10`; // Show 1 decimal place for scores
-      case "grams":
-        return `${value}g`;
-      case "calories":
-        return `${value} kcal`;
+    // Format values based on specific skill ID for correct units
+    switch (skill.id) {
+      // Physical Skills - Strength
+      case "pushupScore":
+      case "pullupScore":
+        return `${Math.round(value)} reps`;
+      case "verticalJump":
+        return `${Math.round(value)} cm`;
+      case "gripStrength":
+        return `${Math.round(value)} kg`;
+      
+      // Physical Skills - Speed & Agility
+      case "sprintTime":
+        return `${value.toFixed(2)}s`;
+      case "sprint50m":
+        return `${value.toFixed(2)}s`; // seconds, not minutes
+      case "shuttleRun":
+        return `${value.toFixed(1)}s`;
+      
+      // Physical Skills - Endurance
+      case "run5kTime":
+        return `${value.toFixed(2)} min`;
+      case "yoyoTest":
+        return `Level ${value.toFixed(1)}`;
+      
+      // Mental Skills
+      case "moodScore":
+      case "sleepScore":
+        return `${value.toFixed(1)}/10`;
+      
+      // Nutrition Skills
+      case "totalCalories":
+        return `${Math.round(value)} kcal`;
+      case "protein":
+      case "carbohydrates":
+      case "fats":
+        return `${Math.round(value)}g`;
+      case "waterIntake":
+        return `${value.toFixed(1)}L`;
+      
+      // Default fallback based on type
       default:
-        return value.toString();
+        if (skill.type === "time") {
+          return `${value.toFixed(1)}s`;
+        } else if (skill.type === "count") {
+          return `${Math.round(value)} reps`;
+        } else if (skill.type === "score") {
+          return `${value.toFixed(1)}/10`;
+        } else if (skill.type === "grams") {
+          return `${Math.round(value)}g`;
+        } else if (skill.type === "calories") {
+          return `${Math.round(value)} kcal`;
+        } else {
+          return value.toString();
+        }
     }
   };
 
@@ -822,23 +1030,48 @@ const SkillBar: React.FC<{
   };
 
   const getPlaceholder = () => {
-    switch (skill.type) {
-      case "time":
-        if (skill.id === "sprintTime") {
-          return "e.g., 12.50";
-        } else if (skill.id === "run5kTime") {
-          return "e.g., 25.30";
-        } else {
-          return "0";
-        }
-      case "count":
-        return "0";
-      case "score":
-        return "0.0";
-      case "grams":
-        return "0";
-      case "calories":
-        return "0";
+    switch (skill.id) {
+      // Physical Skills - Strength
+      case "pushupScore":
+        return "e.g., 25";
+      case "pullupScore":
+        return "e.g., 8";
+      case "verticalJump":
+        return "e.g., 45";
+      case "gripStrength":
+        return "e.g., 40";
+      
+      // Physical Skills - Speed & Agility
+      case "sprintTime":
+        return "e.g., 12.50";
+      case "sprint50m":
+        return "e.g., 7.20";
+      case "shuttleRun":
+        return "e.g., 15.5";
+      
+      // Physical Skills - Endurance
+      case "run5kTime":
+        return "e.g., 25.30";
+      case "yoyoTest":
+        return "e.g., 12.5";
+      
+      // Mental Skills
+      case "moodScore":
+      case "sleepScore":
+        return "e.g., 7.5";
+      
+      // Nutrition Skills
+      case "totalCalories":
+        return "e.g., 2500";
+      case "protein":
+        return "e.g., 120";
+      case "carbohydrates":
+        return "e.g., 300";
+      case "fats":
+        return "e.g., 80";
+      case "waterIntake":
+        return "e.g., 3.5";
+      
       default:
         return "0";
     }
@@ -930,9 +1163,9 @@ const SkillBar: React.FC<{
           <span className="text-sm font-medium text-gray-800">Progress</span>
           <span className="text-sm text-gray-700">{Math.round(getPercentage())}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
+        <div className="w-full bg-gray-300 rounded-full h-2 sm:h-3">
           <div
-            className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${skill.colorScheme.background}`}
+            className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${getProgressColor()}`}
             style={{ width: `${Math.min(getPercentage(), 100)}%` }}
           />
           </div>
@@ -954,20 +1187,32 @@ const SkillBar: React.FC<{
           
           {/* Tips for different skill types */}
           <div className="text-xs text-gray-600">
-            {skill.type === "time" && skill.id === "sprintTime" && (
-              <p className="italic">💡 Elite runners typically achieve 10-12 seconds</p>
+            {skill.id === "sprintTime" && (
+              <p className="italic">💡 Elite: 8-10s, Good: 10-12s, Average: 12-15s</p>
             )}
-            {skill.type === "time" && skill.id === "run5kTime" && (
-              <p className="italic">💡 Good 5K times range from 20-30 minutes</p>
+            {skill.id === "sprint50m" && (
+              <p className="italic">💡 Elite: 4-6s, Good: 6-8s, Average: 8-12s</p>
             )}
-            {skill.type === "count" && skill.id === "pushupScore" && (
-              <p className="italic">💡 Average adults can do 15-25 push-ups in a minute</p>
+            {skill.id === "run5kTime" && (
+              <p className="italic">💡 Elite: 15-20min, Good: 20-30min, Average: 30-45min</p>
             )}
-            {skill.type === "count" && skill.id === "pullupScore" && (
-              <p className="italic">💡 Being able to do 10+ pull-ups shows good strength</p>
+            {skill.id === "pushupScore" && (
+              <p className="italic">💡 Good: 30+, Average: 15-25, Beginner: 5-15</p>
             )}
-            {skill.type === "score" && (
-              <p className="italic">💡 Rate from 1-10 based on your performance level</p>
+            {skill.id === "pullupScore" && (
+              <p className="italic">💡 Good: 15+, Average: 5-10, Beginner: 1-5</p>
+            )}
+            {skill.id === "verticalJump" && (
+              <p className="italic">💡 Elite: 70+ cm, Good: 50-70 cm, Average: 30-50 cm</p>
+            )}
+            {skill.id === "gripStrength" && (
+              <p className="italic">💡 Good: 50+ kg, Average: 35-50 kg, Beginner: 20-35 kg</p>
+            )}
+            {skill.id === "yoyoTest" && (
+              <p className="italic">💡 Elite: 20+ levels, Good: 15-20, Average: 10-15</p>
+            )}
+            {(skill.id === "moodScore" || skill.id === "sleepScore") && (
+              <p className="italic">💡 Rate from 1-10 based on your daily experience</p>
             )}
           </div>
         </div>
@@ -1253,6 +1498,14 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
     const userProgressPercentage = Math.min(100, Math.max(0, (normalizedUserScore / 10) * 100));
     const averageProgressPercentage = Math.min(100, Math.max(0, (normalizedAverageScore / 10) * 100));
 
+    const getTechnicalProgressColor = () => {
+      const percentage = userProgressPercentage;
+      if (percentage >= 80) return "bg-green-600";
+      if (percentage >= 60) return "bg-yellow-600";
+      if (percentage >= 40) return "bg-orange-600";
+      return "bg-red-600";
+    };
+
     return (
       <div className={`bg-white rounded-lg p-3 sm:p-4 border-2 shadow-sm transition-all duration-200 ${
         isEditing 
@@ -1297,14 +1550,14 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
             <span>Avg: {averageScore.toFixed(1)}</span>
           </div>
           <div className="relative">
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-300 rounded-full h-2">
               <div
-                className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                className={`${getTechnicalProgressColor()} h-2 rounded-full transition-all duration-300`}
                 style={{ width: `${userProgressPercentage}%` }}
               />
             </div>
             <div
-              className="absolute top-0 h-2 w-0.5 bg-gray-400 rounded-full"
+              className="absolute top-0 h-2 w-0.5 bg-gray-500 rounded-full"
               style={{ left: `${averageProgressPercentage}%` }}
             />
           </div>
@@ -1755,31 +2008,58 @@ export default function SkillSnap({
 
   // Helper function to get skill range for validation
   const getSkillRange = (skill: SkillItem) => {
-    switch (skill.type) {
-      case "count":
+    // Define specific ranges based on skill ID for proper scoring
+    switch (skill.id) {
+      // Physical Skills - Strength
+      case "pushupScore":
         return { min: 0, max: 100, step: 1 };
-      case "time":
-        if (skill.id === "sprintTime") {
-          return { min: 0, max: 30, step: 0.01 };
-        } else if (skill.id === "run5kTime") {
-          return { min: 0, max: 40, step: 0.01 };
-        } else {
-          return { min: 0, max: 60, step: 1 };
-        }
-      case "score":
-        return { min: 0, max: 10, step: 0.1 };
-      case "grams":
-        if (skill.id === "protein") {
-          return { min: 0, max: 200, step: 1 };
-        } else if (skill.id === "carbohydrates") {
-          return { min: 0, max: 500, step: 1 };
-        } else {
-          return { min: 0, max: 150, step: 1 };
-        }
-      case "calories":
+      case "pullupScore":
+        return { min: 0, max: 50, step: 1 };
+      case "verticalJump":
+        return { min: 0, max: 100, step: 1 }; // cm
+      case "gripStrength":
+        return { min: 0, max: 80, step: 1 }; // kg
+      
+      // Physical Skills - Speed & Agility  
+      case "sprintTime":
+        return { min: 8, max: 20, step: 0.01 }; // 100m sprint in seconds
+      case "sprint50m":
+        return { min: 4, max: 15, step: 0.01 }; // 50m sprint in seconds
+      case "shuttleRun":
+        return { min: 8, max: 25, step: 0.1 }; // shuttle run in seconds
+      
+      // Physical Skills - Endurance
+      case "run5kTime":
+        return { min: 15, max: 60, step: 0.01 }; // 5K in minutes
+      case "yoyoTest":
+        return { min: 1, max: 25, step: 0.1 }; // yo-yo test level
+      
+      // Mental Skills
+      case "moodScore":
+      case "sleepScore":
+        return { min: 1, max: 10, step: 0.1 };
+      
+      // Nutrition Skills
+      case "totalCalories":
         return { min: 0, max: 5000, step: 10 };
+      case "protein":
+        return { min: 0, max: 200, step: 1 };
+      case "carbohydrates":
+        return { min: 0, max: 500, step: 1 };
+      case "fats":
+        return { min: 0, max: 150, step: 1 };
+      case "waterIntake":
+        return { min: 0, max: 5, step: 0.1 }; // liters
+      
+      // Default fallback
       default:
-        return { min: 0, max: 100, step: 1 };
+        if (skill.type === "time") {
+          return { min: 0, max: 60, step: 0.1 };
+        } else if (skill.type === "count") {
+          return { min: 0, max: 100, step: 1 };
+        } else {
+          return { min: 0, max: 10, step: 0.1 };
+        }
     }
   };
 
@@ -1850,6 +2130,84 @@ export default function SkillSnap({
       return (
         <div className="pb-16">
           {renderTechnicalSkills()}
+        </div>
+      );
+    }
+
+    // Special handling for Physical category with grouped skills
+    if (category.id === "PHYSICAL") {
+      // Define skill groups for Physical category
+      const strengthSkills = category.skills.filter(skill => 
+        ['pushupScore', 'verticalJump', 'gripStrength'].includes(skill.id)
+      );
+      const speedAgilitySkills = category.skills.filter(skill => 
+        ['sprint50m', 'shuttleRun'].includes(skill.id)
+      );
+      const enduranceSkills = category.skills.filter(skill => 
+        ['run5kTime', 'yoyoTest'].includes(skill.id)
+      );
+
+      const renderSkillGroup = (skills: SkillItem[], title: string, icon: React.ReactNode) => (
+        <div className="mb-8">
+          {/* Group Header */}
+          <div className="flex items-center space-x-3 mb-4 pb-2 border-b border-gray-200">
+            <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600">
+              {icon}
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            <div className="text-sm text-gray-500">({skills.length} skills)</div>
+          </div>
+          
+          {/* Skills in Group */}
+          <div className="space-y-4">
+            {skills.map((skill) => (
+              <SkillBar
+                key={skill.id}
+                skill={skill}
+                userScore={
+                  isEditing === category.id
+                    ? editedScores[skill.id] 
+                    : skillData?.[skill.id as keyof SkillData] as number
+                }
+                averageScore={averages?.averages?.[skill.id] || 0}
+                isEditing={isEditing === category.id}
+                onScoreChange={handleScoreChange}
+                showComparison={category.id !== "MENTAL"}
+              />
+            ))}
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="pb-16">
+          {/* Strength Section */}
+          {renderSkillGroup(
+            strengthSkills, 
+            "Strength", 
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          )}
+
+          {/* Speed & Agility Section */}
+          {renderSkillGroup(
+            speedAgilitySkills, 
+            "Speed & Agility", 
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          )}
+
+          {/* Endurance Section */}
+          {renderSkillGroup(
+            enduranceSkills, 
+            "Endurance", 
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+              <circle cx="12" cy="12" r="9" strokeWidth="1"/>
+            </svg>
+          )}
         </div>
       );
     }

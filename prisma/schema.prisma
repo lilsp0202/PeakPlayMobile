@@ -79,6 +79,8 @@ model Student {
   coachReviews      CoachReview[]
   sessionTodoLinks  SessionTodoStudent[]
   hooperEntries     HooperIndex[]
+  skillHistory      SkillHistory[]
+  targetBadges      BadgeTargetStudent[]
 }
 
 model Coach {
@@ -154,6 +156,43 @@ model Skills {
   topHandDominance      Int?
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   student               Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+// Historical skill tracking for progress monitoring
+model SkillHistory {
+  id                String   @id @default(cuid())
+  studentId         String
+  date              DateTime @default(now()) @db.Date
+  
+  // Physical Score (calculated from physical metrics)
+  physicalScore     Float?
+  
+  // Nutrition Score (calculated from nutrition metrics)
+  nutritionScore    Float?
+  
+  // Mental/Wellness Score (calculated from mood, sleep, wellness)
+  mentalScore       Float?
+  wellnessScore     Float?
+  
+  // Technical Skills Scores (average of technique metrics)
+  techniqueScore    Float?
+  tacticalScore     Float?
+  
+  // Match day flag
+  isMatchDay        Boolean  @default(false)
+  matchId           String?
+  
+  // Coach feedback/notes for this day
+  coachFeedback     String?
+  notes             String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  student           Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@unique([studentId, date])
+  @@index([studentId, date])
 }
 
 model VerificationToken {
@@ -237,6 +276,7 @@ model Badge {
   category          BadgeCategory @relation(fields: [categoryId], references: [id])
   rules             BadgeRule[]
   studentBadges     StudentBadge[]
+  targetStudents    BadgeTargetStudent[]  // New relation for specific students
   
   @@unique([name, level, sport])
 }
@@ -274,6 +314,18 @@ model StudentBadge {
   student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
   
   @@unique([studentId, badgeId])
+}
+
+// New model to track which students a badge is meant for
+model BadgeTargetStudent {
+  id          String   @id @default(cuid())
+  badgeId     String
+  studentId   String
+  badge       Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  
+  @@unique([badgeId, studentId])
 }
 
 // Marketplace Models

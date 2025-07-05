@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
-import prisma from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,11 +20,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Only coaches can create custom badges' }, { status: 403 });
     }
 
-    const { badge, rules } = await request.json();
+    const { badge, rules, targetStudents } = await request.json();
 
     // Validate required fields
     if (!badge.name || !badge.description || !rules || rules.length === 0) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // If target students are specified, verify they belong to this coach
+    if (targetStudents && targetStudents.length > 0) {
+      const students = await prisma.student.findMany({
+        where: {
+          id: { in: targetStudents },
+          coachId: coach.id
+        }
+      });
+
+      if (students.length !== targetStudents.length) {
+        return NextResponse.json({ 
+          error: 'Some selected students are not assigned to you' 
+        }, { status: 403 });
+      }
     }
 
     // Get or create category for custom badges
@@ -43,12 +59,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create the badge with rules in a transaction
+    // Create the badge with rules and target students in a transaction
     const newBadge = await prisma.$transaction(async (tx) => {
-      // Create the badge
+      // Create the badge with clean description
       const createdBadge = await tx.badge.create({
         data: {
-          name: `${badge.name} (${coach.name})`,
+          name: badge.name,
           description: badge.description,
           motivationalText: badge.motivationalText || 'Keep up the great work!',
           level: badge.level || 'BRONZE',
@@ -71,6 +87,16 @@ export async function POST(request: NextRequest) {
             description: rule.description || '',
             isRequired: rule.isRequired !== false,
             weight: rule.weight || 1
+          }))
+        });
+      }
+
+      // Create target student associations if specified
+      if (targetStudents && targetStudents.length > 0) {
+        await tx.badgeTargetStudent.createMany({
+          data: targetStudents.map((studentId: string) => ({
+            badgeId: createdBadge.id,
+            studentId
           }))
         });
       }

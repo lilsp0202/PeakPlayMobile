@@ -72,18 +72,30 @@ export class BadgeEngine {
           category: true,
           studentBadges: {
             where: { studentId }
-          }
+          },
+          targetStudents: true
         }
+      });
+
+      // Filter badges based on target students
+      const relevantBadges = badges.filter(badge => {
+        // If no target students are specified, badge is for everyone
+        if (!badge.targetStudents || badge.targetStudents.length === 0) {
+          return true;
+        }
+        // If target students are specified, check if this student is one of them
+        return badge.targetStudents.some(ts => ts.studentId === studentId);
       });
 
       console.log('BadgeEngine - Found badges for evaluation:', {
         total: badges.length,
+        relevant: relevantBadges.length,
         sport: student.sport,
-        badgeNames: badges.map(b => b.name)
+        badgeNames: relevantBadges.map(b => b.name)
       });
 
       // Evaluate each badge
-      for (const badge of badges) {
+      for (const badge of relevantBadges) {
         console.log('BadgeEngine - Evaluating badge:', badge.name);
         
         const existingBadge = badge.studentBadges.find(sb => !sb.isRevoked);
@@ -385,9 +397,13 @@ export class BadgeEngine {
       }
     });
 
+    // Filter badges based on target students
+    // For now, all badges are considered relevant until targetStudents relation is fixed
+    const relevantBadges = badges;
+
     const progress: BadgeProgress[] = [];
 
-    for (const badge of badges) {
+    for (const badge of relevantBadges) {
       const earnedBadge = badge.studentBadges.find(sb => !sb.isRevoked);
       
       if (earnedBadge) {
