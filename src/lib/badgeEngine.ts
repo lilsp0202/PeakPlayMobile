@@ -72,20 +72,12 @@ export class BadgeEngine {
           category: true,
           studentBadges: {
             where: { studentId }
-          },
-          targetStudents: true
+          }
         }
       });
 
-      // Filter badges based on target students
-      const relevantBadges = badges.filter(badge => {
-        // If no target students are specified, badge is for everyone
-        if (!badge.targetStudents || badge.targetStudents.length === 0) {
-          return true;
-        }
-        // If target students are specified, check if this student is one of them
-        return badge.targetStudents.some(ts => ts.studentId === studentId);
-      });
+      // All badges are relevant for now (no target students filtering)
+      const relevantBadges = badges;
 
       console.log('BadgeEngine - Found badges for evaluation:', {
         total: badges.length,
@@ -397,8 +389,7 @@ export class BadgeEngine {
       }
     });
 
-    // Filter badges based on target students
-    // For now, all badges are considered relevant until targetStudents relation is fixed
+    // All badges are relevant for now (no target students filtering)
     const relevantBadges = badges;
 
     const progress: BadgeProgress[] = [];
