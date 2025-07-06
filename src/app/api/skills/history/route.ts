@@ -57,35 +57,16 @@ export async function GET(request: Request) {
       orderBy: { date: 'asc' }
     });
 
-    // If no historical data exists, generate sample data for demonstration
+    // Return empty data if no historical data exists (no fake data generation)
     if (skillHistory.length === 0) {
-      const sampleData = [];
-      for (let i = days - 1; i >= 0; i--) {
-        const date = subDays(new Date(), i);
-        const isMatchDay = Math.random() > 0.85;
-        const hasFeedback = Math.random() > 0.7;
-        
-        sampleData.push({
-          date: format(date, 'yyyy-MM-dd'),
-          physicalScore: Math.floor(Math.random() * 30) + 70,
-          nutritionScore: Math.floor(Math.random() * 25) + 75,
-          mentalScore: Math.floor(Math.random() * 20) + 80,
-          wellnessScore: Math.floor(Math.random() * 25) + 75,
-          techniqueScore: Math.floor(Math.random() * 20) + 80,
-          tacticalScore: Math.floor(Math.random() * 25) + 75,
-          isMatchDay,
-          coachFeedback: hasFeedback ? `Coach feedback for ${format(date, 'MMM d')}` : null,
-          notes: Math.random() > 0.8 ? `Note for ${format(date, 'MMM d')}` : null
-        });
-      }
-      
       return NextResponse.json({ 
-        history: sampleData,
+        history: [],
         student: {
           id: student.id,
           name: student.studentName,
           sport: student.sport
-        }
+        },
+        message: 'No historical data available for this athlete in the selected time period.'
       });
     }
 

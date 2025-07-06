@@ -80,7 +80,7 @@ model Student {
   sessionTodoLinks  SessionTodoStudent[]
   hooperEntries     HooperIndex[]
   skillHistory      SkillHistory[]
-  targetBadges      BadgeTargetStudent[]
+  smartNotifications SmartNotification[]
 }
 
 model Coach {
@@ -96,6 +96,8 @@ model Coach {
   givenFeedback Feedback[]
   students      Student[]
   sessionTodos  SessionTodo[]
+  notificationPreferences NotificationPreference?
+  smartNotifications SmartNotification[]
 }
 
 model Skills {
@@ -128,32 +130,32 @@ model Skills {
   protein               Float?
   sleepScore            Int?
   totalCalories         Int?
-  aim                   Int?
-  backFootDrag          Int?
-  backFootLanding       Int?
-  backLift              Int?
-  battingBalance        Int?
-  battingGrip           Int?
-  battingStance         Int?
-  bowlingGrip           Int?
-  calling               Int?
-  cockingOfWrist        Int?
-  flatCatch             Int?
-  followThrough         Int?
-  frontFootLanding      Int?
-  highCatch             Int?
-  highElbow             Int?
-  hipDrive              Int?
-  nonBowlingArm         Int?
-  pickUp                Int?
-  positioningOfBall     Int?
-  receiving             Int?
-  release               Int?
-  runUp                 Int?
-  runningBetweenWickets Int?
-  softHands             Int?
-  throw                 Int?
-  topHandDominance      Int?
+  aim                   Float?
+  backFootDrag          Float?
+  backFootLanding       Float?
+  backLift              Float?
+  battingBalance        Float?
+  battingGrip           Float?
+  battingStance         Float?
+  bowlingGrip           Float?
+  calling               Float?
+  cockingOfWrist        Float?
+  flatCatch             Float?
+  followThrough         Float?
+  frontFootLanding      Float?
+  highCatch             Float?
+  highElbow             Float?
+  hipDrive              Float?
+  nonBowlingArm         Float?
+  pickUp                Float?
+  positioningOfBall     Float?
+  receiving             Float?
+  release               Float?
+  runUp                 Float?
+  runningBetweenWickets Float?
+  softHands             Float?
+  throw                 Float?
+  topHandDominance      Float?
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   student               Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
@@ -276,7 +278,6 @@ model Badge {
   category          BadgeCategory @relation(fields: [categoryId], references: [id])
   rules             BadgeRule[]
   studentBadges     StudentBadge[]
-  targetStudents    BadgeTargetStudent[]  // New relation for specific students
   
   @@unique([name, level, sport])
 }
@@ -316,17 +317,17 @@ model StudentBadge {
   @@unique([studentId, badgeId])
 }
 
-// New model to track which students a badge is meant for
-model BadgeTargetStudent {
-  id          String   @id @default(cuid())
-  badgeId     String
-  studentId   String
-  badge       Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  
-  @@unique([badgeId, studentId])
-}
+// New model to track which students a badge is meant for - DISABLED/NOT MIGRATED
+// model BadgeTargetStudent {
+//   id          String   @id @default(cuid())
+//   badgeId     String
+//   studentId   String
+//   badge       Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+//   student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+//   createdAt   DateTime @default(now())
+//   
+//   @@unique([badgeId, studentId])
+// }
 
 // Marketplace Models
 model SpecializedCoach {
@@ -448,4 +449,57 @@ model HooperIndex {
   
   @@unique([studentId, date])
   @@index([studentId, date])
+}
+
+// Smart Notifications System
+model NotificationPreference {
+  id              String   @id @default(cuid())
+  coachId         String   @unique
+  coach           Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  
+  // Notification categories
+  negativeTrends  Boolean  @default(true)  // Alert for declining performance
+  positiveMilestones Boolean @default(true)  // Alert for achievements
+  missedCheckIns  Boolean  @default(true)  // Alert for missed data entry
+  overdueFeedback Boolean  @default(true)  // Alert for overdue feedback
+  
+  // Thresholds for alerts
+  trendDays       Int      @default(3)     // Days of trend to trigger alert
+  feedbackDays    Int      @default(7)     // Days without feedback to trigger alert
+  
+  // Delivery preferences
+  inApp           Boolean  @default(true)
+  email           Boolean  @default(false)
+  pushNotification Boolean @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model SmartNotification {
+  id              String   @id @default(cuid())
+  coachId         String
+  coach           Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  studentId       String?  // Optional - some notifications might be general
+  student         Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  type            String   // NEGATIVE_TREND, POSITIVE_MILESTONE, MISSED_CHECKIN, OVERDUE_FEEDBACK
+  category        String   // PHYSICAL, MENTAL, NUTRITION, TECHNIQUE, GENERAL
+  
+  title           String   // Short title for the notification
+  message         String   // Full notification message
+  
+  // Metadata for the notification
+  severity        String   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  data            String?  // JSON data with additional context
+  
+  // Status tracking
+  isRead          Boolean  @default(false)
+  isArchived      Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([coachId, createdAt])
+  @@index([coachId, isRead])
 }

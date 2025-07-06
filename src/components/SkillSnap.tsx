@@ -145,20 +145,20 @@ const skillCategories: SkillCategory[] = [
       </svg>
     ),
     colorScheme: {
-      primary: "indigo-600",
-      secondary: "indigo-100",
-      background: "indigo-50",
-      gradient: "from-indigo-50 to-blue-50"
+      primary: "slate-600",
+      secondary: "slate-100",
+      background: "slate-50",
+      gradient: "from-slate-50 to-gray-50"
     },
     skills: [
-      // Strength Skills
+      // Strength Skills - Red/Crimson (Power & Force)
       {
         id: "pushupScore",
         name: "Push-ups",
         unit: "reps",
         type: "count",
         description: "Maximum push-ups in 1 minute",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
@@ -172,7 +172,7 @@ const skillCategories: SkillCategory[] = [
         unit: "reps",
         type: "count",
         description: "Maximum pull-ups in 1 set",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
@@ -187,7 +187,7 @@ const skillCategories: SkillCategory[] = [
         unit: "cm",
         type: "score",
         description: "Vertical jump height in centimeters",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"/>
@@ -201,21 +201,21 @@ const skillCategories: SkillCategory[] = [
         unit: "kg",
         type: "score",
         description: "Grip strength measured in kilograms",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M9 11H7v3h2v-3zm4 0h-2v3h2v-3zm4 0h-2v3h2v-3zm2-7h-2V2h-2v2H9V2H7v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/>
           </svg>
         ),
       },
-      // Speed & Agility Skills
+      // Speed & Agility Skills - Blue/Electric (Quick movements)
       {
         id: "sprintTime",
         name: "100m Sprint",
         unit: "seconds",
         type: "time",
         description: "100 meter sprint time",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -229,7 +229,7 @@ const skillCategories: SkillCategory[] = [
         unit: "seconds",
         type: "time",
         description: "50 meter sprint time",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -243,21 +243,21 @@ const skillCategories: SkillCategory[] = [
         unit: "seconds",
         type: "time",
         description: "Shuttle run time",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16l-4-4m0 0l4-4m-4 4h18m-5 4l4-4m0 0l-4-4"/>
           </svg>
         ),
       },
-      // Endurance Skills
+      // Endurance Skills - Emerald/Green (Stamina & Vitality)
       {
         id: "run5kTime",
         name: "5K Run",
         unit: "minutes",
         type: "time",
         description: "5 kilometer run time",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        colorScheme: { primary: "emerald-600", secondary: "emerald-100", background: "emerald-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
@@ -272,7 +272,7 @@ const skillCategories: SkillCategory[] = [
         unit: "level",
         type: "score",
         description: "Yo-Yo intermittent recovery test level",
-        colorScheme: { primary: "indigo-600", secondary: "indigo-100", background: "indigo-50" },
+        colorScheme: { primary: "emerald-600", secondary: "emerald-100", background: "emerald-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v16l8-8 8 8V4H4z"/>
@@ -292,10 +292,10 @@ const skillCategories: SkillCategory[] = [
       </svg>
     ),
     colorScheme: {
-      primary: "purple-600",
-      secondary: "purple-100",
-      background: "purple-50",
-      gradient: "from-purple-50 to-pink-50"
+      primary: "violet-600",
+      secondary: "violet-100",
+      background: "violet-50",
+      gradient: "from-violet-50 to-purple-50"
     },
     skills: [
       {
@@ -304,7 +304,7 @@ const skillCategories: SkillCategory[] = [
         unit: "/10",
         type: "score",
         description: "Daily mood and motivation rating",
-        colorScheme: { primary: "purple-600", secondary: "purple-100", background: "purple-50" },
+        colorScheme: { primary: "violet-600", secondary: "violet-100", background: "violet-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
@@ -317,7 +317,7 @@ const skillCategories: SkillCategory[] = [
         unit: "/10",
         type: "score",
         description: "Sleep quality and recovery rating",
-        colorScheme: { primary: "purple-600", secondary: "purple-100", background: "purple-50" },
+        colorScheme: { primary: "violet-600", secondary: "violet-100", background: "violet-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
@@ -337,10 +337,10 @@ const skillCategories: SkillCategory[] = [
       </svg>
     ),
     colorScheme: {
-      primary: "green-600",
-      secondary: "green-100",
-      background: "green-50",
-      gradient: "from-green-50 to-emerald-50"
+      primary: "amber-600",
+      secondary: "amber-100",
+      background: "amber-50",
+      gradient: "from-amber-50 to-orange-50"
     },
     skills: [
       {
@@ -349,7 +349,7 @@ const skillCategories: SkillCategory[] = [
         unit: "kcal",
         type: "calories",
         description: "Daily caloric intake",
-        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
@@ -363,7 +363,7 @@ const skillCategories: SkillCategory[] = [
         unit: "g",
         type: "grams",
         description: "Daily protein intake",
-        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M21.9 8.89l-1.05-4.37c-.22-.9-1-1.52-1.91-1.52H5.05C4.15 3 3.36 3.63 3.15 4.52L2.1 8.89c-.24 1.02-.02 2.06.62 2.88C2.8 11.88 2.91 11.96 3 12.06V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-6.94c.09-.09.2-.18.28-.28.64-.82.87-1.87.62-2.89zM7 15.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
@@ -376,7 +376,7 @@ const skillCategories: SkillCategory[] = [
         unit: "g",
         type: "grams",
         description: "Daily carbohydrate intake",
-        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -391,7 +391,7 @@ const skillCategories: SkillCategory[] = [
         unit: "g",
         type: "grams",
         description: "Daily fat intake",
-        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
@@ -404,7 +404,7 @@ const skillCategories: SkillCategory[] = [
         unit: "liters",
         type: "score",
         description: "Daily water intake in liters",
-        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
+        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8l6 6m0-6l-6 6m6-6v12"/>
@@ -424,10 +424,10 @@ const skillCategories: SkillCategory[] = [
       </svg>
     ),
     colorScheme: {
-      primary: "orange-600",
-      secondary: "orange-100",
-      background: "orange-50",
-      gradient: "from-orange-50 to-amber-50"
+      primary: "teal-600",
+      secondary: "teal-100",
+      background: "teal-50",
+      gradient: "from-teal-50 to-cyan-50"
     },
     skills: [
       // Technical skills placeholders for proper counting
@@ -438,7 +438,7 @@ const skillCategories: SkillCategory[] = [
         type: "score" as const,
         description: "Batting technique mastery",
         icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>,
-        colorScheme: { primary: "orange-600", secondary: "orange-100", background: "orange-50" }
+        colorScheme: { primary: "teal-600", secondary: "teal-100", background: "teal-50" }
       },
       {
         id: "bowlingGrip", 
@@ -447,7 +447,7 @@ const skillCategories: SkillCategory[] = [
         type: "score" as const,
         description: "Bowling technique mastery",
         icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><circle cx="12" cy="12" r="9" strokeWidth="1"/><circle cx="12" cy="8" r="1" fill="currentColor"/><circle cx="10" cy="10" r="1" fill="currentColor"/><circle cx="14" cy="10" r="1" fill="currentColor"/></svg>,
-        colorScheme: { primary: "orange-600", secondary: "orange-100", background: "orange-50" }
+        colorScheme: { primary: "teal-600", secondary: "teal-100", background: "teal-50" }
       },
       {
         id: "positioningOfBall",
@@ -456,7 +456,7 @@ const skillCategories: SkillCategory[] = [
         type: "score" as const,
         description: "Fielding technique mastery",
         icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m-3-3a1.5 1.5 0 013 0"/><circle cx="12" cy="12" r="2" strokeWidth="1"/></svg>,
-        colorScheme: { primary: "orange-600", secondary: "orange-100", background: "orange-50" }
+        colorScheme: { primary: "teal-600", secondary: "teal-100", background: "teal-50" }
       }
     ]
   },
@@ -902,20 +902,49 @@ const SkillBar: React.FC<{
       case "totalCalories":
         return { min: 0, max: 5000, step: 10 };
       case "protein":
-        return { min: 0, max: 200, step: 1 };
+          return { min: 0, max: 200, step: 1 };
       case "carbohydrates":
-        return { min: 0, max: 500, step: 1 };
+          return { min: 0, max: 500, step: 1 };
       case "fats":
-        return { min: 0, max: 150, step: 1 };
+          return { min: 0, max: 150, step: 1 };
       case "waterIntake":
         return { min: 0, max: 5, step: 0.1 }; // liters
+      
+      // Technical Skills - All are scored 0-10
+      case "battingGrip":
+      case "battingStance":
+      case "battingBalance":
+      case "cockingOfWrist":
+      case "backLift":
+      case "topHandDominance":
+      case "highElbow":
+      case "runningBetweenWickets":
+      case "calling":
+      case "bowlingGrip":
+      case "runUp":
+      case "backFootLanding":
+      case "frontFootLanding":
+      case "hipDrive":
+      case "backFootDrag":
+      case "nonBowlingArm":
+      case "release":
+      case "followThrough":
+      case "positioningOfBall":
+      case "pickUp":
+      case "aim":
+      case "throw":
+      case "softHands":
+      case "receiving":
+      case "highCatch":
+      case "flatCatch":
+        return { min: 0, max: 10, step: 0.1 };
       
       // Default fallback
       default:
         if (skill.type === "time") {
           return { min: 0, max: 60, step: 0.1 };
         } else if (skill.type === "count") {
-          return { min: 0, max: 100, step: 1 };
+        return { min: 0, max: 100, step: 1 };
         } else {
           return { min: 0, max: 10, step: 0.1 };
         }
@@ -925,7 +954,7 @@ const SkillBar: React.FC<{
   const range = getSkillRange();
   
   const getPercentage = () => {
-    if (score === 0) return 0;
+      if (score === 0) return 0;
     
     // Time-based skills: lower is better
     if (skill.type === "time" || skill.id === "sprintTime" || skill.id === "sprint50m" || skill.id === "shuttleRun" || skill.id === "run5kTime") {
@@ -942,7 +971,7 @@ const SkillBar: React.FC<{
 
   const getAveragePercentage = () => {
     if (!showComparison || !average) return 0;
-    if (average === 0) return 0;
+      if (average === 0) return 0;
     
     // Time-based skills: lower is better
     if (skill.type === "time" || skill.id === "sprintTime" || skill.id === "sprint50m" || skill.id === "shuttleRun" || skill.id === "run5kTime") {
@@ -958,7 +987,7 @@ const SkillBar: React.FC<{
   };
 
   const getProgressColor = () => {
-    const percentage = getPercentage();
+  const percentage = getPercentage();
     if (percentage >= 80) return "bg-green-600";
     if (percentage >= 60) return "bg-yellow-600";
     if (percentage >= 40) return "bg-orange-600";
@@ -1006,6 +1035,35 @@ const SkillBar: React.FC<{
       case "waterIntake":
         return `${value.toFixed(1)}L`;
       
+      // Technical Skills - All scored 0-10
+      case "battingGrip":
+      case "battingStance":
+      case "battingBalance":
+      case "cockingOfWrist":
+      case "backLift":
+      case "topHandDominance":
+      case "highElbow":
+      case "runningBetweenWickets":
+      case "calling":
+      case "bowlingGrip":
+      case "runUp":
+      case "backFootLanding":
+      case "frontFootLanding":
+      case "hipDrive":
+      case "backFootDrag":
+      case "nonBowlingArm":
+      case "release":
+      case "followThrough":
+      case "positioningOfBall":
+      case "pickUp":
+      case "aim":
+      case "throw":
+      case "softHands":
+      case "receiving":
+      case "highCatch":
+      case "flatCatch":
+        return `${value.toFixed(1)}/10`;
+      
       // Default fallback based on type
       default:
         if (skill.type === "time") {
@@ -1019,7 +1077,7 @@ const SkillBar: React.FC<{
         } else if (skill.type === "calories") {
           return `${Math.round(value)} kcal`;
         } else {
-          return value.toString();
+        return value.toString();
         }
     }
   };
@@ -1043,7 +1101,7 @@ const SkillBar: React.FC<{
       
       // Physical Skills - Speed & Agility
       case "sprintTime":
-        return "e.g., 12.50";
+          return "e.g., 12.50";
       case "sprint50m":
         return "e.g., 7.20";
       case "shuttleRun":
@@ -1051,7 +1109,7 @@ const SkillBar: React.FC<{
       
       // Physical Skills - Endurance
       case "run5kTime":
-        return "e.g., 25.30";
+          return "e.g., 25.30";
       case "yoyoTest":
         return "e.g., 12.5";
       
@@ -1071,6 +1129,35 @@ const SkillBar: React.FC<{
         return "e.g., 80";
       case "waterIntake":
         return "e.g., 3.5";
+      
+      // Technical Skills - All scored 0-10
+      case "battingGrip":
+      case "battingStance":
+      case "battingBalance":
+      case "cockingOfWrist":
+      case "backLift":
+      case "topHandDominance":
+      case "highElbow":
+      case "runningBetweenWickets":
+      case "calling":
+      case "bowlingGrip":
+      case "runUp":
+      case "backFootLanding":
+      case "frontFootLanding":
+      case "hipDrive":
+      case "backFootDrag":
+      case "nonBowlingArm":
+      case "release":
+      case "followThrough":
+      case "positioningOfBall":
+      case "pickUp":
+      case "aim":
+      case "throw":
+      case "softHands":
+      case "receiving":
+      case "highCatch":
+      case "flatCatch":
+        return "e.g., 7.5";
       
       default:
         return "0";
@@ -1782,6 +1869,9 @@ export default function SkillSnap({
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Check if editing is allowed based on user type and context
+  const canEdit = isCoachView || (session?.user?.role === 'ATHLETE' && !studentId);
+
   // Add effect to manage body scroll when modals are open
   useEffect(() => {
     if (selectedCategory) {
@@ -1954,6 +2044,30 @@ export default function SkillSnap({
     try {
       // Only include non-zero scores and valid ranges for each skill type
       const validScores: Record<string, number> = {};
+      
+      if (categoryId === "TECHNIQUE") {
+        // Special handling for technical skills - validate all 26 technical skills
+        const technicalSkillIds = [
+          // Batting skills (9)
+          'battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift', 
+          'topHandDominance', 'highElbow', 'runningBetweenWickets', 'calling',
+          // Bowling skills (9)
+          'bowlingGrip', 'runUp', 'backFootLanding', 'frontFootLanding', 'hipDrive', 
+          'backFootDrag', 'nonBowlingArm', 'release', 'followThrough',
+          // Fielding skills (8)
+          'positioningOfBall', 'pickUp', 'aim', 'throw', 'softHands', 'receiving', 'highCatch', 'flatCatch'
+        ];
+        
+        for (const [skillId, score] of Object.entries(editedScores)) {
+          if (technicalSkillIds.includes(skillId) && score > 0) {
+            // All technical skills are scored 0-10
+            if (score >= 0 && score <= 10) {
+              validScores[skillId] = score;
+            }
+          }
+        }
+      } else {
+        // Regular handling for other categories
       const category = skillCategories.find(cat => cat.id === categoryId);
       
       for (const [skillId, score] of Object.entries(editedScores)) {
@@ -1962,6 +2076,7 @@ export default function SkillSnap({
           const range = getSkillRange(skill);
           if (score >= range.min && score <= range.max) {
             validScores[skillId] = score;
+            }
           }
         }
       }
@@ -1976,12 +2091,17 @@ export default function SkillSnap({
         ? `/api/skills?studentId=${studentId}` 
         : "/api/skills";
 
+      const requestBody = {
+        ...validScores,
+        ...(studentId && { studentId })
+      };
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(validScores),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -2043,20 +2163,49 @@ export default function SkillSnap({
       case "totalCalories":
         return { min: 0, max: 5000, step: 10 };
       case "protein":
-        return { min: 0, max: 200, step: 1 };
+          return { min: 0, max: 200, step: 1 };
       case "carbohydrates":
-        return { min: 0, max: 500, step: 1 };
+          return { min: 0, max: 500, step: 1 };
       case "fats":
-        return { min: 0, max: 150, step: 1 };
+          return { min: 0, max: 150, step: 1 };
       case "waterIntake":
         return { min: 0, max: 5, step: 0.1 }; // liters
+      
+      // Technical Skills - All are scored 0-10
+      case "battingGrip":
+      case "battingStance":
+      case "battingBalance":
+      case "cockingOfWrist":
+      case "backLift":
+      case "topHandDominance":
+      case "highElbow":
+      case "runningBetweenWickets":
+      case "calling":
+      case "bowlingGrip":
+      case "runUp":
+      case "backFootLanding":
+      case "frontFootLanding":
+      case "hipDrive":
+      case "backFootDrag":
+      case "nonBowlingArm":
+      case "release":
+      case "followThrough":
+      case "positioningOfBall":
+      case "pickUp":
+      case "aim":
+      case "throw":
+      case "softHands":
+      case "receiving":
+      case "highCatch":
+      case "flatCatch":
+        return { min: 0, max: 10, step: 0.1 };
       
       // Default fallback
       default:
         if (skill.type === "time") {
           return { min: 0, max: 60, step: 0.1 };
         } else if (skill.type === "count") {
-          return { min: 0, max: 100, step: 1 };
+        return { min: 0, max: 100, step: 1 };
         } else {
           return { min: 0, max: 10, step: 0.1 };
         }
@@ -2337,7 +2486,7 @@ export default function SkillSnap({
                             Cancel
                           </button>
                         </>
-                      ) : (
+                      ) : canEdit ? (
                         <button
                           onClick={() => handleStartEdit(selectedCategory.id)}
                           className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl"
@@ -2345,6 +2494,11 @@ export default function SkillSnap({
                           <FiEdit className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
                           Edit All Skills
                         </button>
+                      ) : (
+                        <div className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-gray-300 text-gray-600 rounded-xl text-sm sm:text-base font-medium">
+                          <FiActivity className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
+                          View Only
+                        </div>
                       )}
                       
                       {/* Progress indicator for mobile */}

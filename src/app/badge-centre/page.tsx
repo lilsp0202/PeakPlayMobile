@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import CreateBadgeModal from '@/components/CreateBadgeModal';
+import { levelColors, categoryColors } from '@/lib/constants';
 
 interface BadgeData {
   badgeId?: string;
@@ -26,19 +27,7 @@ interface BadgeData {
   };
 }
 
-export const levelColors = {
-  ROOKIE: '#4CAF50',
-  AMATEUR: '#2196F3', 
-  PRO: '#9C27B0'
-};
 
-export const categoryColors: { [key: string]: string } = {
-  'Physical Fitness': '#4CAF50',
-  'Technical Skills': '#2196F3',
-  'Wellness & Nutrition': '#FF9800',
-  'Match Performance': '#9C27B0',
-  'Consistency': '#F44336'
-};
 
 export default function BadgeCentrePage() {
   const { data: session, status } = useSession();
@@ -68,7 +57,7 @@ export default function BadgeCentrePage() {
       let response;
       
       // Check if user is a coach
-      if (session?.user?.role === 'COACH') {
+      if ((session?.user as any)?.role === 'COACH') {
         // For coaches, fetch all badges for management
         response = await fetch('/api/badges?manage=true');
       } else {
@@ -89,12 +78,12 @@ export default function BadgeCentrePage() {
     }
   };
 
-  const isCoach = session?.user?.role === 'COACH';
+  const isCoach = (session?.user as any)?.role === 'COACH';
   
   const completedBadges = isCoach ? badges : badges.filter(b => b.earned);
   const lockedBadges = isCoach ? [] : badges.filter(b => !b.earned);
   const customBadges = isCoach ? badges.filter(b => {
-    const categoryName = typeof b.category === 'object' ? b.category.name : b.category;
+    const categoryName = typeof b.category === 'object' ? (b.category as any)?.name : b.category;
     return categoryName === 'Custom';
   }) : [];
 
@@ -104,7 +93,7 @@ export default function BadgeCentrePage() {
     // Category filter
     if (activeFilter !== 'all') {
       filteredBadges = filteredBadges.filter(b => {
-        const badgeCategory = typeof b.category === 'object' ? b.category.name : b.category;
+        const badgeCategory = typeof b.category === 'object' ? (b.category as any)?.name : b.category;
         return badgeCategory === activeFilter;
       });
     }
@@ -127,7 +116,7 @@ export default function BadgeCentrePage() {
     // Custom badges only filter
     if (showOnlyCustom && isCoach) {
       filteredBadges = filteredBadges.filter(b => {
-        const categoryName = typeof b.category === 'object' ? b.category.name : b.category;
+        const categoryName = typeof b.category === 'object' ? (b.category as any)?.name : b.category;
         return categoryName === 'Custom';
       });
     }
@@ -136,8 +125,8 @@ export default function BadgeCentrePage() {
   };
 
   const categories = ['all', ...Array.from(new Set(badges.map(b => {
-    if (typeof b.category === 'object' && b.category.name) {
-      return b.category.name;
+    if (typeof b.category === 'object' && (b.category as any)?.name) {
+      return (b.category as any).name;
     }
     return b.category || 'General';
   })))];
@@ -191,7 +180,7 @@ export default function BadgeCentrePage() {
       
       <div className="container mx-auto px-4 py-8 pb-24">
         <div className="mb-8">
-          {session?.user?.role === 'COACH' ? (
+          {(session?.user as any)?.role === 'COACH' ? (
             <div className="flex items-center justify-between gap-4">
               <p className="text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-lg font-semibold">
                 🏆 Manage and create badges for your athletes ✨
@@ -402,7 +391,7 @@ function BadgeCard({ badge, isCompleted, isCoach = false, isCustom = false }: {
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const levelColor = levelColors[badge.level as keyof typeof levelColors] || '#6B7280';
-  const categoryName = typeof badge.category === 'object' ? badge.category.name : badge.category;
+  const categoryName = typeof badge.category === 'object' ? (badge.category as any)?.name : badge.category;
   const categoryColor = categoryColors[categoryName || 'General'] || '#6B7280';
   const badgeName = badge.name || badge.badgeName || 'Unknown Badge';
   const badgeId = badge.id || badge.badgeId || 'unknown';

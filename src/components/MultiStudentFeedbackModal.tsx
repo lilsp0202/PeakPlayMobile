@@ -154,26 +154,26 @@ export default function MultiStudentFeedbackModal({
   return (
     <AnimatePresence>
       <motion.div 
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-1 sm:p-4 z-50 overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div 
-          className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
+          className="bg-white rounded-t-2xl sm:rounded-2xl max-w-4xl w-full h-[100vh] sm:h-auto sm:max-h-[90vh] overflow-hidden shadow-2xl mt-0 sm:mt-auto flex flex-col"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: "spring", bounce: 0.3 }}
         >
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
                   <FiMessageSquare className="text-indigo-600" />
                   Multi-Student Feedback
                 </h2>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-xs sm:text-sm text-gray-600 mt-1">
                   Send feedback to multiple students at once
                 </p>
               </div>
@@ -186,7 +186,7 @@ export default function MultiStudentFeedbackModal({
             </div>
           </div>
           
-          <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto flex-1 max-h-[calc(100vh-200px)] sm:max-h-[calc(90vh-140px)]">
             {/* Success/Error Messages */}
             <AnimatePresence>
               {success && (
@@ -215,7 +215,7 @@ export default function MultiStudentFeedbackModal({
               )}
             </AnimatePresence>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Student Selection */}
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -227,7 +227,7 @@ export default function MultiStudentFeedbackModal({
                     <select 
                       value={roleFilter} 
                       onChange={(e) => setRoleFilter(e.target.value)}
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="px-2 sm:px-3 py-1.5 border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="ALL">All Roles</option>
                       <option value="BATSMAN">Batsman</option>
@@ -240,7 +240,7 @@ export default function MultiStudentFeedbackModal({
                       onClick={handleSelectAll}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                         isAllFilteredSelected 
                           ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-md' 
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -251,11 +251,11 @@ export default function MultiStudentFeedbackModal({
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 max-h-52 sm:max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2 sm:p-3 bg-gray-50">
                   {filteredStudents.map(student => (
                     <motion.label 
                       key={student.id} 
-                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                        className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                         selectedStudentIds.includes(student.id)
                           ? 'bg-indigo-100 border-2 border-indigo-500'
                           : 'bg-white border-2 border-gray-200 hover:border-indigo-300'
@@ -269,9 +269,9 @@ export default function MultiStudentFeedbackModal({
                         onChange={() => handleStudentToggle(student.id)}
                         className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                       />
-                      <div className="flex flex-col">
-                        <span className="text-gray-800 font-medium">{student.studentName}</span>
-                        <span className="text-xs text-gray-500">@{student.username} • {getRoleDisplayName(student.role)}</span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm sm:text-base text-gray-800 font-medium truncate">{student.studentName}</span>
+                          <span className="text-xs text-gray-500 truncate">@{student.username} • {getRoleDisplayName(student.role)}</span>
                       </div>
                     </motion.label>
                   ))}
@@ -290,7 +290,7 @@ export default function MultiStudentFeedbackModal({
                   value={formData.title}
                   onChange={handleInputChange}
                   placeholder="e.g., Weekly Training Progress Update"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-gray-900"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-gray-900 text-sm sm:text-base"
                   required
                 />
               </div>
@@ -306,7 +306,7 @@ export default function MultiStudentFeedbackModal({
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-gray-900"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-gray-900 text-sm sm:text-base"
                   >
                     <option value="GENERAL">General</option>
                     <option value="TECHNICAL">Technical</option>
@@ -328,7 +328,7 @@ export default function MultiStudentFeedbackModal({
                     name="priority"
                     value={formData.priority}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-gray-900"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-gray-900 text-sm sm:text-base"
                   >
                     <option value="LOW">Low Priority</option>
                     <option value="MEDIUM">Medium Priority</option>
@@ -347,9 +347,9 @@ export default function MultiStudentFeedbackModal({
                   name="content"
                   value={formData.content}
                   onChange={handleInputChange}
-                  rows={6}
+                  rows={5}
                   placeholder="Write feedback that applies to all selected students. You can use general terms like 'your performance' or 'your technique'..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none text-gray-900"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none text-gray-900 text-sm sm:text-base"
                   required
                 />
                 <p className="text-xs text-gray-600 mt-1">
@@ -360,16 +360,16 @@ export default function MultiStudentFeedbackModal({
           </form>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-200 bg-gray-50">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+          <div className="p-4 sm:p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+              <p className="text-xs sm:text-sm text-gray-600 order-2 sm:order-1">
                 Sending to <span className="font-semibold text-indigo-600">{selectedStudentIds.length}</span> student{selectedStudentIds.length !== 1 ? 's' : ''}
               </p>
-              <div className="flex gap-3">
+              <div className="flex gap-3 order-1 sm:order-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -377,15 +377,16 @@ export default function MultiStudentFeedbackModal({
                   type="submit"
                   onClick={handleSubmit}
                   disabled={isSubmitting || selectedStudentIds.length === 0}
-                  className="px-6 py-2.5 text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg"
+                  className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg"
                 >
                   {isSubmitting ? (
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Sending...
+                      <span className="hidden sm:inline">Sending...</span>
+                      <span className="sm:hidden">Send...</span>
                     </span>
                   ) : (
-                    'Send Feedback'
+                    <span>Send Feedback</span>
                   )}
                 </button>
               </div>

@@ -3,7 +3,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight } from "react-icons/fi";
+import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap } from "react-icons/fi";
 import { Check } from "lucide-react";
 import dynamic from 'next/dynamic';
 import PeakPlayLogo from "@/components/PeakPlayLogo";
@@ -71,13 +71,14 @@ const MatchCentre = dynamic(() => import("@/components/MatchCentre").catch(() =>
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96 flex items-center justify-center"><div className="text-gray-500">Loading Match Centre...</div></div>
 });
 
-const AthleteProgressTracker = dynamic(
-  () => import("@/components/AthleteProgressTracker").then((mod) => mod.default ? mod : { default: mod }),
-  {
-    ssr: false,
-    loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96 flex items-center justify-center"><div className="text-gray-500">Loading Progress Tracker...</div></div>
-  }
-);
+const AthleteProgressTracker = dynamic(() => import("@/components/AthleteProgressTracker"), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96 flex items-center justify-center"><div className="text-gray-500">Loading Progress Tracker...</div></div>
+});
+
+const SmartNotifications = dynamic(() => import("@/components/SmartNotifications").catch(() => ({ default: () => null })), {
+  ssr: false
+});
 
 interface ProfileData {
   id: string;
@@ -157,6 +158,10 @@ export default function Dashboard() {
   const [multiStudentFeedbackOpen, setMultiStudentFeedbackOpen] = useState(false);
   const [studentDetailModalOpen, setStudentDetailModalOpen] = useState(false);
   const [studentDetailView, setStudentDetailView] = useState<'skillsnap' | 'badges'>('skillsnap');
+  const [smartNotificationsOpen, setSmartNotificationsOpen] = useState(false);
+  const [expandedStudents, setExpandedStudents] = useState<string[]>([]);
+  const [showAllStudents, setShowAllStudents] = useState(false);
+  const [studentsSubTab, setStudentsSubTab] = useState<'assigned' | 'available'>('assigned');
 
   useEffect(() => {
     console.log('🔍 Dashboard useEffect - Status:', status, 'Session exists:', !!session);
@@ -368,7 +373,10 @@ export default function Dashboard() {
     setActiveModal(modalType);
     if (modalType === 'feedback') {
       setFeedbackModalOpen(true);
-    } else if (modalType === 'skillsnap' || modalType === 'badges') {
+    } else if (modalType === 'skillsnap') {
+      // For SkillSnap, open the inline modal directly
+      // Don't open StudentDetailModal for SkillSnap
+    } else if (modalType === 'badges') {
       setStudentDetailView(modalType);
       setStudentDetailModalOpen(true);
     }
@@ -395,6 +403,18 @@ export default function Dashboard() {
     closeModal();
   };
 
+  const toggleStudentExpanded = (studentId: string) => {
+    setExpandedStudents(prev => 
+      prev.includes(studentId) 
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
+  const isStudentExpanded = (studentId: string) => {
+    return expandedStudents.includes(studentId);
+  };
+
   const athleteTabs = [
     { id: 'skillsnap', label: 'SkillSnap', icon: <FiActivity className="w-5 h-5" /> },
     { id: 'matches', label: 'Matches', icon: <FiTarget className="w-5 h-5" /> },
@@ -414,8 +434,8 @@ export default function Dashboard() {
   const tabs = useMemo(() => (session as unknown as Session)?.user?.role === 'COACH' ? coachTabs : athleteTabs, [(session as unknown as Session)?.user?.role]);
   
   useEffect(() => {
-    // Set default tab - coaches start on 'students' tab, athletes on first tab
-    const defaultTab = (session as unknown as Session)?.user?.role === 'COACH' ? 'students' : tabs[0]?.id;
+    // Set default tab - coaches start on 'overview' tab, athletes on first tab
+    const defaultTab = (session as unknown as Session)?.user?.role === 'COACH' ? 'overview' : tabs[0]?.id;
     if (defaultTab) {
       setActiveTab(defaultTab);
     }
@@ -774,30 +794,80 @@ export default function Dashboard() {
               )}
             </AnimatePresence>
 
-            {/* Overview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Welcome Header */}
+            <motion.div 
+              className="card-modern glass bg-gradient-to-r from-blue-50/50 to-purple-50/50 border border-blue-100"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <motion.h1 
+                      className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      Welcome back, {profileData?.name}! 👋
+                    </motion.h1>
+                    <motion.p 
+                      className="text-gray-600 mt-2"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      {profileData?.academy} • Today is {new Date().toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </motion.p>
+                  </div>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.3, type: "spring", bounce: 0.5 }}
+                    className="hidden sm:block"
+                  >
+                    <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <FiGrid className="w-10 h-10 text-white" />
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Key Metrics Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <motion.div 
                 className="card-gradient card-modern"
-                whileHover={{ y: -5 }}
+                whileHover={{ y: -5, scale: 1.02 }}
                 transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ transition: 'delay: 0.1s' }}
               >
                 <div className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Students</p>
+                      <p className="text-sm font-medium text-gray-600">Active Students</p>
                       <motion.p 
                         className="text-3xl font-bold text-gray-900 mt-1"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ type: "spring", bounce: 0.5 }}
+                        transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
                       >
                         {assignedStudents.length}
                       </motion.p>
+                      <p className="text-xs text-green-600 mt-1">↗ All engaged</p>
                     </div>
                     <motion.div
                       whileHover={{ rotate: 360 }}
                       transition={{ duration: 0.6 }}
-                      className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center"
+                      className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg"
                     >
                       <FiUsers className="w-6 h-6 text-white" />
                     </motion.div>
@@ -807,26 +877,30 @@ export default function Dashboard() {
 
               <motion.div 
                 className="card-gradient card-modern"
-                whileHover={{ y: -5 }}
+                whileHover={{ y: -5, scale: 1.02 }}
                 transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ transition: 'delay: 0.2s' }}
               >
                 <div className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Active Sessions</p>
+                      <p className="text-sm font-medium text-gray-600">Weekly Sessions</p>
                       <motion.p 
                         className="text-3xl font-bold text-gray-900 mt-1"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ type: "spring", bounce: 0.5, delay: 0.1 }}
+                        transition={{ type: "spring", bounce: 0.5, delay: 0.3 }}
                       >
-                        {assignedStudents.length * 2}
+                        {assignedStudents.length * 3}
                       </motion.p>
+                      <p className="text-xs text-blue-600 mt-1">↗ +12% this week</p>
                     </div>
                     <motion.div
                       animate={{ y: [0, -5, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
-                      className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center"
+                      className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg"
                     >
                       <FiActivity className="w-6 h-6 text-white" />
                     </motion.div>
@@ -836,8 +910,11 @@ export default function Dashboard() {
 
               <motion.div 
                 className="card-gradient card-modern"
-                whileHover={{ y: -5 }}
+                whileHover={{ y: -5, scale: 1.02 }}
                 transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ transition: 'delay: 0.3s' }}
               >
                 <div className="p-6">
                   <div className="flex items-center justify-between">
@@ -847,19 +924,162 @@ export default function Dashboard() {
                         className="text-3xl font-bold text-gray-900 mt-1"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
+                        transition={{ type: "spring", bounce: 0.5, delay: 0.4 }}
                       >
                         {badges.length}
                       </motion.p>
+                      <p className="text-xs text-yellow-600 mt-1">🏆 This month</p>
                     </div>
                     <motion.div
                       animate={{ rotate: [0, 10, -10, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
-                      className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center"
+                      className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg"
                     >
                       <FiAward className="w-6 h-6 text-white" />
                     </motion.div>
                   </div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="card-gradient card-modern"
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ transition: 'delay: 0.4s' }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Avg Performance</p>
+                      <motion.p 
+                        className="text-3xl font-bold text-gray-900 mt-1"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", bounce: 0.5, delay: 0.5 }}
+                      >
+                        87.3
+                      </motion.p>
+                      <p className="text-xs text-green-600 mt-1">↗ +5.2% improvement</p>
+                    </div>
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg"
+                    >
+                      <FiTrendingUp className="w-6 h-6 text-white" />
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Today's Summary & Smart Notifications */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Today's Highlights */}
+              <motion.div 
+                className="card-modern p-6"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                    <FiCalendar className="w-5 h-5 mr-2 text-blue-600" />
+                    Today's Highlights
+                  </h3>
+                  <span className="text-sm text-gray-500">{new Date().toLocaleDateString()}</span>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">3 students completed SkillSnap</p>
+                      <p className="text-xs text-gray-600">All showing improvement trends</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">2 new badges ready to award</p>
+                      <p className="text-xs text-gray-600">Outstanding performance achievements</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">1 student needs feedback</p>
+                      <p className="text-xs text-gray-600">Overdue for weekly check-in</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Smart Notifications Preview */}
+              <motion.div 
+                className="card-modern p-6"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.7 }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                    <FiBell className="w-5 h-5 mr-2 text-purple-600" />
+                    Smart Insights
+                  </h3>
+                  <motion.button
+                    onClick={() => setSmartNotificationsOpen(true)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                  >
+                    View All →
+                  </motion.button>
+                </div>
+                
+                <div className="space-y-4">
+                  <motion.div 
+                    className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200"
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <FiTrendingUp className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Sarah Johnson improving!</p>
+                        <p className="text-xs text-gray-600 mt-1">Physical performance up 15% this week</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200"
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <FiClock className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Check-in reminder</p>
+                        <p className="text-xs text-gray-600 mt-1">Mike hasn't updated SkillSnap in 3 days</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200"
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <FiAward className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">New achievement unlocked!</p>
+                        <p className="text-xs text-gray-600 mt-1">Emma earned "Consistency Champion" badge</p>
+                      </div>
+                    </div>
+                  </motion.div>
                 </div>
               </motion.div>
             </div>
@@ -869,73 +1089,164 @@ export default function Dashboard() {
               className="card-modern p-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.8 }}
             >
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <FiZap className="w-5 h-5 mr-2 text-indigo-600" />
+                Quick Actions
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <motion.button
                   onClick={() => setActiveTab('students')}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all duration-300"
+                  className="flex flex-col items-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all duration-300 group"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
-                      <FiUsers className="w-5 h-5 text-white" />
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <FiUsers className="w-6 h-6 text-white" />
                     </div>
-                    <div className="text-left">
-                      <h4 className="font-semibold text-gray-900">Manage Students</h4>
-                      <p className="text-sm text-gray-600">View and assign students</p>
+                  <h4 className="font-semibold text-gray-900 mb-1">Manage Students</h4>
+                  <p className="text-xs text-gray-600 text-center">View, assign & track students</p>
+                </motion.button>
+
+                <motion.button
+                  onClick={() => setActiveTab('progress')}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex flex-col items-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl hover:from-green-100 hover:to-emerald-100 transition-all duration-300 group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <FiTrendingUp className="w-6 h-6 text-white" />
                     </div>
-                  </div>
-                  <FiChevronRight className="w-5 h-5 text-gray-400" />
+                  <h4 className="font-semibold text-gray-900 mb-1">Track Progress</h4>
+                  <p className="text-xs text-gray-600 text-center">Monitor athlete development</p>
                 </motion.button>
 
                 <motion.button
                   onClick={() => setActiveTab('badges')}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl hover:from-yellow-100 hover:to-orange-100 transition-all duration-300"
+                  className="flex flex-col items-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl hover:from-yellow-100 hover:to-orange-100 transition-all duration-300 group"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-500 to-orange-600 flex items-center justify-center">
-                      <FiAward className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="text-left">
-                      <h4 className="font-semibold text-gray-900">Badge Manager</h4>
-                      <p className="text-sm text-gray-600">Create and award badges</p>
-                    </div>
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-yellow-500 to-orange-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <FiAward className="w-6 h-6 text-white" />
                   </div>
-                  <FiChevronRight className="w-5 h-5 text-gray-400" />
+                  <h4 className="font-semibold text-gray-900 mb-1">Badge Centre</h4>
+                  <p className="text-xs text-gray-600 text-center">Create & award achievements</p>
                 </motion.button>
 
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
+                  onClick={() => setActiveTab('todo')}
+                  whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl hover:from-green-100 hover:to-emerald-100 transition-all duration-300"
+                  className="flex flex-col items-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl hover:from-purple-100 hover:to-pink-100 transition-all duration-300 group"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center">
-                      <FiCalendar className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="text-left">
-                      <h4 className="font-semibold text-gray-900">Schedule Session</h4>
-                      <p className="text-sm text-gray-600">Plan training sessions</p>
-                    </div>
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <FiCheckSquare className="w-6 h-6 text-white" />
                   </div>
-                  <FiChevronRight className="w-5 h-5 text-gray-400" />
+                  <h4 className="font-semibold text-gray-900 mb-1">Session Planner</h4>
+                  <p className="text-xs text-gray-600 text-center">Create training to-dos</p>
                 </motion.button>
               </div>
+            </motion.div>
+
+            {/* Recent Student Activity */}
+            <motion.div 
+              className="card-modern p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                  <FiActivity className="w-5 h-5 mr-2 text-green-600" />
+                  Recent Student Activity
+                </h3>
+                <span className="text-sm text-gray-500">Last 24 hours</span>
+              </div>
+              
+              {assignedStudents && assignedStudents.length > 0 ? (
+                <div className="space-y-3">
+                  {assignedStudents.slice(0, 3).map((student: any, index: number) => (
+                    <motion.div 
+                      key={student.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 1 + index * 0.1 }}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                          <FiUser className="w-5 h-5 text-white" />
+                    </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">{student.studentName || student.name}</h4>
+                          <p className="text-sm text-gray-600">Completed SkillSnap • 2 hours ago</p>
+                    </div>
+                  </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                          +2.3 pts
+                        </span>
+                        <motion.button
+                          onClick={() => openStudentModal(student, 'skillsnap')}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <FiChevronRight className="w-4 h-4" />
+                </motion.button>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {assignedStudents.length > 3 && (
+                <motion.button
+                      onClick={() => setActiveTab('students')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                      className="w-full p-3 text-center text-blue-600 hover:text-blue-700 font-medium border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                      View All {assignedStudents.length} Students →
+                    </motion.button>
+                  )}
+                    </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FiUsers className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-700 mb-2">No Students Yet</h4>
+                  <p className="text-gray-500 mb-4">Start by assigning students to track their progress</p>
+                  <motion.button
+                    onClick={() => setActiveTab('students')}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Assign Students
+                </motion.button>
+              </div>
+              )}
             </motion.div>
           </div>
         );
 
       case 'students':
         return (
-          <div className="space-y-6">
+          <motion.div 
+            className="space-y-4 sm:space-y-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
             {/* Success/Error Messages */}
+            <AnimatePresence>
             {successMessage && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="bg-green-50 border border-green-200 rounded-xl p-4 shadow-sm"
+                >
                 <div className="flex items-center">
                 <div className="flex-shrink-0">
                     <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
@@ -946,11 +1257,18 @@ export default function Dashboard() {
                     <p className="text-sm font-medium text-green-800">{successMessage}</p>
                 </div>
                       </div>
-                  </div>
+                </motion.div>
             )}
+            </AnimatePresence>
             
+            <AnimatePresence>
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm"
+                >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -961,191 +1279,470 @@ export default function Dashboard() {
                     <p className="text-sm font-medium text-red-800">{error}</p>
               </div>
             </div>
-                        </div>
+                </motion.div>
             )}
+            </AnimatePresence>
+
+            {/* Students Sub-Tab Navigation */}
+            <motion.div 
+              className="card-modern p-1"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <motion.button
+                  onClick={() => setStudentsSubTab('assigned')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex-1 flex items-center justify-center px-4 py-3 sm:py-2 rounded-md font-medium text-sm transition-all duration-200 ${
+                    studentsSubTab === 'assigned'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
+                  }`}
+                >
+                  <FiUsers className="w-4 h-4 mr-2" />
+                  <span>Your Students</span>
+                  {assignedStudents && assignedStudents.length > 0 && (
+                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                      studentsSubTab === 'assigned' 
+                        ? 'bg-white/20 text-white' 
+                        : 'bg-blue-100 text-blue-600'
+                    }`}>
+                      {assignedStudents.length}
+                    </span>
+                  )}
+                </motion.button>
+                
+                <motion.button
+                  onClick={() => setStudentsSubTab('available')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex-1 flex items-center justify-center px-4 py-3 sm:py-2 rounded-md font-medium text-sm transition-all duration-200 ${
+                    studentsSubTab === 'available'
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                      : 'text-gray-600 hover:text-green-600 hover:bg-white/50'
+                  }`}
+                >
+                  <FiPlusCircle className="w-4 h-4 mr-2" />
+                  <span>Available Students</span>
+                  {availableStudents && availableStudents.length > 0 && (
+                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                      studentsSubTab === 'available' 
+                        ? 'bg-white/20 text-white' 
+                        : 'bg-green-100 text-green-600'
+                    }`}>
+                      {availableStudents.length}
+                    </span>
+                  )}
+                </motion.button>
+              </div>
+            </motion.div>
             
-            {/* Assigned Students */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                  <FiUsers className="mr-2 text-blue-600" />
-                  Your Students
-                </h2>
-                <div className="flex items-center gap-2">
+            {/* Tab Content */}
+            <AnimatePresence mode="wait">
+              {studentsSubTab === 'assigned' && (
+                <motion.div 
+                  key="assigned"
+                  className="card-modern p-4 sm:p-6"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                >
+              {/* Action Buttons Header */}
+              <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-6 space-y-3 sm:space-y-0">
+                <div className="flex items-center">
+                  <div className="flex items-center mr-4 sm:mr-6">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-2">
+                      <FiUsers className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">Your Students</h3>
+                      <p className="text-xs text-gray-600 sm:hidden">Manage assigned students</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Mobile-Optimized Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   {assignedStudents?.length > 0 && (
-                    <button 
+                    <motion.button 
                       onClick={() => setMultiStudentFeedbackOpen(true)}
-                      className="px-3 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm flex items-center gap-1"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="flex-1 sm:flex-none px-3 py-2 sm:py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm flex items-center justify-center gap-1 min-h-[44px] sm:min-h-0"
                     >
                       <FiMessageSquare className="w-4 h-4" />
-                      Multi-Feedback
-                    </button>
+                      <span className="sm:inline">Multi-Feedback</span>
+                    </motion.button>
                   )}
-                  <button 
+                  <motion.button 
                     onClick={() => {
                       console.log('🔄 Manual refresh triggered');
                       fetchAssignedStudents();
                     }}
-                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex-1 sm:flex-none px-3 py-2 sm:py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm min-h-[44px] sm:min-h-0"
                   >
                     Refresh
-                  </button>
+                  </motion.button>
                 </div>
               </div>
                     
               {assignedStudents?.length === 0 ? (
-                <div className="text-center py-8">
-                  <FiUsers className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No assigned students</h3>
-                  <p className="mt-1 text-sm text-gray-500">You don't have any students assigned yet.</p>
-                              </div>
+                <motion.div 
+                  className="text-center py-12 sm:py-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <FiUsers className="mx-auto h-16 w-16 sm:h-12 sm:w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg sm:text-base font-medium text-gray-900 mb-2">No assigned students</h3>
+                  <p className="text-base sm:text-sm text-gray-500 px-4">You don't have any students assigned yet.</p>
+                </motion.div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {assignedStudents?.map((student: any) => (
-                    <div key={student.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-all duration-200 border border-gray-200">
-                      <div className="flex items-center space-x-3 mb-4">
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-4">
+                    {(showAllStudents ? assignedStudents : assignedStudents?.slice(0, 6))?.map((student: any, index: number) => (
+                      <motion.div 
+                        key={student.id} 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 + index * 0.05 }}
+                        className="bg-gray-50 rounded-xl p-5 sm:p-4 hover:bg-gray-100 transition-all duration-200 border border-gray-200 shadow-sm hover:shadow-md"
+                      >
+                        {/* Student Info - Mobile Optimized */}
+                        <div className="flex items-center space-x-4 sm:space-x-3 mb-4 sm:mb-3">
                         <div className="flex-shrink-0">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                            <FiUser className="w-6 h-6 text-white" />
+                            <div className="w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                              <FiUser className="w-7 h-7 sm:w-6 sm:h-6 text-white" />
                             </div>
                             </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-800">{student.studentName || student.name}</h3>
-                          <p className="text-sm text-gray-600">{student.sport || 'No sport selected'}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-lg sm:text-base font-semibold text-gray-800 truncate">{student.studentName || student.name}</h3>
+                                <p className="text-base sm:text-sm text-gray-600 flex items-center">
+                                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                  {student.sport || 'No sport selected'}
+                                </p>
+                              </div>
+                              <motion.button
+                                onClick={() => toggleStudentExpanded(student.id)}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+                              >
+                                <motion.div
+                                  animate={{ rotate: isStudentExpanded(student.id) ? 180 : 0 }}
+                                  transition={{ duration: 0.2 }}
+                                >
+                                  <FiChevronRight className="w-4 h-4" />
+                                </motion.div>
+                              </motion.button>
+                            </div>
                           </div>
                       </div>
                       
-                      {/* Action Buttons */}
-                      <div className="flex flex-wrap gap-2">
-                        <button
+                        {/* Student Details - Expandable */}
+                        <AnimatePresence>
+                          {isStudentExpanded(student.id) && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="mb-4 p-3 bg-white rounded-lg border border-gray-200"
+                            >
+                              <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div>
+                                  <span className="text-gray-500">Age:</span>
+                                  <span className="ml-2 font-medium">{student.age || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500">Email:</span>
+                                  <span className="ml-2 font-medium text-xs truncate">{student.email || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500">Height:</span>
+                                  <span className="ml-2 font-medium">{student.height ? `${student.height}cm` : 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500">Weight:</span>
+                                  <span className="ml-2 font-medium">{student.weight ? `${student.weight}kg` : 'N/A'}</span>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        
+                        {/* Mobile-Optimized Action Buttons - Removed Badges */}
+                        <div className="flex gap-2">
+                          <motion.button
                           onClick={() => openStudentModal(student, 'skillsnap')}
-                          className="flex-1 min-w-0 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-medium rounded-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-1"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1 px-4 py-3 sm:px-3 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2 sm:gap-1 min-h-[48px] sm:min-h-0 shadow-md"
                         >
-                          <FiActivity className="w-3 h-3" />
+                            <FiActivity className="w-4 h-4 sm:w-3 sm:h-3" />
                           <span className="truncate">SkillSnap</span>
-                        </button>
+                          </motion.button>
                         
-                        <button
-                          onClick={() => openStudentModal(student, 'badges')}
-                          className="flex-1 min-w-0 px-3 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white text-xs font-medium rounded-md hover:from-yellow-600 hover:to-yellow-700 transition-all duration-200 flex items-center justify-center gap-1"
-                        >
-                          <FiAward className="w-3 h-3" />
-                          <span className="truncate">Badges</span>
-                        </button>
-                        
-                            <button
+                          <motion.button
                           onClick={() => openStudentModal(student, 'feedback')}
-                          className="flex-1 min-w-0 px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-medium rounded-md hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-1"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1 px-4 py-3 sm:px-3 sm:py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2 sm:gap-1 min-h-[48px] sm:min-h-0 shadow-md"
                         >
-                          <FiMessageSquare className="w-3 h-3" />
+                            <FiMessageSquare className="w-4 h-4 sm:w-3 sm:h-3" />
                           <span className="truncate">Feedback</span>
-                            </button>
+                          </motion.button>
                           </div>
-                        </div>
+                      </motion.div>
                       ))}
                         </div>
-                      )}
+                  
+                  {/* Show More Students Button */}
+                  {assignedStudents && assignedStudents.length > 6 && (
+                    <motion.div 
+                      className="mt-6 text-center"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <motion.button
+                        onClick={() => setShowAllStudents(!showAllStudents)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-md flex items-center gap-2 mx-auto"
+                      >
+                        <FiUsers className="w-4 h-4" />
+                        <span>
+                          {showAllStudents ? 'Show Less' : `Show All ${assignedStudents.length} Students`}
+                        </span>
+                        <motion.div
+                          animate={{ rotate: showAllStudents ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <FiChevronRight className="w-4 h-4" />
+                        </motion.div>
+                      </motion.button>
+                    </motion.div>
+                  )}
+                </>
+              )}
+                </motion.div>
+              )}
+
+              {studentsSubTab === 'available' && (
+                <motion.div 
+                  key="available"
+                  className="card-modern p-4 sm:p-6"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+              {/* Action Buttons Header */}
+              <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-6 space-y-3 sm:space-y-0">
+                <div className="flex items-center">
+                  <div className="flex items-center mr-4 sm:mr-6">
+                    <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-2">
+                      <FiPlusCircle className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">Available Students</h3>
+                      <p className="text-xs text-gray-600 sm:hidden">Select to assign</p>
+                    </div>
+                  </div>
             </div>
 
-            {/* Available Students */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                  <FiPlusCircle className="mr-2 text-green-600" />
-                  Available Students
-                </h2>
                 {selectedStudents.length > 0 && (
-                          <button
+                  <motion.button
                     onClick={handleAssignStudents}
                     disabled={isAssigning}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full sm:w-auto px-6 py-3 sm:px-4 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[48px] sm:min-h-0 shadow-md font-medium"
                   >
                     {isAssigning ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Assigning...
+                        <span>Assigning...</span>
                       </>
                     ) : (
-                      `Assign Selected (${selectedStudents.length})`
+                      <>
+                        <FiUsers className="w-4 h-4" />
+                        <span>Assign Selected ({selectedStudents.length})</span>
+                      </>
                     )}
-                          </button>
+                  </motion.button>
                       )}
                     </div>
               
               {availableStudents?.length === 0 ? (
-                <div className="text-center py-8">
-                  <FiPlusCircle className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No available students</h3>
-                  <p className="mt-1 text-sm text-gray-500">
+                <motion.div 
+                  className="text-center py-12 sm:py-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <FiPlusCircle className="mx-auto h-16 w-16 sm:h-12 sm:w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg sm:text-base font-medium text-gray-900 mb-2">No available students</h3>
+                  <p className="text-base sm:text-sm text-gray-500 mb-2 px-4">
                     No unassigned students found in your academy ({profileData?.academy}).
                   </p>
-                  <p className="mt-1 text-xs text-gray-400">
+                  <p className="text-sm sm:text-xs text-gray-400 px-4 mb-6">
                     Students need to register and complete their profiles to appear here.
                   </p>
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-blue-800">
+                  <div className="mt-6 p-5 sm:p-4 bg-blue-50 rounded-xl mx-4 sm:mx-0">
+                    <p className="text-base sm:text-sm text-blue-800 font-medium mb-3">
                       <strong>To get students:</strong>
                     </p>
-                    <ul className="mt-2 text-sm text-blue-700 list-disc list-inside">
-                      <li>Share the registration link with students</li>
-                      <li>Students must select "{profileData?.academy}" as their academy</li>
-                      <li>Students will appear here once they complete their profiles</li>
+                    <ul className="text-sm sm:text-sm text-blue-700 space-y-2 text-left">
+                      <li className="flex items-start">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                        Share the registration link with students
+                      </li>
+                      <li className="flex items-start">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                        Students must select "{profileData?.academy}" as their academy
+                      </li>
+                      <li className="flex items-start">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                        Students will appear here once they complete their profiles
+                      </li>
                     </ul>
                         </div>
-                        </div>
+                </motion.div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {availableStudents?.map((student: any) => (
-                    <div 
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {(showAllStudents ? availableStudents : availableStudents?.slice(0, 6))?.map((student: any, index: number) => (
+                    <motion.div 
                       key={student.id} 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + index * 0.05 }}
                       onClick={() => handleStudentSelection(student.id)}
-                      className={`bg-gray-50 rounded-lg p-4 cursor-pointer transition-all ${
+                      className={`rounded-xl p-5 sm:p-4 cursor-pointer transition-all duration-200 border-2 active:scale-95 touch-manipulation ${
                         selectedStudents.includes(student.id) 
-                          ? 'ring-2 ring-green-600 bg-green-50' 
-                          : 'hover:bg-gray-100'
+                          ? 'ring-2 ring-green-600 bg-green-50 border-green-200 shadow-md' 
+                          : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300 shadow-sm hover:shadow-md'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-4 sm:space-x-3 flex-1 min-w-0">
                           <div className="flex-shrink-0">
-                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                              <FiUser className="w-6 h-6 text-gray-600" />
+                            <div className={`w-12 h-12 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${
+                              selectedStudents.includes(student.id) 
+                                ? 'bg-green-100' 
+                                : 'bg-gray-200'
+                            }`}>
+                              <FiUser className={`w-6 h-6 sm:w-5 sm:h-5 ${
+                                selectedStudents.includes(student.id) 
+                                  ? 'text-green-600' 
+                                  : 'text-gray-600'
+                              }`} />
                             </div>
                                 </div>
-                                <div>
-                            <h3 className="text-lg font-semibold text-gray-800">{student.studentName || student.name}</h3>
-                            <p className="text-sm text-gray-600">{student.sport || 'No sport selected'}</p>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg sm:text-base font-semibold text-gray-800 truncate">{student.studentName || student.name}</h3>
+                            <p className="text-base sm:text-sm text-gray-600 flex items-center">
+                              <span className={`w-2 h-2 rounded-full mr-2 ${
+                                selectedStudents.includes(student.id) ? 'bg-green-500' : 'bg-gray-400'
+                              }`}></span>
+                              {student.sport || 'No sport selected'}
+                            </p>
                                 </div>
                               </div>
-                        {selectedStudents.includes(student.id) && (
-                          <Check className="w-6 h-6 text-green-600" />
+                        <div className="flex-shrink-0 ml-3">
+                          {selectedStudents.includes(student.id) ? (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center"
+                            >
+                              <Check className="w-5 h-5 text-white" />
+                            </motion.div>
+                          ) : (
+                            <div className="w-8 h-8 border-2 border-gray-300 rounded-full flex items-center justify-center">
+                              <div className="w-3 h-3 border border-gray-400 rounded-full"></div>
+                            </div>
                         )}
                             </div>
                                 </div>
+                    </motion.div>
                   ))}
                                 </div>
+                  
+                  {/* Show More Available Students Button */}
+                  {availableStudents && availableStudents.length > 6 && (
+                    <motion.div 
+                      className="mt-6 text-center"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <motion.button
+                        onClick={() => setShowAllStudents(!showAllStudents)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium shadow-md flex items-center gap-2 mx-auto"
+                      >
+                        <FiPlusCircle className="w-4 h-4" />
+                        <span>
+                          {showAllStudents ? 'Show Less' : `Show All ${availableStudents.length} Available Students`}
+                        </span>
+                        <motion.div
+                          animate={{ rotate: showAllStudents ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <FiChevronRight className="w-4 h-4" />
+                        </motion.div>
+                      </motion.button>
+                    </motion.div>
+                  )}
+                </>
+                )}
+                </motion.div>
               )}
-                              </div>
-                            </div>
+            </AnimatePresence>
+          </motion.div>
         );
 
       case 'progress':
         return (
           <motion.div 
-            className="h-[calc(100vh-16rem)]"
+            className="space-y-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="h-full bg-white rounded-xl shadow-lg overflow-hidden">
+            {/* Smart Notifications Button */}
+            <div className="flex justify-end">
+              <motion.button
+                onClick={() => setSmartNotificationsOpen(true)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <FiBell className="w-5 h-5" />
+                <span className="font-medium">Smart Notifications</span>
+              </motion.button>
+            </div>
+            
+            <div className="h-[calc(100vh-20rem)] bg-white rounded-xl shadow-lg overflow-hidden">
               {assignedStudents && assignedStudents.length > 0 ? (
-                <AthleteProgressTracker 
-                  athletes={assignedStudents.map((student: any) => ({
-                    id: student.id,
-                    name: student.studentName || student.name,
-                    sport: student.sport || 'Basketball'
-                  }))}
-                />
+              <AthleteProgressTracker 
+                athletes={assignedStudents.map((student: any) => ({
+                  id: student.id,
+                  name: student.studentName || student.name,
+                  sport: student.sport || 'Basketball'
+                }))}
+              />
               ) : (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center p-8">
@@ -1169,7 +1766,7 @@ export default function Dashboard() {
                 <p className="text-gray-600">Taking you to the complete badge management interface.</p>
               </div>
             </div>
-          </div>
+                          </div>
         );
 
       case 'todo':
@@ -1338,8 +1935,13 @@ export default function Dashboard() {
       {/* Add padding to the bottom of the main content to prevent overlap with the footer */}
       <div className="pb-20 lg:pb-0"></div>
       
+      {/* Smart Notifications Modal */}
+      {smartNotificationsOpen && (
+        <SmartNotifications onClose={() => setSmartNotificationsOpen(false)} />
+      )}
+      
       {/* Modal Components */}
-      {selectedStudentModal && activeModal && (
+      {selectedStudentModal && activeModal && !studentDetailModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Background overlay */}

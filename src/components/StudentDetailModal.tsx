@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiActivity, FiAward, FiUser, FiMail, FiCalendar } from "react-icons/fi";
+import { FiX, FiActivity, FiUser, FiMail, FiCalendar } from "react-icons/fi";
 import SkillSnap from "./SkillSnap";
-import { categoryColors, levelColors } from "@/app/badge-centre/page";
 
 interface Student {
   id: string;
@@ -19,37 +18,20 @@ interface Student {
   sport: string;
 }
 
-interface Badge {
-  badgeId: string;
-  awardedAt: string;
-  progress: number;
-  badge: {
-    name: string;
-    description: string;
-    level: string;
-    icon: string;
-    category?: {
-      name: string;
-    };
-  };
-}
+
 
 interface StudentDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   student: Student | null;
-  activeView: 'skillsnap' | 'badges';
 }
 
 export default function StudentDetailModal({ 
   isOpen, 
   onClose, 
-  student,
-  activeView 
+  student
 }: StudentDetailModalProps) {
-  const [selectedView, setSelectedView] = useState<'skillsnap' | 'badges'>(activeView);
   const [skillsData, setSkillsData] = useState<any>(null);
-  const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -58,10 +40,6 @@ export default function StudentDetailModal({
       fetchStudentData();
     }
   }, [isOpen, student]);
-
-  useEffect(() => {
-    setSelectedView(activeView);
-  }, [activeView]);
 
   const fetchStudentData = async () => {
     if (!student) return;
@@ -75,13 +53,6 @@ export default function StudentDetailModal({
       if (skillsResponse.ok) {
         const data = await skillsResponse.json();
         setSkillsData(data);
-      }
-
-      // Fetch badges
-      const badgesResponse = await fetch(`/api/badges?studentId=${student.id}&completed=true`);
-      if (badgesResponse.ok) {
-        const data = await badgesResponse.json();
-        setBadges(data.badges || []);
       }
     } catch (err) {
       setError('Failed to load student data');
@@ -101,62 +72,56 @@ export default function StudentDetailModal({
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+
 
   if (!isOpen || !student) return null;
 
   return (
     <AnimatePresence>
       <motion.div 
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center p-2 sm:p-4 z-50 overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div 
-          className="bg-white rounded-2xl max-w-7xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
+          className="bg-white rounded-t-2xl sm:rounded-2xl max-w-7xl w-full h-[100vh] sm:h-auto sm:max-h-[90vh] overflow-hidden shadow-2xl mt-0 sm:mt-auto flex flex-col"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: "spring", bounce: 0.3 }}
         >
           {/* Header */}
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
-                  <FiUser className="w-8 h-8 text-white" />
+              <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                  <FiUser className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{student.studentName}</h2>
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">{student.studentName}</h2>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-1">
                     <span className="flex items-center gap-1">
-                      <FiUser className="w-4 h-4" />
+                      <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
                       @{student.username}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <FiMail className="w-4 h-4" />
-                      {student.email}
+                    <span className="flex items-center gap-1 truncate">
+                      <FiMail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                      <span className="truncate">{student.email}</span>
                     </span>
                     <span className="flex items-center gap-1">
-                      <FiCalendar className="w-4 h-4" />
+                      <FiCalendar className="w-3 h-3 sm:w-4 sm:h-4" />
                       Age: {student.age}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 mt-2">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                  <div className="flex items-center gap-2 sm:gap-4 mt-2 flex-wrap">
+                    <span className="px-2 py-1 sm:px-3 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
                       {getRoleDisplayName(student.role)}
                     </span>
-                    <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                    <span className="px-2 py-1 sm:px-3 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
                       {student.academy}
                     </span>
-                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                    <span className="px-2 py-1 sm:px-3 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                       {student.sport}
                     </span>
                   </div>
@@ -164,43 +129,23 @@ export default function StudentDetailModal({
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/50 rounded-full transition-colors"
+                className="p-2 hover:bg-white/50 rounded-full transition-colors flex-shrink-0"
               >
-                <FiX className="h-6 w-6 text-gray-500" />
+                <FiX className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
               </button>
             </div>
           </div>
 
-          {/* View Toggle */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex gap-2">
-              <button
-                onClick={() => setSelectedView('skillsnap')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  selectedView === 'skillsnap'
-                    ? 'bg-white text-indigo-600 shadow-md'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <FiActivity className="w-4 h-4" />
-                SkillSnap
-              </button>
-              <button
-                onClick={() => setSelectedView('badges')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  selectedView === 'badges'
-                    ? 'bg-white text-indigo-600 shadow-md'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <FiAward className="w-4 h-4" />
-                Badges ({badges.length})
-              </button>
+          {/* SkillSnap Header */}
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <FiActivity className="w-4 h-4 text-indigo-600" />
+              <h3 className="text-lg font-semibold text-gray-900">SkillSnap</h3>
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-240px)]">
+          <div className="p-4 sm:p-6 overflow-y-auto flex-1 max-h-[calc(100vh-200px)] sm:max-h-[calc(90vh-200px)]">
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
@@ -210,24 +155,16 @@ export default function StudentDetailModal({
                 <p>{error}</p>
               </div>
             ) : (
-              <AnimatePresence mode="wait">
-                {selectedView === 'skillsnap' ? (
                   <motion.div
-                    key="skillsnap"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
                     {skillsData ? (
                       <SkillSnap 
-                        skills={skillsData} 
-                        profileData={{
-                          ...student,
-                          studentName: student.studentName,
-                          sport: student.sport,
-                          age: student.age
-                        }}
+                    studentId={student.id}
+                    isCoachView={true}
+                    onSkillsUpdated={() => {}}
                       />
                     ) : (
                       <div className="text-center py-12 text-gray-500">
@@ -236,66 +173,6 @@ export default function StudentDetailModal({
                       </div>
                     )}
                   </motion.div>
-                ) : (
-                  <motion.div
-                    key="badges"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {badges.length > 0 ? (
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {badges.map((studentBadge) => {
-                          const badge = studentBadge.badge;
-                          const levelColor = levelColors[badge.level as keyof typeof levelColors] || '#6B7280';
-                          const categoryColor = categoryColors[badge.category?.name || ''] || '#6B7280';
-                          
-                          return (
-                            <motion.div
-                              key={studentBadge.badgeId}
-                              className="relative rounded-xl p-4 bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-xl transition-all duration-300"
-                              style={{
-                                borderTop: `4px solid ${categoryColor}`
-                              }}
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                            >
-                              {/* Level Badge */}
-                              <div
-                                className="absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-bold"
-                                style={{
-                                  backgroundColor: `${levelColor}20`,
-                                  color: levelColor,
-                                  border: `2px solid ${levelColor}`
-                                }}
-                              >
-                                {badge.level}
-                              </div>
-
-                              {/* Icon and Details */}
-                              <div className="text-center">
-                                <div className="text-4xl mb-2">{badge.icon}</div>
-                                <h3 className="text-sm font-bold text-white mb-1">{badge.name}</h3>
-                                <p className="text-xs text-gray-400 mb-2">{badge.description}</p>
-                                <p className="text-xs text-green-400">
-                                  Earned: {formatDate(studentBadge.awardedAt)}
-                                </p>
-                              </div>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12 text-gray-500">
-                        <FiAward className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                        <p>No badges earned yet</p>
-                        <p className="text-sm mt-2">Badges will appear here as the student achieves them</p>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
             )}
           </div>
         </motion.div>

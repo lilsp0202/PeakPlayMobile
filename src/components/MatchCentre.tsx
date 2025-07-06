@@ -88,6 +88,9 @@ const MatchCentre: React.FC = () => {
     if ((session as unknown as Session)?.user?.id) {
       fetchMatchStats();
       loadUpcomingMatches();
+    } else {
+      // Clear upcoming matches when no user is logged in
+      setUpcomingMatches([]);
     }
   }, [(session as unknown as Session)?.user?.id, fetchMatchStats]);
 
@@ -98,17 +101,25 @@ const MatchCentre: React.FC = () => {
     }
   }, [activeTab, fetchMatchStats, (session as unknown as Session)?.user?.id]);
 
-  // Load upcoming matches (stored in localStorage for simplicity)
+  // Load upcoming matches (stored in user-specific localStorage)
   const loadUpcomingMatches = () => {
-    const stored = localStorage.getItem('upcomingMatches');
+    const userId = (session as unknown as Session)?.user?.id;
+    if (!userId) return;
+    
+    const userSpecificKey = `upcomingMatches_${userId}`;
+    const stored = localStorage.getItem(userSpecificKey);
     if (stored) {
       setUpcomingMatches(JSON.parse(stored));
     }
   };
 
-  // Save upcoming matches to localStorage
+  // Save upcoming matches to user-specific localStorage
   const saveUpcomingMatches = (matches: UpcomingMatch[]) => {
-    localStorage.setItem('upcomingMatches', JSON.stringify(matches));
+    const userId = (session as unknown as Session)?.user?.id;
+    if (!userId) return;
+    
+    const userSpecificKey = `upcomingMatches_${userId}`;
+    localStorage.setItem(userSpecificKey, JSON.stringify(matches));
     setUpcomingMatches(matches);
   };
 

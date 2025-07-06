@@ -39,6 +39,7 @@ export class BadgeEngine {
         where: { id: studentId },
         include: {
           skills: true,
+          coach: true, // Include coach information for filtering coach-created badges
           badges: {
             include: { badge: true }
           }
@@ -55,7 +56,8 @@ export class BadgeEngine {
         name: student.studentName,
         sport: student.sport,
         hasSkills: !!student.skills,
-        existingBadges: student.badges.length
+        existingBadges: student.badges.length,
+        hasCoach: !!student.coach
       });
 
       // Get all active badges for the student's sport
@@ -76,8 +78,21 @@ export class BadgeEngine {
         }
       });
 
-      // All badges are relevant for now (no target students filtering)
-      const relevantBadges = badges;
+      // Filter badges based on coach-student relationships
+      const relevantBadges = badges.filter(badge => {
+        // If it's a system badge (no coach marker), include it
+        if (!badge.description.includes('|||COACH_CREATED:')) {
+          return true;
+        }
+        
+        // If it's a coach-created badge, only include if it was created by this student's coach
+        if (student.coach) {
+          return badge.description.includes(`|||COACH_CREATED:${student.coach.id}`);
+        }
+        
+        // If student has no coach, exclude all coach-created badges
+        return false;
+      });
 
       console.log('BadgeEngine - Found badges for evaluation:', {
         total: badges.length,
@@ -367,11 +382,16 @@ export class BadgeEngine {
   static async getBadgeProgress(studentId: string): Promise<BadgeProgress[]> {
     const student = await prisma.student.findUnique({
       where: { id: studentId },
-      include: { skills: true }
+      include: { 
+        skills: true,
+        coach: true // Include coach information for filtering coach-created badges
+      }
     });
 
     if (!student) return [];
 
+    console.log('BadgeEngine.getBadgeProgress - About to query badges for student:', studentId);
+    
     const badges = await prisma.badge.findMany({
       where: {
         OR: [
@@ -389,8 +409,21 @@ export class BadgeEngine {
       }
     });
 
-    // All badges are relevant for now (no target students filtering)
-    const relevantBadges = badges;
+    // Filter badges based on coach-student relationships
+    const relevantBadges = badges.filter(badge => {
+      // If it's a system badge (no coach marker), include it
+      if (!badge.description.includes('|||COACH_CREATED:')) {
+        return true;
+      }
+      
+      // If it's a coach-created badge, only include if it was created by this student's coach
+      if (student.coach) {
+        return badge.description.includes(`|||COACH_CREATED:${student.coach.id}`);
+      }
+      
+      // If student has no coach, exclude all coach-created badges
+      return false;
+    });
 
     const progress: BadgeProgress[] = [];
 
