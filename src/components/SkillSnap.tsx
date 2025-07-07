@@ -1870,7 +1870,7 @@ export default function SkillSnap({
   const [isSaving, setIsSaving] = useState(false);
 
   // Check if editing is allowed based on user type and context
-  const canEdit = isCoachView || (session?.user?.role === 'ATHLETE' && !studentId);
+  const canEdit = isCoachView || ((session as any)?.user?.role === 'ATHLETE' && !studentId);
 
   // Add effect to manage body scroll when modals are open
   useEffect(() => {

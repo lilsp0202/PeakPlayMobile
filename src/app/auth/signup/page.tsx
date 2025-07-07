@@ -3,6 +3,7 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import {
   Eye,
@@ -99,6 +100,7 @@ export default function SignUp() {
     setIsLoading(true);
 
     try {
+      // First, register the user
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -114,7 +116,27 @@ export default function SignUp() {
       });
 
       if (response.ok) {
-        router.push("/auth/signin?message=Account created successfully");
+        console.log("Registration successful, now signing in automatically...");
+        
+        // Automatically sign in the user after successful registration
+        const signInResult = await signIn("credentials", {
+          email: formData.email,
+          password: formData.password,
+          redirect: false,
+        });
+
+        if (signInResult?.ok) {
+          console.log("Auto sign-in successful, redirecting to onboarding...");
+          // Redirect to appropriate onboarding based on role
+          const onboardingPath = formData.role === "COACH" 
+            ? "/onboarding/coach" 
+            : "/onboarding/athlete";
+          router.push(onboardingPath);
+        } else {
+          console.error("Auto sign-in failed:", signInResult?.error);
+          // Fallback: redirect to signin with success message
+          router.push("/auth/signin?message=Account created successfully. Please sign in.");
+        }
       } else {
         const data = await response.json();
         setErrors({ submit: data.error || data.message || "Failed to create account" });

@@ -80,6 +80,10 @@ const SmartNotifications = dynamic(() => import("@/components/SmartNotifications
   ssr: false
 });
 
+const ProfileModal = dynamic(() => import("@/components/ProfileModal").catch(() => ({ default: () => null })), {
+  ssr: false
+});
+
 interface ProfileData {
   id: string;
   name: string;
@@ -162,6 +166,7 @@ export default function Dashboard() {
   const [expandedStudents, setExpandedStudents] = useState<string[]>([]);
   const [showAllStudents, setShowAllStudents] = useState(false);
   const [studentsSubTab, setStudentsSubTab] = useState<'assigned' | 'available'>('assigned');
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   useEffect(() => {
     console.log('🔍 Dashboard useEffect - Status:', status, 'Session exists:', !!session);
@@ -1821,15 +1826,23 @@ export default function Dashboard() {
               <PeakPlayLogo size="default" variant="gradient" className="h-8 w-auto" />
             </motion.div>
             <div className="flex items-center space-x-4">
-              <motion.div 
-                className="text-right"
+              <motion.button
+                onClick={() => setProfileModalOpen(true)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-all duration-300"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
               >
+                <div className="text-right">
                 <p className="text-md font-semibold text-gray-900">{profileData?.name || session?.user.name}</p>
                 <p className="text-sm text-purple-600 capitalize font-medium">{profileData?.role?.toLowerCase() || (session as unknown as Session)?.user?.role?.toLowerCase()}</p>
-              </motion.div>
+                </div>
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                  <FiUser className="w-5 h-5 text-white" />
+                </div>
+              </motion.button>
               <motion.button
                 onClick={handleSignOut}
                 whileHover={{ scale: 1.05 }}
@@ -1938,6 +1951,14 @@ export default function Dashboard() {
       {/* Smart Notifications Modal */}
       {smartNotificationsOpen && (
         <SmartNotifications onClose={() => setSmartNotificationsOpen(false)} />
+      )}
+
+      {/* Profile Modal */}
+      {profileModalOpen && (
+        <ProfileModal
+          isOpen={profileModalOpen}
+          onClose={() => setProfileModalOpen(false)}
+        />
       )}
       
       {/* Modal Components */}
@@ -2122,7 +2143,6 @@ export default function Dashboard() {
             setSelectedStudentModal(null);
           }}
           student={selectedStudentModal}
-          activeView={studentDetailView}
         />
       )}
 
