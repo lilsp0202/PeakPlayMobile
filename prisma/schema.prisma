@@ -14,12 +14,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -53,55 +53,53 @@ model User {
 }
 
 model Student {
-  id                String             @id @default(cuid())
-  userId            String             @unique
-  studentName       String
-  username          String
-  email             String
-  phone             String?
-  age               Int
-  height            Float
-  weight            Float
-  academy           String
-  sport             String             @default("CRICKET")
-  role              String
-  coachId           String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  receivedFeedback  Feedback[]
-  
-  matchPerformances MatchPerformance[]
-  skills            Skills?
-  badges            StudentBadge[]
-  coach             Coach?             @relation(fields: [coachId], references: [id])
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // Marketplace relations
-  coachingBookings  CoachingBooking[]
-  coachReviews      CoachReview[]
-  sessionTodoLinks  SessionTodoStudent[]
-  hooperEntries     HooperIndex[]
-  skillHistory      SkillHistory[]
+  id                 String               @id @default(cuid())
+  userId             String               @unique
+  studentName        String
+  username           String
+  email              String
+  age                Int
+  height             Float
+  weight             Float
+  academy            String
+  sport              String               @default("CRICKET")
+  role               String
+  coachId            String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  phone              String?
+  actions            Action[]
+  coachReviews       CoachReview[]
+  coachingBookings   CoachingBooking[]
+  receivedFeedback   Feedback[]
+  hooperEntries      HooperIndex[]
+  matchPerformances  MatchPerformance[]
+  sessionTodoLinks   SessionTodoStudent[]
+  skillHistory       SkillHistory[]
+  skills             Skills?
   smartNotifications SmartNotification[]
-  actions           Action[]
+  coach              Coach?               @relation(fields: [coachId], references: [id])
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badges             StudentBadge[]
 }
 
 model Coach {
-  id            String     @id @default(cuid())
-  userId        String     @unique
-  name          String
-  username      String
-  email         String
-  phone         String?
-  academy       String
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  givenFeedback Feedback[]
-  students      Student[]
-  sessionTodos  SessionTodo[]
+  id                      String                  @id @default(cuid())
+  userId                  String                  @unique
+  name                    String
+  username                String
+  email                   String
+  academy                 String
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+  phone                   String?
+  actions                 Action[]
+  user                    User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  givenFeedback           Feedback[]
   notificationPreferences NotificationPreference?
-  smartNotifications SmartNotification[]
-  actions       Action[]
+  sessionTodos            SessionTodo[]
+  smartNotifications      SmartNotification[]
+  students                Student[]
 }
 
 model Skills {
@@ -111,25 +109,22 @@ model Skills {
   studentName           String
   studentEmail          String
   age                   Int
-  // Physical Skills - Strength
   pushupScore           Int?
   pullupScore           Int?
-  verticalJump          Float?   // Vertical jump height in cm
-  gripStrength          Float?   // Grip strength in kg
-  // Physical Skills - Speed & Agility
-  sprintTime            Float?   // Legacy 100m sprint time (backwards compatibility)
-  sprint50m             Float?   // 50m sprint time in seconds
-  shuttleRun            Float?   // Shuttle run time in seconds
-  // Physical Skills - Endurance
-  run5kTime             Float?   // 5K run time in minutes
-  yoyoTest              Int?     // Yo-Yo test level (0-21)
+  verticalJump          Float?
+  gripStrength          Float?
+  sprintTime            Float?
+  sprint50m             Float?
+  shuttleRun            Float?
+  run5kTime             Float?
+  yoyoTest              Int?
   category              String   @default("PHYSICAL")
   lastUpdated           DateTime @default(now())
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   carbohydrates         Float?
   fats                  Float?
-  waterIntake           Float?   // Water intake in liters per day
+  waterIntake           Float?
   moodScore             Int?
   protein               Float?
   sleepScore            Int?
@@ -160,43 +155,28 @@ model Skills {
   softHands             Float?
   throw                 Float?
   topHandDominance      Float?
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   student               Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Historical skill tracking for progress monitoring
 model SkillHistory {
-  id                String   @id @default(cuid())
-  studentId         String
-  date              DateTime @default(now()) @db.Date
-  
-  // Physical Score (calculated from physical metrics)
-  physicalScore     Float?
-  
-  // Nutrition Score (calculated from nutrition metrics)
-  nutritionScore    Float?
-  
-  // Mental/Wellness Score (calculated from mood, sleep, wellness)
-  mentalScore       Float?
-  wellnessScore     Float?
-  
-  // Technical Skills Scores (average of technique metrics)
-  techniqueScore    Float?
-  tacticalScore     Float?
-  
-  // Match day flag
-  isMatchDay        Boolean  @default(false)
-  matchId           String?
-  
-  // Coach feedback/notes for this day
-  coachFeedback     String?
-  notes             String?
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  student           Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  
+  id             String   @id @default(cuid())
+  studentId      String
+  date           DateTime @default(now()) @db.Date
+  physicalScore  Float?
+  nutritionScore Float?
+  mentalScore    Float?
+  wellnessScore  Float?
+  techniqueScore Float?
+  tacticalScore  Float?
+  isMatchDay     Boolean  @default(false)
+  matchId        String?
+  coachFeedback  String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
   @@unique([studentId, date])
   @@index([studentId, date])
 }
@@ -256,26 +236,25 @@ model Feedback {
 }
 
 model Action {
-  id            String   @id @default(cuid())
-  studentId     String
-  coachId       String
-  title         String
-  description   String
-  category      String   @default("GENERAL") // GENERAL, TECHNICAL, MENTAL, NUTRITIONAL, TACTICAL
-  priority      String   @default("MEDIUM")  // LOW, MEDIUM, HIGH
-  dueDate       DateTime?
-  isCompleted   Boolean  @default(false)
-  completedAt   DateTime?
-  isAcknowledged Boolean @default(false)
+  id             String    @id @default(cuid())
+  studentId      String
+  coachId        String
+  title          String
+  description    String
+  category       String    @default("GENERAL")
+  priority       String    @default("MEDIUM")
+  dueDate        DateTime?
+  isCompleted    Boolean   @default(false)
+  completedAt    DateTime?
+  isAcknowledged Boolean   @default(false)
   acknowledgedAt DateTime?
-  notes         String?  // Student notes when completing the action
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  coach         Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
-  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  coach          Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  student        Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
-// Badge System Models
 model BadgeCategory {
   id          String   @id @default(cuid())
   name        String   @unique
@@ -288,242 +267,208 @@ model BadgeCategory {
 }
 
 model Badge {
-  id                String        @id @default(cuid())
-  name              String
-  description       String
-  motivationalText  String
-  level             String        @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM
-  categoryId        String
-  icon              String
-  sport             String        @default("CRICKET")
-  isActive          Boolean       @default(true)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  category          BadgeCategory @relation(fields: [categoryId], references: [id])
-  rules             BadgeRule[]
-  studentBadges     StudentBadge[]
-  
+  id               String         @id @default(cuid())
+  name             String
+  description      String
+  motivationalText String
+  level            String         @default("BRONZE")
+  categoryId       String
+  icon             String
+  sport            String         @default("CRICKET")
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  category         BadgeCategory  @relation(fields: [categoryId], references: [id])
+  rules            BadgeRule[]
+  studentBadges    StudentBadge[]
+
   @@unique([name, level, sport])
 }
 
 model BadgeRule {
-  id              String   @id @default(cuid())
-  badgeId         String
-  ruleType        String   // PERFORMANCE, WELLNESS, CONSISTENCY, COACH_RATING, STREAK, IMPROVEMENT
-  fieldName       String   // Field to check (e.g., "battingGrip", "sleepScore", "pushupScore")
-  operator        String   // GT, GTE, LT, LTE, EQ, NEQ, BETWEEN, STREAK_DAYS
-  value           String   // Target value (could be number, JSON for complex rules)
-  weight          Float    @default(1.0) // For weighted scoring
-  isRequired      Boolean  @default(true) // Must be met vs contributes to score
-  description     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  badge           Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  badgeId     String
+  ruleType    String
+  fieldName   String
+  operator    String
+  value       String
+  weight      Float    @default(1.0)
+  isRequired  Boolean  @default(true)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  badge       Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
 }
 
 model StudentBadge {
-  id          String    @id @default(cuid())
-  studentId   String
-  badgeId     String
-  awardedAt   DateTime  @default(now())
-  awardedBy   String?   // Coach ID who triggered the badge (if manual)
-  score       Float?    // Score achieved when earning the badge
-  progress    Float     @default(100) // Progress percentage (100 = completed)
-  isRevoked   Boolean   @default(false)
-  revokedAt   DateTime?
-  revokedBy   String?
+  id           String    @id @default(cuid())
+  studentId    String
+  badgeId      String
+  awardedAt    DateTime  @default(now())
+  awardedBy    String?
+  score        Float?
+  progress     Float     @default(100)
+  isRevoked    Boolean   @default(false)
+  revokedAt    DateTime?
+  revokedBy    String?
   revokeReason String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  badge       Badge     @relation(fields: [badgeId], references: [id])
-  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  badge        Badge     @relation(fields: [badgeId], references: [id])
+  student      Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
   @@unique([studentId, badgeId])
 }
 
-// New model to track which students a badge is meant for - DISABLED/NOT MIGRATED
-// model BadgeTargetStudent {
-//   id          String   @id @default(cuid())
-//   badgeId     String
-//   studentId   String
-//   badge       Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-//   student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-//   createdAt   DateTime @default(now())
-//   
-//   @@unique([badgeId, studentId])
-// }
-
-// Marketplace Models
 model SpecializedCoach {
-  id              String               @id @default(cuid())
-  name            String
-  email           String               @unique
-  bio             String
-  specialties     String               // JSON array of specialties
-  sport           String               @default("CRICKET")
-  location        String
-  avatar          String?
-  experience      Int                  // Years of experience
-  rating          Float                @default(0)
-  reviewCount     Int                  @default(0)
-  pricePerHour    Float
-  isAvailable     Boolean              @default(true)
-  videoCallRate   Float?
-  inPersonRate    Float?
+  id                String            @id @default(cuid())
+  name              String
+  email             String            @unique
+  bio               String
+  specialties       String
+  sport             String            @default("CRICKET")
+  location          String
+  avatar            String?
+  experience        Int
+  rating            Float             @default(0)
+  reviewCount       Int               @default(0)
+  pricePerHour      Float
+  isAvailable       Boolean           @default(true)
+  videoCallRate     Float?
+  inPersonRate      Float?
   asyncFeedbackRate Float?
-  certifications  String?              // JSON array of certifications
-  socialLinks     String?              // JSON object with social media links
-  timezone        String               @default("UTC")
-  availability    String?              // JSON object with availability schedule
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  bookings        CoachingBooking[]
-  reviews         CoachReview[]
+  certifications    String?
+  socialLinks       String?
+  timezone          String            @default("UTC")
+  availability      String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  reviews           CoachReview[]
+  bookings          CoachingBooking[]
 }
 
 model CoachingBooking {
-  id                String           @id @default(cuid())
-  athleteId         String           // Student ID
-  coachId           String
-  sessionType       String           // VIDEO_CALL, IN_PERSON, ASYNC_FEEDBACK
-  title             String
-  description       String?
-  scheduledAt       DateTime?        // For live sessions
-  duration          Int?             // Duration in minutes
-  status            String           @default("PENDING") // PENDING, CONFIRMED, COMPLETED, CANCELLED
-  price             Float
-  paymentStatus     String           @default("PENDING") // PENDING, PAID, REFUNDED
-  meetingLink       String?          // For video calls
-  location          String?          // For in-person sessions
-  performanceClips  String?          // JSON array of uploaded video URLs for async feedback
-  feedback          String?          // Coach's feedback
-  rating            Float?           // Athlete's rating for the session
-  notes             String?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  athlete           Student          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
-  coach             SpecializedCoach @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  id               String           @id @default(cuid())
+  athleteId        String
+  coachId          String
+  sessionType      String
+  title            String
+  description      String?
+  scheduledAt      DateTime?
+  duration         Int?
+  status           String           @default("PENDING")
+  price            Float
+  paymentStatus    String           @default("PENDING")
+  meetingLink      String?
+  location         String?
+  performanceClips String?
+  feedback         String?
+  rating           Float?
+  notes            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  athlete          Student          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  coach            SpecializedCoach @relation(fields: [coachId], references: [id], onDelete: Cascade)
 }
 
 model CoachReview {
-  id           String           @id @default(cuid())
-  athleteId    String
-  coachId      String
-  bookingId    String?          // Optional reference to specific booking
-  rating       Float            // 1-5 stars
-  title        String
-  comment      String
-  isAnonymous  Boolean          @default(false)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  athlete      Student          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
-  coach        SpecializedCoach @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  athleteId   String
+  coachId     String
+  bookingId   String?
+  rating      Float
+  title       String
+  comment     String
+  isAnonymous Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  athlete     Student          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  coach       SpecializedCoach @relation(fields: [coachId], references: [id], onDelete: Cascade)
 }
 
 model SessionTodo {
-  id          String      @id @default(cuid())
+  id          String               @id @default(cuid())
   coachId     String
-  coach       Coach       @relation(fields: [coachId], references: [id], onDelete: Cascade)
   title       String
   sessionDate DateTime
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  coach       Coach                @relation(fields: [coachId], references: [id], onDelete: Cascade)
   items       SessionTodoItem[]
   students    SessionTodoStudent[]
 }
 
 model SessionTodoItem {
-  id          String   @id @default(cuid())
-  todoId      String
-  content     String
-  isChecked   Boolean  @default(false)
-  todo        SessionTodo @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  id        String      @id @default(cuid())
+  todoId    String
+  content   String
+  isChecked Boolean     @default(false)
+  todo      SessionTodo @relation(fields: [todoId], references: [id], onDelete: Cascade)
 }
 
 model SessionTodoStudent {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   todoId    String
   studentId String
-  todo      SessionTodo @relation(fields: [todoId], references: [id], onDelete: Cascade)
   student   Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  todo      SessionTodo @relation(fields: [todoId], references: [id], onDelete: Cascade)
 }
 
-// Hooper Index Daily Check-in Model
 model HooperIndex {
-  id                    String   @id @default(cuid())
-  studentId             String
-  student               Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  date                  DateTime @default(now()) @db.Date
-  
-  // Hooper Index Questions (1-7 scale where 1=best/very low, 7=worst/very high)
-  fatigue               Int      // How fatigued do you feel?
-  stress                Int      // How stressed do you feel?
-  muscleSoreness        Int      // Are your muscles sore?
-  sleepQuality          Int      // How is your sleep quality?
-  enjoyingTraining      Int      // Are you enjoying training?
-  irritable             Int      // Do you feel irritable?
-  healthyOverall        Int      // Do you feel healthy overall?
-  wellRested            Int      // Do you feel well-rested today?
-  
-  // Calculated Hooper Index (sum of all scores, range 8-56)
-  hooperIndex           Int
-  
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  
+  id               String   @id @default(cuid())
+  studentId        String
+  date             DateTime @default(now()) @db.Date
+  fatigue          Int
+  stress           Int
+  muscleSoreness   Int
+  sleepQuality     Int
+  enjoyingTraining Int
+  irritable        Int
+  healthyOverall   Int
+  wellRested       Int
+  hooperIndex      Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  student          Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
   @@unique([studentId, date])
   @@index([studentId, date])
 }
 
-// Smart Notifications System
 model NotificationPreference {
-  id              String   @id @default(cuid())
-  coachId         String   @unique
-  coach           Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
-  
-  // Notification categories
-  negativeTrends  Boolean  @default(true)  // Alert for declining performance
-  positiveMilestones Boolean @default(true)  // Alert for achievements
-  missedCheckIns  Boolean  @default(true)  // Alert for missed data entry
-  overdueFeedback Boolean  @default(true)  // Alert for overdue feedback
-  
-  // Thresholds for alerts
-  trendDays       Int      @default(3)     // Days of trend to trigger alert
-  feedbackDays    Int      @default(7)     // Days without feedback to trigger alert
-  
-  // Delivery preferences
-  inApp           Boolean  @default(true)
-  email           Boolean  @default(false)
-  pushNotification Boolean @default(false)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  coachId            String   @unique
+  negativeTrends     Boolean  @default(true)
+  positiveMilestones Boolean  @default(true)
+  missedCheckIns     Boolean  @default(true)
+  overdueFeedback    Boolean  @default(true)
+  trendDays          Int      @default(3)
+  feedbackDays       Int      @default(7)
+  inApp              Boolean  @default(true)
+  email              Boolean  @default(false)
+  pushNotification   Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  coach              Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
 }
 
 model SmartNotification {
-  id              String   @id @default(cuid())
-  coachId         String
-  coach           Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
-  studentId       String?  // Optional - some notifications might be general
-  student         Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  
-  type            String   // NEGATIVE_TREND, POSITIVE_MILESTONE, MISSED_CHECKIN, OVERDUE_FEEDBACK
-  category        String   // PHYSICAL, MENTAL, NUTRITION, TECHNIQUE, GENERAL
-  
-  title           String   // Short title for the notification
-  message         String   // Full notification message
-  
-  // Metadata for the notification
-  severity        String   @default("MEDIUM") // LOW, MEDIUM, HIGH
-  data            String?  // JSON data with additional context
-  
-  // Status tracking
-  isRead          Boolean  @default(false)
-  isArchived      Boolean  @default(false)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  id         String   @id @default(cuid())
+  coachId    String
+  studentId  String?
+  type       String
+  category   String
+  title      String
+  message    String
+  severity   String   @default("MEDIUM")
+  data       String?
+  isRead     Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  coach      Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  student    Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
   @@index([coachId, createdAt])
   @@index([coachId, isRead])
 }

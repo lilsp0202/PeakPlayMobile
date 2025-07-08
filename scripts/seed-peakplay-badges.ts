@@ -513,7 +513,7 @@ async function createAmateurBadges(categories: any) {
       motivationalText: 'Strike bowler!',
       level: 'AMATEUR',
       categoryId: categories['Match Performance'],
-      icon: '🎳',
+      icon: '🔴',
       rules: [
         { ruleType: 'MATCH_STAT', fieldName: 'wicketsTaken', operator: 'GTE', value: '3', weight: 1, isRequired: true }
       ]

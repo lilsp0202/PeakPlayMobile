@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Zap, Star, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Zap, Star, Sparkles, Smartphone, Download, Home, Plus, Share } from "lucide-react";
 import { Logo } from "../../../components/auth/Logo";
 import { AnimatedBackground } from "../../../components/auth/AnimatedBackground";
 import { FloatingElements } from "../../../components/auth/FloatingElements";
@@ -81,7 +81,7 @@ export default function SignIn() {
       
       {/* Main Content */}
       <main className="relative z-10 flex items-center justify-center px-6 py-8 lg:py-16">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md space-y-6">
           {/* Header Section */}
           <div
             className={`text-center mb-8 transition-all duration-1000 delay-300 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
@@ -228,6 +228,57 @@ export default function SignIn() {
                   )}
                 </button>
               </form>
+            </div>
+          </div>
+
+          {/* PWA Installation Instructions */}
+          <div
+            className={`bg-gradient-to-br from-indigo-50/80 to-purple-50/80 backdrop-blur-xl rounded-2xl shadow-lg border border-indigo-200/50 p-6 transition-all duration-1000 delay-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
+          >
+            <div className="flex items-center mb-4">
+              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                <Smartphone className="h-4 w-4 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-800">📱 Add to Home Screen</h3>
+            </div>
+            
+            <p className="text-sm text-slate-600 mb-4">
+              Install PeakPlay as an app for the best experience!
+            </p>
+            
+            <div className="space-y-3">
+              {/* iOS Instructions */}
+              <div className="flex items-start space-x-3 p-3 bg-white/60 rounded-xl">
+                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-bold text-blue-600">📱</span>
+                </div>
+                <div className="text-sm">
+                  <div className="font-medium text-slate-800 mb-1">iPhone/iPad:</div>
+                  <div className="text-slate-600">
+                    Tap <Share className="inline w-3 h-3 mx-1" /> (Share) → <Plus className="inline w-3 h-3 mx-1" /> "Add to Home Screen"
+                  </div>
+                </div>
+              </div>
+              
+              {/* Android Instructions */}
+              <div className="flex items-start space-x-3 p-3 bg-white/60 rounded-xl">
+                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-bold text-green-600">🤖</span>
+                </div>
+                <div className="text-sm">
+                  <div className="font-medium text-slate-800 mb-1">Android:</div>
+                  <div className="text-slate-600">
+                    Tap menu ⋮ → <Download className="inline w-3 h-3 mx-1" /> "Add to Home screen"
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 flex items-center justify-center">
+              <div className="flex items-center text-xs text-slate-500">
+                <Home className="w-3 h-3 mr-1" />
+                <span>Quick access • Offline support • App-like experience</span>
+              </div>
             </div>
           </div>
         </div>

@@ -140,15 +140,13 @@ const skillCategories: SkillCategory[] = [
     name: "Physical",
     description: "Track physical fitness and performance metrics",
     icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/>
-      </svg>
+      <span className="text-2xl">🏋️</span>
     ),
     colorScheme: {
-      primary: "slate-600",
-      secondary: "slate-100",
-      background: "slate-50",
-      gradient: "from-slate-50 to-gray-50"
+      primary: "red-600",
+      secondary: "red-100",
+      background: "red-50",
+      gradient: "from-red-50 to-pink-50"
     },
     skills: [
       // Strength Skills - Red/Crimson (Power & Force)
@@ -290,15 +288,13 @@ const skillCategories: SkillCategory[] = [
     name: "Mental",
     description: "Monitor mental wellness and psychological performance",
     icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-      </svg>
+      <span className="text-2xl">🧠</span>
     ),
     colorScheme: {
-      primary: "violet-600",
-      secondary: "violet-100",
-      background: "violet-50",
-      gradient: "from-violet-50 to-purple-50"
+      primary: "purple-600",
+      secondary: "purple-100",
+      background: "purple-50",
+      gradient: "from-purple-50 to-violet-50"
     },
     skills: [
       {
@@ -307,7 +303,7 @@ const skillCategories: SkillCategory[] = [
         unit: "/10",
         type: "score",
         description: "Daily mood and motivation rating",
-        colorScheme: { primary: "violet-600", secondary: "violet-100", background: "violet-50" },
+        colorScheme: { primary: "purple-600", secondary: "purple-100", background: "purple-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
@@ -320,7 +316,7 @@ const skillCategories: SkillCategory[] = [
         unit: "/10",
         type: "score",
         description: "Sleep quality and recovery rating",
-        colorScheme: { primary: "violet-600", secondary: "violet-100", background: "violet-50" },
+        colorScheme: { primary: "purple-600", secondary: "purple-100", background: "purple-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
@@ -335,15 +331,13 @@ const skillCategories: SkillCategory[] = [
     name: "Nutrition",
     description: "Track daily nutrition intake and dietary habits",
     icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.20-1.10-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z"/>
-      </svg>
+      <span className="text-2xl">🥗</span>
     ),
     colorScheme: {
-      primary: "amber-600",
-      secondary: "amber-100",
-      background: "amber-50",
-      gradient: "from-amber-50 to-orange-50"
+      primary: "green-600",
+      secondary: "green-100",
+      background: "green-50",
+      gradient: "from-green-50 to-emerald-50"
     },
     skills: [
       {
@@ -352,7 +346,7 @@ const skillCategories: SkillCategory[] = [
         unit: "kcal",
         type: "calories",
         description: "Daily caloric intake",
-        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" },
+        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
@@ -366,7 +360,7 @@ const skillCategories: SkillCategory[] = [
         unit: "g",
         type: "grams",
         description: "Daily protein intake",
-        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" },
+        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M21.9 8.89l-1.05-4.37c-.22-.9-1-1.52-1.91-1.52H5.05C4.15 3 3.36 3.63 3.15 4.52L2.1 8.89c-.24 1.02-.02 2.06.62 2.88C2.8 11.88 2.91 11.96 3 12.06V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-6.94c.09-.09.2-.18.28-.28.64-.82.87-1.87.62-2.89zM7 15.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
@@ -379,7 +373,7 @@ const skillCategories: SkillCategory[] = [
         unit: "g",
         type: "grams",
         description: "Daily carbohydrate intake",
-        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" },
+        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -394,7 +388,7 @@ const skillCategories: SkillCategory[] = [
         unit: "g",
         type: "grams",
         description: "Daily fat intake",
-        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" },
+        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
@@ -407,7 +401,7 @@ const skillCategories: SkillCategory[] = [
         unit: "liters",
         type: "score",
         description: "Daily water intake in liters",
-        colorScheme: { primary: "amber-600", secondary: "amber-100", background: "amber-50" },
+        colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8l6 6m0-6l-6 6m6-6v12"/>
@@ -422,15 +416,13 @@ const skillCategories: SkillCategory[] = [
     name: "Technique",
     description: "Technical skills and sport-specific abilities",
     icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
-      </svg>
+      <span className="text-2xl">🛠️</span>
     ),
     colorScheme: {
-      primary: "teal-600",
-      secondary: "teal-100",
-      background: "teal-50",
-      gradient: "from-teal-50 to-cyan-50"
+      primary: "blue-600",
+      secondary: "blue-100",
+      background: "blue-50",
+      gradient: "from-blue-50 to-indigo-50"
     },
     skills: [
       // Technical skills placeholders for proper counting
@@ -441,7 +433,7 @@ const skillCategories: SkillCategory[] = [
         type: "score" as const,
         description: "Batting technique mastery",
         icon: <span className="text-xl">🏏</span>,
-        colorScheme: { primary: "teal-600", secondary: "teal-100", background: "teal-50" }
+        colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" }
       },
       {
         id: "bowlingGrip", 
@@ -450,7 +442,7 @@ const skillCategories: SkillCategory[] = [
         type: "score" as const,
         description: "Bowling technique mastery",
         icon: <span className="text-xl">🔴</span>,
-        colorScheme: { primary: "teal-600", secondary: "teal-100", background: "teal-50" }
+        colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" }
       },
       {
         id: "positioningOfBall",
@@ -459,7 +451,7 @@ const skillCategories: SkillCategory[] = [
         type: "score" as const,
         description: "Fielding technique mastery",
         icon: <span className="text-xl">🏃</span>,
-        colorScheme: { primary: "teal-600", secondary: "teal-100", background: "teal-50" }
+        colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" }
       }
     ]
   },
@@ -468,15 +460,13 @@ const skillCategories: SkillCategory[] = [
     name: "Tactical",
     description: "Game intelligence and strategic understanding",
     icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M9 11H7v3h2v-3zm4 0h-2v3h2v-3zm4 0h-2v3h2v-3zm2-7h-2V2h-2v2H9V2H7v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
-      </svg>
+      <span className="text-2xl">🧭</span>
     ),
     colorScheme: {
-      primary: "blue-600",
-      secondary: "blue-100",
-      background: "blue-50",
-      gradient: "from-blue-50 to-cyan-50"
+      primary: "indigo-600",
+      secondary: "indigo-100",
+      background: "indigo-50",
+      gradient: "from-indigo-50 to-slate-50"
     },
     skills: []
   }
@@ -1905,9 +1895,9 @@ export default function SkillSnap({
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showPhysicalLearnMore, setShowPhysicalLearnMore] = useState(false);
 
-  // Check if editing is allowed based on user type and context
-  const canEdit = isCoachView || ((session as any)?.user?.role === 'ATHLETE' && !studentId);
+  const canEdit = !isCoachView || (isCoachView && session?.user?.role === 'coach');
 
   // Refresh function to reload skill data
   const handleRefresh = async () => {
@@ -2629,18 +2619,46 @@ export default function SkillSnap({
                           </button>
                         </>
                       ) : canEdit ? (
-                        <button
-                          onClick={() => handleStartEdit(selectedCategory.id)}
-                          className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl"
-                        >
-                          <FiEdit className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
-                          Edit All Skills
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleStartEdit(selectedCategory.id)}
+                            className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl"
+                          >
+                            <FiEdit className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
+                            Edit All Skills
+                          </button>
+                          {/* Learn More Button for Physical Category */}
+                          {selectedCategory.id === "PHYSICAL" && (
+                            <button
+                              onClick={() => setShowPhysicalLearnMore(true)}
+                              className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-semibold text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl"
+                            >
+                              <svg className="mr-2 w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Learn More
+                            </button>
+                          )}
+                        </>
                       ) : (
-                        <div className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-gray-300 text-gray-600 rounded-xl text-sm sm:text-base font-medium">
-                          <FiActivity className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
-                          View Only
-                        </div>
+                        <>
+                          <div className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-gray-300 text-gray-600 rounded-xl text-sm sm:text-base font-medium">
+                            <FiActivity className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
+                            View Only
+                          </div>
+                          {/* Learn More Button for Physical Category - View Only Mode */}
+                          {selectedCategory.id === "PHYSICAL" && (
+                            <button
+                              onClick={() => setShowPhysicalLearnMore(true)}
+                              className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-semibold text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl"
+                            >
+                              <svg className="mr-2 w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Learn More
+                            </button>
+                          )}
+                        </>
                       )}
                       
                       {/* Progress indicator for mobile */}
@@ -2676,6 +2694,272 @@ export default function SkillSnap({
                 )}
                     {renderSkillsForCategory(selectedCategory)}
               </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Physical Learn More Modal */}
+      {showPhysicalLearnMore && (
+        <>
+          {/* Background overlay */}
+          <div 
+            className="fixed inset-0 z-[9998] bg-black bg-opacity-80 backdrop-blur-sm"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowPhysicalLearnMore(false);
+              }
+            }}
+            aria-hidden="true"
+          />
+          
+          {/* Modal container */}
+          <div className="fixed inset-0 z-[9999] pointer-events-none">
+            <div className="fixed inset-0 pointer-events-auto">
+              <div className="w-full h-full bg-white flex flex-col">
+                {/* Fixed Header */}
+                <div className="bg-white border-b border-gray-200 shadow-sm">
+                  <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+                    {/* Close button */}
+                    <button
+                      onClick={() => setShowPhysicalLearnMore(false)}
+                      className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-[10000] shadow-lg"
+                      aria-label="Close modal"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+
+                    {/* Modal header */}
+                    <div className="pr-16">
+                      <div className="flex items-center space-x-3 sm:space-x-4 mb-4">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                          <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">🏋️‍♂️ Physical Fitness: What It Means for Your Game</h2>
+                          <p className="text-sm sm:text-base text-gray-700 leading-relaxed">Understanding why we test these exercises and how they improve your cricket performance</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                  <div className="p-3 sm:p-6 pb-20 max-w-4xl mx-auto">
+                    {/* Introduction */}
+                    <div className="mb-6 p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-indigo-200 shadow-sm">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <span className="text-xl sm:text-2xl">🎯</span>
+                        <h3 className="text-base sm:text-lg font-bold text-indigo-900">Why We Test Your Fitness</h3>
+                      </div>
+                      <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                        At PeakPlay, we test different areas of your fitness to help you grow into a stronger, faster, and smarter athlete. 
+                        Each test is chosen carefully to reflect what's important in cricket.
+                      </p>
+                    </div>
+
+                    {/* Strength & Power Section */}
+                    <div className="mb-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="bg-gradient-to-r from-red-50 to-pink-50 p-4 sm:p-6 border-b border-gray-200">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-xl flex items-center justify-center shadow-sm">
+                            <span className="text-xl sm:text-2xl">💪</span>
+                          </div>
+                          <h3 className="text-lg sm:text-xl font-bold text-gray-900">Strength & Power</h3>
+                        </div>
+                        <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                          Build the explosive power you need for cricket excellence
+                        </p>
+                      </div>
+                      
+                      <div className="p-4 sm:p-6">
+                        <div className="grid gap-4">
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">Push-ups & Bench Press</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Upper body strength for batting power and stable shoulders</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">Pull-ups</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Back and arm strength for throwing and injury prevention</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">Squats & Vertical Jump</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Leg power for sprinting between wickets and fielding jumps</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">Cricket Ball Throw</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Arm strength for accurate and powerful fielding throws</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <p className="text-sm text-orange-800 leading-relaxed">
+                            <span className="font-medium">🏏 Cricket Impact:</span> Hit bigger shots, bowl faster, throw accurately, and move with confidence on the field.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Speed & Agility Section */}
+                    <div className="mb-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 sm:p-6 border-b border-gray-200">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-xl flex items-center justify-center shadow-sm">
+                            <span className="text-xl sm:text-2xl">⚡</span>
+                          </div>
+                          <h3 className="text-lg sm:text-xl font-bold text-gray-900">Speed & Agility</h3>
+                        </div>
+                        <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                          React fast and change direction quickly like a pro
+                        </p>
+                      </div>
+                      
+                      <div className="p-4 sm:p-6">
+                        <div className="grid gap-4">
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">50m Sprint</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Pure straight-line speed for quick singles and boundaries</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">Shuttle Run</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Quick direction changes for fielding and wicket-keeping</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <p className="text-sm text-orange-800 leading-relaxed">
+                            <span className="font-medium">🏏 Cricket Impact:</span> Run between wickets faster, chase balls in the field, and react quickly to every play.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Endurance Section */}
+                    <div className="mb-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6 border-b border-gray-200">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-xl flex items-center justify-center shadow-sm">
+                            <span className="text-xl sm:text-2xl">🫀</span>
+                          </div>
+                          <h3 className="text-lg sm:text-xl font-bold text-gray-900">Endurance</h3>
+                        </div>
+                        <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                          Stay strong and focused throughout the entire match
+                        </p>
+                      </div>
+                      
+                      <div className="p-4 sm:p-6">
+                        <div className="grid gap-4">
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">5K Run</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Stamina for long matches and extended batting innings</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">Yo-Yo Test</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Recovery between quick bursts, just like in real matches</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <p className="text-sm text-orange-800 leading-relaxed">
+                            <span className="font-medium">🏏 Cricket Impact:</span> Stay sharp through long overs, big innings, and full matches without getting tired.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Flexibility Section */}
+                    <div className="mb-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 sm:p-6 border-b border-gray-200">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-xl flex items-center justify-center shadow-sm">
+                            <span className="text-xl sm:text-2xl">🧘‍♂️</span>
+                          </div>
+                          <h3 className="text-lg sm:text-xl font-bold text-gray-900">Flexibility</h3>
+                        </div>
+                        <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                          Move smoothly and prevent injuries with better mobility
+                        </p>
+                      </div>
+                      
+                      <div className="p-4 sm:p-6">
+                        <div className="grid gap-4">
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">Sit-and-Reach</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Hamstring and lower back flexibility for injury prevention</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">Shoulder Mobility</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Full arm range for powerful throws and bowling actions</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 mb-1">Hip & Ankle Mobility</p>
+                              <p className="text-xs sm:text-sm text-gray-600">Quick footwork and deep squats for batting and fielding</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <p className="text-sm text-orange-800 leading-relaxed">
+                            <span className="font-medium">🏏 Cricket Impact:</span> Prevent injuries and move smoothly whether you're diving, batting, or bowling.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Conclusion */}
+                    <div className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200 shadow-sm">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <span className="text-2xl sm:text-3xl">💥</span>
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900">Your Journey to Peak Performance</h3>
+                      </div>
+                      <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-4">
+                        Each of these tests helps us understand where you are and where you can improve. You don't need to be perfect — 
+                        but with effort, you'll start seeing progress in your scores and your performance on the field.
+                      </p>
+                      <div className="flex items-center space-x-2 p-3 bg-white rounded-lg border border-purple-200">
+                        <span className="text-lg">🚀</span>
+                        <p className="text-sm font-medium text-purple-800">Let's get better, one step at a time!</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

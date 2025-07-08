@@ -28,6 +28,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Get academy data - only show "Not specified" for display, don't store it
+    const academy = user.student?.academy || user.coach?.academy;
+    const displayAcademy = academy && academy !== 'Not specified' ? academy : 'Not specified';
+
     // Get profile data based on user role
     const profileData = {
       id: user.id,
@@ -36,7 +40,7 @@ export async function GET(request: Request) {
       role: session.user.role,
       phone: user.student?.phone || user.coach?.phone || '',
       sport: user.student?.sport || 'CRICKET',
-      academy: user.student?.academy || user.coach?.academy || 'Not specified',
+      academy: displayAcademy,
     };
 
     return NextResponse.json(profileData);
@@ -67,6 +71,14 @@ export async function PUT(request: Request) {
       );
     }
 
+    // Validate academy - don't allow "Not specified" to be saved
+    if (!academy || academy.trim() === '' || academy === 'Not specified') {
+      return NextResponse.json(
+        { error: "Please select a valid academy" },
+        { status: 400 }
+      );
+    }
+
     // Update user name
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
@@ -77,24 +89,24 @@ export async function PUT(request: Request) {
 
     // Update role-specific profile data
     if (session.user.role === 'ATHLETE') {
-      // Update student profile
+      // Update student profile - only save valid academy values
       await prisma.student.updateMany({
         where: { userId: session.user.id },
         data: {
           studentName: name.trim(),
           phone: phone || null,
           sport: sport || 'CRICKET',
-          academy: academy || 'Not specified',
+          academy: academy.trim(),
         },
       });
     } else if (session.user.role === 'COACH') {
-      // Update coach profile
+      // Update coach profile - only save valid academy values
       await prisma.coach.updateMany({
         where: { userId: session.user.id },
         data: {
           name: name.trim(),
           phone: phone || null,
-          academy: academy || 'Not specified',
+          academy: academy.trim(),
         },
       });
     }
@@ -107,7 +119,7 @@ export async function PUT(request: Request) {
       role: session.user.role,
       phone: phone || '',
       sport: sport || 'CRICKET',
-      academy: academy || 'Not specified',
+      academy: academy.trim(),
     };
 
     return NextResponse.json(updatedProfile);

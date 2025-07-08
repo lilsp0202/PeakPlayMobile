@@ -1542,9 +1542,9 @@ export default function Dashboard() {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             className="flex-1 px-3 py-3 sm:px-2 sm:py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[48px] sm:min-h-0 shadow-md"
-                          >
+                        >
                               <FiMessageSquare className="w-4 h-4 sm:w-3 sm:h-3" />
-                            <span className="truncate">Feedback</span>
+                          <span className="truncate">Feedback</span>
                             </motion.button>
 
                           <motion.button
@@ -1556,7 +1556,7 @@ export default function Dashboard() {
                               <FiTrendingUp className="w-4 h-4 sm:w-3 sm:h-3" />
                             <span className="truncate">Track</span>
                             </motion.button>
-                            </div>
+                          </div>
                       </motion.div>
                       ))}
                         </div>
@@ -1888,7 +1888,7 @@ export default function Dashboard() {
                 className="p-1.5 md:p-2"
               >
                 <PeakPlayLogo size="default" variant="gradient" className="h-6 md:h-8 w-auto" />
-              </motion.div>
+            </motion.div>
               <div className="hidden md:block">
                 <motion.h1 
                   className="text-lg md:text-xl font-bold text-indigo-900"
@@ -1911,7 +1911,7 @@ export default function Dashboard() {
             
             <div className="flex items-center space-x-1 md:space-x-3">
               {/* Status indicator */}
-              <motion.div
+              <motion.div 
                 className="hidden lg:flex items-center space-x-2 px-3 py-1.5 bg-white/60 rounded-full backdrop-blur-sm border border-indigo-200"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -1961,7 +1961,7 @@ export default function Dashboard() {
                   transition={{ duration: 0.6 }}
                 >
                   <FiUser className="w-4 h-4 md:w-6 md:h-6 text-white" />
-                </motion.div>
+              </motion.div>
               </motion.button>
               
               {/* Sign out button */}

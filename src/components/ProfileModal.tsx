@@ -45,7 +45,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
     'OTHER'
   ];
 
-  // Academy options (you can expand this list)
+  // Academy options - Remove "Not specified" to force proper selection
   const academyOptions = [
     'Transform',
     'Elite Sports Academy',
@@ -53,7 +53,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
     'Victory Sports',
     'Peak Performance',
     'Excel Academy',
-    'Not specified',
     'Other'
   ];
 
@@ -92,6 +91,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleSave = async () => {
+    // Validate academy before saving
+    if (!formData.academy || formData.academy === 'Not specified' || formData.academy.trim() === '') {
+      setError('Please select a valid academy before saving');
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
     setSuccess(null);
@@ -107,7 +112,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update profile');
+        throw new Error(errorData.error || 'Failed to update profile');
       }
 
       const updatedData = await response.json();
@@ -197,9 +202,36 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
             </div>
           ) : (
-            <div className="space-y-4 sm:space-y-6">
+            <div className="space-y-3 sm:space-y-6">
+              {/* Profile Summary Card - Mobile-friendly */}
+              {!isEditing && (
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-3 sm:p-4 border border-purple-200 mb-4 sm:mb-6">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+                      <FiUser className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{profileData?.name || 'Not specified'}</h3>
+                      <p className="text-xs sm:text-sm text-purple-600 capitalize">{profileData?.role?.toLowerCase() || 'Not specified'}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600">🏛️</span>
+                      <span className="text-gray-700">Academy:</span>
+                      <span className="font-medium text-purple-700">{profileData?.academy || 'Not specified'}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600">🏏</span>
+                      <span className="text-gray-700">Sport:</span>
+                      <span className="font-medium text-blue-700">{profileData?.sport || 'Not specified'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Profile Form */}
-              <div className="grid grid-cols-1 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 gap-3 sm:gap-6">
                 {/* Name Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -213,7 +245,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
                       onChange={(e) => handleInputChange('name', e.target.value)}
                       disabled={!isEditing}
                       className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base ${
-                        isEditing ? 'bg-white' : 'bg-gray-50'
+                        isEditing ? 'bg-white border-gray-300' : 'bg-gray-50 border-gray-200'
                       }`}
                       placeholder="Enter your full name"
                     />
@@ -285,8 +317,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <span className="flex items-center">
+                      <span className="mr-1">🏛️</span>
                       Academy
-                      <span className="ml-1 text-xs text-purple-600 font-semibold">(Important)</span>
+                      <span className="ml-2 text-xs text-purple-600 font-semibold bg-purple-100 px-2 py-1 rounded-full">Important</span>
                     </span>
                   </label>
                   <select
@@ -294,7 +327,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
                     onChange={(e) => handleInputChange('academy', e.target.value)}
                     disabled={!isEditing}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base ${
-                      isEditing ? 'bg-white' : 'bg-gray-50'
+                      isEditing ? 'bg-white border-gray-300' : 'bg-gray-50 border-gray-200'
                     }`}
                   >
                     <option value="">Select academy</option>
@@ -304,7 +337,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-purple-600 mt-1">
+                  <p className="text-xs text-purple-600 mt-1 flex items-center">
+                    <span className="mr-1">ℹ️</span>
                     Coaches can only view athletes from their academy
                   </p>
                 </div>

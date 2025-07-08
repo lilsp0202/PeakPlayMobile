@@ -284,17 +284,17 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
                     
                     return (
                       <motion.div
-                        key={item.id}
+                      key={item.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        onClick={() => handleFeedbackClick(item)}
+                      onClick={() => handleFeedbackClick(item)}
                         className={`group relative p-4 sm:p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-indigo-300 active:scale-[0.98] touch-manipulation ${
                           !item.isRead && !isCoachView 
                             ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-md' 
                             : 'bg-white border-gray-200 hover:bg-gray-50'
-                        }`}
-                      >
+                      }`}
+                    >
                         {/* New indicator */}
                         {!item.isRead && !isCoachView && (
                           <div className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-full animate-pulse"></div>
@@ -316,13 +316,13 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
                                 {categoryConfig.icon}
                                 <span className="ml-1 hidden sm:inline">{categoryConfig.label}</span>
                                 <span className="ml-1 sm:hidden">{categoryConfig.label.split(' ')[0]}</span>
-                              </span>
-                              
+                          </span>
+                          
                               <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${priorityConfig.color}`}>
                                 <span className="mr-1">{priorityConfig.icon}</span>
                                 <span className="hidden sm:inline">{priorityConfig.label}</span>
                                 <span className="sm:hidden">{priorityConfig.label.split(' ')[0]}</span>
-                              </span>
+                          </span>
                             </div>
                             
                             <h4 className="font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors text-sm sm:text-base line-clamp-2">
@@ -351,9 +351,9 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
                             {/* Mobile date display */}
                             <div className="sm:hidden mt-2 text-xs text-gray-500">
                               {formatDate(item.createdAt)}
-                            </div>
-                          </div>
                         </div>
+                      </div>
+                    </div>
                       </motion.div>
                     );
                   })}
@@ -382,7 +382,7 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
 
       {/* Enhanced Modal - Mobile Optimized */}
       <AnimatePresence>
-        {showModal && (
+      {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -392,35 +392,35 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
             >
               {/* Modal Header - Mobile Optimized */}
               <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-500 to-purple-600">
-                <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
                       <FiMessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div className="min-w-0">
                       <h2 className="text-lg sm:text-xl font-bold text-white truncate">
-                        {selectedFeedback ? 'Feedback Details' : 'All Coach Feedback'}
-                      </h2>
+                  {selectedFeedback ? 'Feedback Details' : 'All Coach Feedback'}
+                </h2>
                       <p className="text-indigo-100 text-xs sm:text-sm">
                         {selectedFeedback ? 'Detailed view' : `${feedback.length} total feedback items`}
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      setShowModal(false);
-                      setSelectedFeedback(null);
-                    }}
+                <button
+                  onClick={() => {
+                    setShowModal(false);
+                    setSelectedFeedback(null);
+                  }}
                     className="p-2 hover:bg-white/20 rounded-xl transition-colors flex-shrink-0 ml-2 touch-manipulation"
-                  >
+                >
                     <FiX className="h-5 w-5 text-white" />
-                  </button>
-                </div>
+                </button>
               </div>
-              
+            </div>
+            
               {/* Modal Content - Mobile Optimized */}
               <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-120px)] sm:max-h-[calc(90vh-180px)]">
-                {selectedFeedback ? (
+              {selectedFeedback ? (
                   // Single feedback detailed view - Mobile Optimized
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -443,11 +443,11 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
                                 <span className={`inline-flex items-center px-2 py-1 sm:px-3 sm:py-1 rounded-lg text-xs sm:text-sm font-medium border ${categoryConfig.lightColor}`}>
                                   {categoryConfig.icon}
                                   <span className="ml-1">{categoryConfig.label}</span>
-                                </span>
+                        </span>
                                 <span className={`inline-flex items-center px-2 py-1 sm:px-3 sm:py-1 rounded-lg text-xs sm:text-sm font-medium border ${priorityConfig.color}`}>
                                   <span className="mr-1">{priorityConfig.icon}</span>
                                   {priorityConfig.label}
-                                </span>
+                        </span>
                               </div>
                             </div>
                           </>
@@ -472,19 +472,19 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
                           <div>
                             <p className="font-semibold text-gray-900 text-sm sm:text-base">{selectedFeedback.coach.name}</p>
                             <p className="text-xs sm:text-sm text-gray-600">{selectedFeedback.coach.academy}</p>
-                          </div>
-                        </div>
+                    </div>
+                  </div>
                         <div className="text-right">
                           <div className="flex items-center text-gray-500 text-xs sm:text-sm">
                             <FiCalendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                             <span className="hidden sm:inline">{getDetailedDate(selectedFeedback.createdAt)}</span>
                             <span className="sm:hidden">{formatDate(selectedFeedback.createdAt)}</span>
-                          </div>
-                        </div>
-                      </div>
+                  </div>
                     </div>
+                  </div>
+                </div>
                   </motion.div>
-                ) : (
+              ) : (
                   // All feedback grid view - Mobile Optimized
                   <div className="space-y-3 sm:space-y-4">
                     {feedback.map((item, index) => {
@@ -493,17 +493,17 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
                       
                       return (
                         <motion.div
-                          key={item.id}
+                      key={item.id}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          onClick={() => setSelectedFeedback(item)}
+                      onClick={() => setSelectedFeedback(item)}
                           className={`group p-4 sm:p-6 rounded-xl border cursor-pointer transition-all duration-300 hover:shadow-lg active:scale-[0.98] touch-manipulation ${
                             !item.isRead && !isCoachView 
                               ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200' 
                               : 'bg-white border-gray-200 hover:border-indigo-300'
-                          }`}
-                        >
+                      }`}
+                    >
                           <div className="flex items-start space-x-3 sm:space-x-4">
                             <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${categoryConfig.color}`}>
                               {categoryConfig.icon}
@@ -515,19 +515,19 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
                                   {categoryConfig.icon}
                                   <span className="ml-1 hidden sm:inline">{categoryConfig.label}</span>
                                   <span className="ml-1 sm:hidden">{categoryConfig.label.split(' ')[0]}</span>
-                                </span>
+                            </span>
                                 <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${priorityConfig.color}`}>
                                   <span className="mr-1">{priorityConfig.icon}</span>
                                   <span className="hidden sm:inline">{priorityConfig.label}</span>
                                   <span className="sm:hidden">{priorityConfig.label.split(' ')[0]}</span>
-                                </span>
-                                {!item.isRead && !isCoachView && (
+                            </span>
+                            {!item.isRead && !isCoachView && (
                                   <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-red-100 text-red-600 border border-red-200">
                                     <span className="w-2 h-2 bg-red-500 rounded-full mr-1"></span>
-                                    NEW
-                                  </span>
-                                )}
-                              </div>
+                                NEW
+                              </span>
+                            )}
+                          </div>
                               
                               <h4 className="font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors text-sm sm:text-base line-clamp-2">
                                 {item.title}
@@ -537,7 +537,7 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
                                 {item.content}
                               </p>
                               
-                              <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-gray-500 min-w-0 flex-1">
                                   <FiUser className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                                   <span className="font-medium truncate">{item.coach.name}</span>
@@ -553,22 +553,22 @@ export default function CoachFeedback({ studentId, isCoachView = false }: CoachF
                               {/* Mobile academy display */}
                               <div className="sm:hidden mt-2 text-xs text-gray-500 truncate">
                                 {item.coach.academy}
-                              </div>
-                            </div>
+                          </div>
+                        </div>
                             
                             <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                               <FiChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-                            </div>
-                          </div>
+                      </div>
+                    </div>
                         </motion.div>
                       );
                     })}
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
             </motion.div>
-          </div>
-        )}
+        </div>
+      )}
       </AnimatePresence>
     </>
   );
