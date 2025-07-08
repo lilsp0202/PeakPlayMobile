@@ -3,7 +3,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap } from "react-icons/fi";
+import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw } from "react-icons/fi";
 import { Check } from "lucide-react";
 import dynamic from 'next/dynamic';
 import PeakPlayLogo from "@/components/PeakPlayLogo";
@@ -43,7 +43,16 @@ const CoachFeedback = dynamic(() => import("@/components/CoachFeedback").catch((
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-48"></div>
 });
 
+const FeedbackActions = dynamic(() => import("@/components/FeedbackActions").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Feedback & Actions temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-48"></div>
+});
+
 const CreateFeedbackModal = dynamic(() => import("@/components/CreateFeedbackModal").catch(() => ({ default: () => null })), { 
+  ssr: false
+});
+
+const CreateFeedbackActionModal = dynamic(() => import("@/components/CreateFeedbackActionModal").catch(() => ({ default: () => null })), { 
   ssr: false
 });
 
@@ -81,6 +90,10 @@ const SmartNotifications = dynamic(() => import("@/components/SmartNotifications
 });
 
 const ProfileModal = dynamic(() => import("@/components/ProfileModal").catch(() => ({ default: () => null })), {
+  ssr: false
+});
+
+const StudentProgressModal = dynamic(() => import("@/components/StudentProgressModal").catch(() => ({ default: () => null })), {
   ssr: false
 });
 
@@ -167,6 +180,9 @@ export default function Dashboard() {
   const [showAllStudents, setShowAllStudents] = useState(false);
   const [studentsSubTab, setStudentsSubTab] = useState<'assigned' | 'available'>('assigned');
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [progressModalOpen, setProgressModalOpen] = useState(false);
+  const [selectedStudentForProgress, setSelectedStudentForProgress] = useState<any>(null);
+  const [isRefreshingSkills, setIsRefreshingSkills] = useState(false);
 
   useEffect(() => {
     console.log('🔍 Dashboard useEffect - Status:', status, 'Session exists:', !!session);
@@ -327,6 +343,25 @@ export default function Dashboard() {
     router.push(`/onboarding/${role}`);
   };
 
+  const handleRefreshSkills = async () => {
+    setIsRefreshingSkills(true);
+    try {
+      const response = await fetch("/api/skills");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setSkillData(data);
+    } catch (error) {
+      console.error("Error refreshing skills:", error);
+      setError("Failed to refresh skills. Please try again.");
+      // Clear error message after 5 seconds
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setIsRefreshingSkills(false);
+    }
+  };
+
   const handleStudentSelection = (id: string) => {
     setSelectedStudents(prev => prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]);
   };
@@ -373,7 +408,7 @@ export default function Dashboard() {
   };
 
   // Modal handler functions
-  const openStudentModal = (student: any, modalType: 'skillsnap' | 'badges' | 'feedback') => {
+  const openStudentModal = (student: any, modalType: 'skillsnap' | 'badges' | 'feedback' | 'progress') => {
     setSelectedStudentModal(student);
     setActiveModal(modalType);
     if (modalType === 'feedback') {
@@ -384,6 +419,9 @@ export default function Dashboard() {
     } else if (modalType === 'badges') {
       setStudentDetailView(modalType);
       setStudentDetailModalOpen(true);
+    } else if (modalType === 'progress') {
+      setSelectedStudentForProgress(student);
+      setProgressModalOpen(true);
     }
     // Prevent body scroll when modal is open
     if (typeof document !== 'undefined') {
@@ -397,6 +435,8 @@ export default function Dashboard() {
     setFeedbackModalOpen(false);
     setStudentDetailModalOpen(false);
     setMultiStudentFeedbackOpen(false);
+    setProgressModalOpen(false);
+    setSelectedStudentForProgress(null);
     // Restore body scroll when modal is closed
     if (typeof document !== 'undefined') {
       document.body.style.overflow = '';
@@ -656,6 +696,8 @@ export default function Dashboard() {
                   <PeakScore 
                     skillData={skillData}
                     isLoading={loading}
+                    onRefresh={handleRefreshSkills}
+                    isRefreshing={isRefreshingSkills}
                   />
                 </motion.div>
               );
@@ -704,9 +746,9 @@ export default function Dashboard() {
                       >
                         <FiMessageSquare className="text-blue-600" />
                       </motion.div>
-                      Coach Feedback
+                      Feedback & Actions
                     </h2>
-                    <CoachFeedback />
+                    <FeedbackActions />
                   </div>
                 </motion.div>
               );
@@ -1483,28 +1525,38 @@ export default function Dashboard() {
                           )}
                         </AnimatePresence>
                         
-                        {/* Mobile-Optimized Action Buttons - Removed Badges */}
+                        {/* Mobile-Optimized Action Buttons - Added Track Progress */}
                         <div className="flex gap-2">
                           <motion.button
                           onClick={() => openStudentModal(student, 'skillsnap')}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="flex-1 px-4 py-3 sm:px-3 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2 sm:gap-1 min-h-[48px] sm:min-h-0 shadow-md"
-                        >
-                            <FiActivity className="w-4 h-4 sm:w-3 sm:h-3" />
-                          <span className="truncate">SkillSnap</span>
-                          </motion.button>
-                        
+                            className="flex-1 px-3 py-3 sm:px-2 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[48px] sm:min-h-0 shadow-md"
+                          >
+                              <FiActivity className="w-4 h-4 sm:w-3 sm:h-3" />
+                            <span className="truncate">Skills</span>
+                            </motion.button>
+                          
                           <motion.button
                           onClick={() => openStudentModal(student, 'feedback')}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="flex-1 px-4 py-3 sm:px-3 sm:py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2 sm:gap-1 min-h-[48px] sm:min-h-0 shadow-md"
-                        >
-                            <FiMessageSquare className="w-4 h-4 sm:w-3 sm:h-3" />
-                          <span className="truncate">Feedback</span>
-                          </motion.button>
-                          </div>
+                            className="flex-1 px-3 py-3 sm:px-2 sm:py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[48px] sm:min-h-0 shadow-md"
+                          >
+                              <FiMessageSquare className="w-4 h-4 sm:w-3 sm:h-3" />
+                            <span className="truncate">Feedback</span>
+                            </motion.button>
+
+                          <motion.button
+                          onClick={() => openStudentModal(student, 'progress')}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1 px-3 py-3 sm:px-2 sm:py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[48px] sm:min-h-0 shadow-md"
+                          >
+                              <FiTrendingUp className="w-4 h-4 sm:w-3 sm:h-3" />
+                            <span className="truncate">Track</span>
+                            </motion.button>
+                            </div>
                       </motion.div>
                       ))}
                         </div>
@@ -1815,50 +1867,123 @@ export default function Dashboard() {
       <motion.header 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl shadow-lg border-b border-purple-100"
+        className="sticky top-0 z-40 bg-gradient-to-r from-indigo-100 via-indigo-200 to-indigo-100 backdrop-blur-xl shadow-2xl border-b border-indigo-300/50"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-4 -right-4 w-16 h-16 bg-indigo-300/20 rounded-full blur-xl animate-pulse"></div>
+          <div className="absolute -bottom-4 -left-4 w-12 h-12 bg-purple-300/20 rounded-full blur-xl animate-pulse delay-300"></div>
+          <div className="absolute top-2 left-1/2 w-8 h-8 bg-blue-300/20 rounded-full blur-lg animate-pulse delay-700"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-16 md:h-20">
             <motion.div 
-              className="flex items-center"
+              className="flex items-center space-x-2 md:space-x-4"
               whileHover={{ scale: 1.02 }}
             >
-              <PeakPlayLogo size="default" variant="gradient" className="h-8 w-auto" />
+              <motion.div
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.8 }}
+                className="p-1.5 md:p-2"
+              >
+                <PeakPlayLogo size="default" variant="gradient" className="h-6 md:h-8 w-auto" />
+              </motion.div>
+              <div className="hidden md:block">
+                <motion.h1 
+                  className="text-lg md:text-xl font-bold text-indigo-900"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  PeakPlay Dashboard
+                </motion.h1>
+                <motion.p 
+                  className="text-xs md:text-sm text-indigo-700"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  Elevate your game to the next level
+                </motion.p>
+              </div>
             </motion.div>
-            <div className="flex items-center space-x-4">
+            
+            <div className="flex items-center space-x-1 md:space-x-3">
+              {/* Status indicator */}
+              <motion.div
+                className="hidden lg:flex items-center space-x-2 px-3 py-1.5 bg-white/60 rounded-full backdrop-blur-sm border border-indigo-200"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-indigo-800 font-medium">Online</span>
+              </motion.div>
+              
+              {/* Notification bell - Only for coaches */}
+              {(session as unknown as Session)?.user?.role === 'COACH' && (
+                <motion.button
+                  onClick={() => setSmartNotificationsOpen(true)}
+                  whileHover={{ scale: 1.1, rotate: 12 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="hidden md:flex p-2.5 rounded-full bg-white/60 hover:bg-white/80 text-indigo-700 hover:text-indigo-900 transition-all duration-300 shadow-lg backdrop-blur-sm border border-indigo-200"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <FiBell className="w-4 h-4" />
+                </motion.button>
+              )}
+              
+              {/* Profile section */}
               <motion.button
                 onClick={() => setProfileModalOpen(true)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-all duration-300"
+                className="flex items-center space-x-2 md:space-x-3 p-1.5 md:p-2 rounded-xl hover:bg-white/30 transition-all duration-300 backdrop-blur-sm"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <div className="text-right">
-                <p className="text-md font-semibold text-gray-900">{profileData?.name || session?.user.name}</p>
-                <p className="text-sm text-purple-600 capitalize font-medium">{profileData?.role?.toLowerCase() || (session as unknown as Session)?.user?.role?.toLowerCase()}</p>
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm md:text-md font-semibold text-indigo-900 truncate max-w-[120px]">{profileData?.name || session?.user.name}</p>
+                  <div className="flex items-center justify-end space-x-1">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+                    <p className="text-xs text-indigo-700 capitalize font-medium">
+                      {profileData?.role?.toLowerCase() || (session as unknown as Session)?.user?.role?.toLowerCase()}
+                    </p>
+                  </div>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
-                  <FiUser className="w-5 h-5 text-white" />
-                </div>
+                <motion.div 
+                  className="w-9 h-9 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-indigo-300/50"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <FiUser className="w-4 h-4 md:w-6 md:h-6 text-white" />
+                </motion.div>
               </motion.button>
+              
+              {/* Sign out button */}
               <motion.button
                 onClick={handleSignOut}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-500 transition-all duration-300 shadow-sm"
+                className="p-2 md:p-3 rounded-full bg-red-100/80 hover:bg-red-200/80 text-red-600 hover:text-red-700 transition-all duration-300 shadow-lg backdrop-blur-sm border border-red-200"
                 disabled={isSigningOut}
                 aria-label="Sign Out"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
               >
                 {isSigningOut ? (
                   <motion.div 
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full" 
+                    className="w-4 h-4 md:w-5 md:h-5 border-2 border-red-600 border-t-transparent rounded-full" 
                   />
                 ) : (
-                  <FiLogOut className="w-5 h-5" />
+                  <FiLogOut className="w-4 h-4 md:w-5 md:h-5" />
                 )}
               </motion.button>
             </div>
@@ -2045,7 +2170,7 @@ export default function Dashboard() {
                         Share constructive feedback with {selectedStudentModal.studentName || selectedStudentModal.name} to help them improve.
                       </p>
                     </div>
-        <CreateFeedbackModal
+        <CreateFeedbackActionModal
           isOpen={feedbackModalOpen}
                       onClose={closeModal}
                       student={{
@@ -2054,7 +2179,7 @@ export default function Dashboard() {
                         username: selectedStudentModal.username || selectedStudentModal.email || 'student',
                         age: selectedStudentModal.age || 18
                       }}
-          onFeedbackCreated={handleFeedbackCreated}
+          onCreated={handleFeedbackCreated}
         />
                   </div>
                 )}
@@ -2157,6 +2282,25 @@ export default function Dashboard() {
             // Optionally show success message
             setSuccessMessage('Feedback sent successfully to selected students');
             setTimeout(() => setSuccessMessage(null), 3000);
+          }}
+        />
+      )}
+
+      {/* Student Progress Modal */}
+      {progressModalOpen && selectedStudentForProgress && (
+        <StudentProgressModal
+          isOpen={progressModalOpen}
+          onClose={() => {
+            setProgressModalOpen(false);
+            setSelectedStudentForProgress(null);
+          }}
+          student={{
+            id: selectedStudentForProgress.id,
+            studentName: selectedStudentForProgress.studentName || selectedStudentForProgress.name,
+            username: selectedStudentForProgress.username || selectedStudentForProgress.email,
+            sport: selectedStudentForProgress.sport || 'CRICKET',
+            age: selectedStudentForProgress.age,
+            email: selectedStudentForProgress.email
           }}
         />
       )}

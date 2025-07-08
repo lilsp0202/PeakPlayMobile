@@ -19,7 +19,8 @@ import {
   FiChevronRight,
   FiInfo,
   FiUser,
-  FiCalendar
+  FiCalendar,
+  FiRefreshCw
 } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
@@ -112,6 +113,8 @@ interface SkillData {
 interface PeakScoreProps {
   skillData: SkillData | null;
   isLoading?: boolean;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 // Calculate aggregate scores for each category (out of 100 points each)
@@ -121,26 +124,26 @@ const calculatePhysicalScore = (skillData: SkillData | null): number => {
   let totalScore = 0;
   let maxPossibleScore = 0;
   
-  // Strength Component (40 points max)
+  // Strength Component (40 points max) - REALISTIC BENCHMARKS
   const strengthScores = [];
   if (skillData.pushupScore) {
-    // Age-based pushup scoring (0-10 points)
+    // More challenging benchmarks: 80+ reps for perfect score
     const age = skillData.student?.age || 18;
-    const pushupBenchmark = age < 16 ? 20 : age < 18 ? 30 : 40;
+    const pushupBenchmark = age < 16 ? 60 : age < 18 ? 70 : 80; // Much higher benchmarks
     strengthScores.push(Math.min(10, (skillData.pushupScore / pushupBenchmark) * 10));
   }
   if (skillData.pullupScore) {
-    // Pullup scoring (0-10 points)
-    strengthScores.push(Math.min(10, (skillData.pullupScore / 10) * 10));
+    // 20+ pullups for perfect score (very challenging)
+    strengthScores.push(Math.min(10, (skillData.pullupScore / 20) * 10));
   }
   if (skillData.verticalJump) {
-    // Vertical jump scoring in cm (0-10 points)
-    strengthScores.push(Math.min(10, (skillData.verticalJump / 60) * 10));
+    // 90cm+ for perfect score (elite level)
+    strengthScores.push(Math.min(10, (skillData.verticalJump / 90) * 10));
   }
   if (skillData.gripStrength) {
-    // Grip strength scoring in kg (0-10 points)
+    // Much higher grip strength benchmarks
     const age = skillData.student?.age || 18;
-    const gripBenchmark = age < 16 ? 30 : age < 18 ? 40 : 50;
+    const gripBenchmark = age < 16 ? 50 : age < 18 ? 60 : 70; // Elite level strength
     strengthScores.push(Math.min(10, (skillData.gripStrength / gripBenchmark) * 10));
   }
   
@@ -150,21 +153,21 @@ const calculatePhysicalScore = (skillData: SkillData | null): number => {
     maxPossibleScore += 40;
   }
   
-  // Speed & Agility Component (30 points max)
+  // Speed & Agility Component (30 points max) - REALISTIC BENCHMARKS
   const speedScores = [];
   if (skillData.sprint50m) {
-    // 50m sprint scoring - lower time is better (0-10 points)
-    const benchmark = 7.5; // seconds
+    // 6.5 seconds for perfect score (competitive level)
+    const benchmark = 6.5; // Much more challenging
     speedScores.push(Math.max(0, Math.min(10, (benchmark / skillData.sprint50m) * 10)));
   }
   if (skillData.shuttleRun) {
-    // Shuttle run scoring - lower time is better (0-10 points)
-    const benchmark = 16; // seconds
+    // 12 seconds for perfect score (assuming standard shuttle distance)
+    const benchmark = 12; // More challenging
     speedScores.push(Math.max(0, Math.min(10, (benchmark / skillData.shuttleRun) * 10)));
   }
   if (skillData.sprintTime) {
-    // General sprint scoring - lower time is better (0-10 points)
-    const benchmark = 12; // seconds
+    // 10 seconds for perfect score (depending on distance)
+    const benchmark = 10; // More challenging
     speedScores.push(Math.max(0, Math.min(10, (benchmark / skillData.sprintTime) * 10)));
   }
   
@@ -174,17 +177,17 @@ const calculatePhysicalScore = (skillData: SkillData | null): number => {
     maxPossibleScore += 30;
   }
   
-  // Endurance Component (30 points max)
+  // Endurance Component (30 points max) - REALISTIC BENCHMARKS
   const enduranceScores = [];
   if (skillData.run5kTime) {
-    // 5K run scoring - lower time is better (0-10 points)
+    // Much more challenging 5K benchmarks
     const age = skillData.student?.age || 18;
-    const benchmark = age < 16 ? 25 : age < 18 ? 22 : 20; // minutes
+    const benchmark = age < 16 ? 18 : age < 18 ? 17 : 16; // Elite running times (minutes)
     enduranceScores.push(Math.max(0, Math.min(10, (benchmark / skillData.run5kTime) * 10)));
   }
   if (skillData.yoyoTest) {
-    // Yo-yo test scoring - higher is better (0-10 points)
-    enduranceScores.push(Math.min(10, (skillData.yoyoTest / 15) * 10));
+    // Level 25+ for perfect score (elite endurance)
+    enduranceScores.push(Math.min(10, (skillData.yoyoTest / 25) * 10));
   }
   
   if (enduranceScores.length > 0) {
@@ -194,7 +197,7 @@ const calculatePhysicalScore = (skillData: SkillData | null): number => {
   }
   
   // Return score out of 100, scaled based on available data
-  return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
+  return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 };
 
 const calculateMentalScore = (skillData: SkillData | null, wellnessData: any = null): number => {
@@ -203,43 +206,23 @@ const calculateMentalScore = (skillData: SkillData | null, wellnessData: any = n
   let totalScore = 0;
   let maxPossibleScore = 0;
   
-  // Mood Score Component (40 points max)
-  if (skillData.moodScore) {
+  // Mood Score (40 points max)
+  if (skillData.moodScore !== undefined && skillData.moodScore !== null) {
     totalScore += (skillData.moodScore / 10) * 40;
     maxPossibleScore += 40;
   }
   
-  // Sleep Score Component (40 points max)
-  if (skillData.sleepScore) {
+  // Sleep Score (40 points max)
+  if (skillData.sleepScore !== undefined && skillData.sleepScore !== null) {
     totalScore += (skillData.sleepScore / 10) * 40;
     maxPossibleScore += 40;
   }
   
-  // Wellness Score Component (20 points max)
-  // Lower Wellness Score is better (8-16 is excellent, 17-24 is good, 25-32 is fair, 33-40 is poor, 41+ is very poor)
-  // We'll invert the score so lower wellness score gives more points
+  // Wellness component (20 points max) - placeholder for future wellness tracking
+  // This can be expanded later with additional wellness metrics
   maxPossibleScore += 20;
-  if (wellnessData?.hooperIndex) {
-    // Scale wellness score: 8-16 gets 20 points, 17-24 gets 15 points, 25-32 gets 10 points, 33-40 gets 5 points, 41+ gets 0 points
-    const wellnessScore = wellnessData.hooperIndex;
-    if (wellnessScore <= 16) {
-      totalScore += 20;
-    } else if (wellnessScore <= 24) {
-      totalScore += 15;
-    } else if (wellnessScore <= 32) {
-      totalScore += 10;
-    } else if (wellnessScore <= 40) {
-      totalScore += 5;
-    } else {
-      totalScore += 0;
-    }
-  } else {
-    // If no wellness data, give partial points
-    totalScore += 10; // 50% of max points as default
-  }
   
-  // Return score out of 100
-  return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
+  return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 };
 
 const calculateNutritionScore = (skillData: SkillData | null): number => {
@@ -248,100 +231,157 @@ const calculateNutritionScore = (skillData: SkillData | null): number => {
   let totalScore = 0;
   let maxPossibleScore = 0;
   
-  const age = skillData.student?.age || 18;
-  const weight = skillData.student?.weight || 70; // kg
+  // Calculate personalized nutrition targets if we have student data
+  const student = skillData.student;
+  if (student && student.weight && student.height) {
+    const nutrition = calculatePersonalizedNutrition(student.weight, student.height, student.age);
   
-  // Calorie intake scoring (25 points max)
-  if (skillData.totalCalories) {
-    const calorieTarget = age < 16 ? 2200 : age < 18 ? 2500 : 2800;
-    const calorieRatio = Math.min(1, skillData.totalCalories / calorieTarget);
-    // Penalize if too far from target (both under and over)
-    const calorieScore = calorieRatio > 1.2 ? 5 : calorieRatio < 0.7 ? 3 : 10;
-    totalScore += (calorieScore / 10) * 25;
+    // Calories (25 points max)
+    if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
+      const calorieScore = Math.max(0, 10 - Math.abs((skillData.totalCalories - nutrition.totalCalories) / nutrition.totalCalories) * 10);
+      totalScore += Math.min(10, calorieScore) * 2.5; // Scale to 25 points
     maxPossibleScore += 25;
   }
   
-  // Protein intake scoring (25 points max)
-  if (skillData.protein) {
-    const proteinTarget = weight * 1.6; // g per kg body weight for athletes
-    const proteinRatio = Math.min(1.5, skillData.protein / proteinTarget);
-    const proteinScore = proteinRatio < 0.8 ? 5 : proteinRatio > 1.3 ? 7 : 10;
-    totalScore += (proteinScore / 10) * 25;
+    // Protein (25 points max)
+    if (skillData.protein !== undefined && skillData.protein !== null) {
+      const proteinScore = Math.max(0, 10 - Math.abs((skillData.protein - nutrition.protein) / nutrition.protein) * 10);
+      totalScore += Math.min(10, proteinScore) * 2.5; // Scale to 25 points
     maxPossibleScore += 25;
   }
   
-  // Carbohydrate intake scoring (25 points max)
-  if (skillData.carbohydrates) {
-    const carbTarget = weight * 5; // g per kg body weight for athletes
-    const carbRatio = Math.min(1.5, skillData.carbohydrates / carbTarget);
-    const carbScore = carbRatio < 0.7 ? 4 : carbRatio > 1.4 ? 6 : 10;
-    totalScore += (carbScore / 10) * 25;
+    // Carbohydrates (25 points max)
+    if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
+      const carbScore = Math.max(0, 10 - Math.abs((skillData.carbohydrates - nutrition.carbohydrates) / nutrition.carbohydrates) * 10);
+      totalScore += Math.min(10, carbScore) * 2.5; // Scale to 25 points
     maxPossibleScore += 25;
   }
   
-  // Water intake scoring (25 points max)
-  if (skillData.waterIntake) {
-    const waterTarget = 3.0; // liters per day for athletes
-    const waterRatio = Math.min(1.3, skillData.waterIntake / waterTarget);
-    const waterScore = waterRatio < 0.6 ? 3 : waterRatio > 1.2 ? 7 : 10;
-    totalScore += (waterScore / 10) * 25;
+    // Water intake (25 points max)
+    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
+      const recommendedWater = 2.5; // liters
+      const waterScore = Math.max(0, 10 - Math.abs((skillData.waterIntake - recommendedWater) / recommendedWater) * 10);
+      totalScore += Math.min(10, waterScore) * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+  } else {
+    // Generic scoring when no personalized data available
+    // Calories (25 points max)
+    if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
+      const calorieScore = Math.min(10, Math.max(0, ((skillData.totalCalories - 1000) / (4000 - 1000)) * 10));
+      totalScore += calorieScore * 2.5; // Scale to 25 points
     maxPossibleScore += 25;
   }
   
-  // Return score out of 100
-  return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
+    // Protein (25 points max)
+    if (skillData.protein !== undefined && skillData.protein !== null) {
+      const proteinScore = Math.min(10, Math.max(0, ((skillData.protein - 20) / (200 - 20)) * 10));
+      totalScore += proteinScore * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+    
+    // Carbohydrates (25 points max)
+    if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
+      const carbScore = Math.min(10, Math.max(0, ((skillData.carbohydrates - 50) / (500 - 50)) * 10));
+      totalScore += carbScore * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+    
+    // Water intake (25 points max)
+    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
+      const waterScore = Math.min(10, Math.max(0, ((skillData.waterIntake - 1) / (5 - 1)) * 10));
+      totalScore += waterScore * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+  }
+  
+  return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 };
 
 const calculateTechnicalScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
   
-  // Batting skills (out of 10 each)
-  const battingSkills = [
-    skillData.battingGrip, skillData.battingStance, skillData.battingBalance,
-    skillData.cockingOfWrist, skillData.backLift, skillData.topHandDominance,
-    skillData.highElbow, skillData.runningBetweenWickets, skillData.calling
-  ].filter(score => score !== undefined && score !== null) as number[];
-  
-  // Bowling skills (out of 10 each)
-  const bowlingSkills = [
-    skillData.bowlingGrip, skillData.runUp, skillData.backFootLanding,
-    skillData.frontFootLanding, skillData.hipDrive, skillData.backFootDrag,
-    skillData.nonBowlingArm, skillData.release, skillData.followThrough
-  ].filter(score => score !== undefined && score !== null) as number[];
-  
-  // Fielding skills (out of 10 each)
-  const fieldingSkills = [
-    skillData.positioningOfBall, skillData.pickUp, skillData.aim,
-    skillData.throw, skillData.softHands, skillData.receiving,
-    skillData.highCatch, skillData.flatCatch
-  ].filter(score => score !== undefined && score !== null) as number[];
-  
   let totalScore = 0;
   let maxPossibleScore = 0;
   
-  // Batting component (35 points max)
-  if (battingSkills.length > 0) {
-    const battingAvg = battingSkills.reduce((a, b) => a + b, 0) / battingSkills.length;
-    totalScore += (battingAvg / 10) * 35;
+  // Batting skills (35 points max)
+  const battingSkills = ['battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift', 
+    'topHandDominance', 'highElbow', 'runningBetweenWickets', 'calling'];
+  
+  let battingScore = 0;
+  let battingCount = 0;
+  
+  battingSkills.forEach(skillId => {
+    const value = skillData[skillId as keyof SkillData] as number;
+    if (value !== undefined && value !== null) {
+      battingScore += Math.min(10, Math.max(0, value));
+      battingCount++;
+    }
+  });
+  
+  if (battingCount > 0) {
+    totalScore += (battingScore / battingCount) * 3.5; // Scale to 35 points
     maxPossibleScore += 35;
   }
   
-  // Bowling component (35 points max)
-  if (bowlingSkills.length > 0) {
-    const bowlingAvg = bowlingSkills.reduce((a, b) => a + b, 0) / bowlingSkills.length;
-    totalScore += (bowlingAvg / 10) * 35;
+  // Bowling skills (35 points max)
+  const bowlingSkills = ['bowlingGrip', 'runUp', 'backFootLanding', 'frontFootLanding', 'hipDrive', 
+    'backFootDrag', 'nonBowlingArm', 'release', 'followThrough'];
+  
+  let bowlingScore = 0;
+  let bowlingCount = 0;
+  
+  bowlingSkills.forEach(skillId => {
+    const value = skillData[skillId as keyof SkillData] as number;
+    if (value !== undefined && value !== null) {
+      bowlingScore += Math.min(10, Math.max(0, value));
+      bowlingCount++;
+    }
+  });
+  
+  if (bowlingCount > 0) {
+    totalScore += (bowlingScore / bowlingCount) * 3.5; // Scale to 35 points
     maxPossibleScore += 35;
   }
   
-  // Fielding component (30 points max)
-  if (fieldingSkills.length > 0) {
-    const fieldingAvg = fieldingSkills.reduce((a, b) => a + b, 0) / fieldingSkills.length;
-    totalScore += (fieldingAvg / 10) * 30;
+  // Fielding skills (30 points max)
+  const fieldingSkills = ['positioningOfBall', 'pickUp', 'aim', 'throw', 'softHands', 'receiving', 'highCatch', 'flatCatch'];
+  
+  let fieldingScore = 0;
+  let fieldingCount = 0;
+  
+  fieldingSkills.forEach(skillId => {
+    const value = skillData[skillId as keyof SkillData] as number;
+    if (value !== undefined && value !== null) {
+      fieldingScore += Math.min(10, Math.max(0, value));
+      fieldingCount++;
+    }
+  });
+  
+  if (fieldingCount > 0) {
+    totalScore += (fieldingScore / fieldingCount) * 3.0; // Scale to 30 points
     maxPossibleScore += 30;
   }
   
-  // Return score out of 100
-  return maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
+  // Return score out of 100, scaled based on available data
+  return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
+};
+
+// Helper function to calculate personalized nutrition (if needed)
+const calculatePersonalizedNutrition = (weight: number, height: number, age: number) => {
+  // BMR calculation (Mifflin-St Jeor equation for males)
+  const bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+  
+  // Activity factor for athletes (1.725 for very active)
+  const tdee = bmr * 1.725;
+  
+  return {
+    totalCalories: Math.round(tdee),
+    protein: Math.round(weight * 1.6), // 1.6g per kg for athletes
+    carbohydrates: Math.round(weight * 5), // 5g per kg for athletes
+    fats: Math.round(weight * 1.2), // 1.2g per kg
+    bmi: weight / Math.pow(height / 100, 2)
+  };
 };
 
 const calculateTacticalScore = (): number => {
@@ -349,7 +389,7 @@ const calculateTacticalScore = (): number => {
   return 65;
 };
 
-const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) => {
+const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false, onRefresh, isRefreshing }) => {
   const { data: session } = useSession();
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -674,7 +714,26 @@ const PeakScore: React.FC<PeakScoreProps> = ({ skillData, isLoading = false }) =
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", bounce: 0.5, delay: 0.3 }}
               >
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">PeakScore</h3>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-800">PeakScore</h3>
+                  {onRefresh && (
+                    <motion.button
+                      onClick={onRefresh}
+                      disabled={isRefreshing}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Refresh PeakScore"
+                    >
+                      <motion.div
+                        animate={isRefreshing ? { rotate: 360 } : {}}
+                        transition={{ duration: 1, repeat: isRefreshing ? Infinity : 0 }}
+                      >
+                        <FiRefreshCw className="w-4 h-4" />
+                      </motion.div>
+                    </motion.button>
+                  )}
+                </div>
                 <motion.div 
                   className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-green-600 bg-clip-text text-transparent"
                   initial={{ opacity: 0 }}

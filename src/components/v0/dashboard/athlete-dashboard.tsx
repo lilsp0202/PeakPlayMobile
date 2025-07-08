@@ -71,18 +71,62 @@ export default function AthleteDashboard() {
       </div>
 
       <div className="relative z-10 p-4 sm:p-6 lg:p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Welcome back, {session?.user?.name || 'Athlete'}! 🏏
-              </h1>
-              <p className="text-gray-600 mt-2">Track your progress and elevate your game</p>
+        {/* Enhanced Header */}
+        <div className="mb-6 md:mb-8">
+          <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-2xl border border-white/20">
+            {/* Animated Background Elements */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -top-4 md:-top-8 -right-4 md:-right-8 w-16 md:w-32 h-16 md:h-32 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
+              <div className="absolute -bottom-4 md:-bottom-8 -left-4 md:-left-8 w-12 md:w-24 h-12 md:h-24 bg-white/10 rounded-full blur-2xl animate-pulse delay-300"></div>
+              <div className="absolute top-2 md:top-4 left-1/2 w-8 md:w-16 h-8 md:h-16 bg-white/5 rounded-full blur-xl animate-pulse delay-700"></div>
             </div>
-            <div className="hidden sm:flex items-center space-x-4">
-              <div className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200 shadow-sm">
-                <span className="text-sm font-medium text-gray-700">Level 5 Athlete</span>
+            
+            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+              <div className="flex items-center space-x-3 md:space-x-6">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg ring-2 md:ring-4 ring-white/30">
+                  <span className="text-lg md:text-2xl">🏏</span>
+                </div>
+                <div>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 md:mb-2">
+                    Welcome back, {session?.user?.name || 'Athlete'}!
+                  </h1>
+                  <p className="text-white/80 text-sm md:text-lg">Track your progress and elevate your game to new heights</p>
+                  <div className="flex items-center space-x-3 md:space-x-4 mt-2 md:mt-3">
+                    <div className="flex items-center space-x-1 md:space-x-2">
+                      <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs md:text-sm text-white/90 font-medium">Online</span>
+                    </div>
+                    <div className="flex items-center space-x-1 md:space-x-2">
+                      <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs md:text-sm text-white/90 font-medium">Level 5 Athlete</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2 md:space-x-4 w-full sm:w-auto">
+                <div className="flex-1 sm:flex-none px-3 md:px-6 py-2 md:py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-lg">
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs md:text-sm font-bold">5</span>
+                    </div>
+                    <div>
+                      <span className="text-xs md:text-sm font-semibold text-white">Level 5</span>
+                      <p className="text-xs text-white/80 hidden md:block">Elite Athlete</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 sm:flex-none px-3 md:px-6 py-2 md:py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-lg">
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm md:text-lg">🏆</span>
+                    </div>
+                    <div>
+                      <span className="text-xs md:text-sm font-semibold text-white">Rank #12</span>
+                      <p className="text-xs text-white/80 hidden md:block">This Month</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

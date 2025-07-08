@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Edit, Check, X } from "lucide-react";
+import { Edit, Check, X, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiActivity, FiSave, FiX, FiEdit } from "react-icons/fi";
 import type { Session } from "next-auth";
@@ -161,8 +161,9 @@ const skillCategories: SkillCategory[] = [
         colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-            <circle cx="12" cy="8" r="2" strokeWidth="1"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 8h12M6 12h12m-6-8v12"/>
+            <circle cx="12" cy="4" r="2" strokeWidth="1"/>
+            <rect x="10" y="14" width="4" height="2" strokeWidth="1"/>
           </svg>
         ),
       },
@@ -190,8 +191,8 @@ const skillCategories: SkillCategory[] = [
         colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"/>
-            <path d="M12 3v18" strokeWidth="1"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2l4 4h-3v6h-2V6H8l4-4z"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 18h8M10 20h4"/>
           </svg>
         ),
       },
@@ -203,8 +204,9 @@ const skillCategories: SkillCategory[] = [
         description: "Grip strength measured in kilograms",
         colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M9 11H7v3h2v-3zm4 0h-2v3h2v-3zm4 0h-2v3h2v-3zm2-7h-2V2h-2v2H9V2H7v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/>
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <path d="M8 12c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4-4-1.79-4-4z" strokeWidth="1"/>
           </svg>
         ),
       },
@@ -260,9 +262,9 @@ const skillCategories: SkillCategory[] = [
         colorScheme: { primary: "emerald-600", secondary: "emerald-100", background: "emerald-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-            <circle cx="12" cy="12" r="9" strokeWidth="1"/>
-            <path d="M8 12l2-2m6 2l-2-2" strokeWidth="1"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <circle cx="12" cy="6" r="2" strokeWidth="1"/>
+            <path d="M10 14l2-2 2 2M8 18l4-4 4 4"/>
           </svg>
         ),
       },
@@ -275,8 +277,9 @@ const skillCategories: SkillCategory[] = [
         colorScheme: { primary: "emerald-600", secondary: "emerald-100", background: "emerald-50" },
         icon: (
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v16l8-8 8 8V4H4z"/>
-            <circle cx="12" cy="12" r="2" strokeWidth="1"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12l4-4 4 4M8 12l4 4 4-4"/>
+            <circle cx="12" cy="8" r="2" strokeWidth="1"/>
+            <circle cx="12" cy="16" r="2" strokeWidth="1"/>
           </svg>
         ),
       },
@@ -437,7 +440,7 @@ const skillCategories: SkillCategory[] = [
         unit: "avg",
         type: "score" as const,
         description: "Batting technique mastery",
-        icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>,
+        icon: <span className="text-xl">🏏</span>,
         colorScheme: { primary: "teal-600", secondary: "teal-100", background: "teal-50" }
       },
       {
@@ -446,7 +449,7 @@ const skillCategories: SkillCategory[] = [
         unit: "avg",
         type: "score" as const,
         description: "Bowling technique mastery",
-        icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><circle cx="12" cy="12" r="9" strokeWidth="1"/><circle cx="12" cy="8" r="1" fill="currentColor"/><circle cx="10" cy="10" r="1" fill="currentColor"/><circle cx="14" cy="10" r="1" fill="currentColor"/></svg>,
+        icon: <span className="text-xl">🔴</span>,
         colorScheme: { primary: "teal-600", secondary: "teal-100", background: "teal-50" }
       },
       {
@@ -455,7 +458,7 @@ const skillCategories: SkillCategory[] = [
         unit: "avg",
         type: "score" as const,
         description: "Fielding technique mastery",
-        icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m-3-3a1.5 1.5 0 013 0"/><circle cx="12" cy="12" r="2" strokeWidth="1"/></svg>,
+        icon: <span className="text-xl">🏃</span>,
         colorScheme: { primary: "teal-600", secondary: "teal-100", background: "teal-50" }
       }
     ]
@@ -479,178 +482,190 @@ const skillCategories: SkillCategory[] = [
   }
 ];
 
-// Helper function to calculate aggregate scores for each category
+// Helper function to calculate aggregate scores for each category (returns 0-100 to match PeakScore)
 const calculatePhysicalAggregateScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
-
-  // Normalize raw scores to 0-10 scale based on the new logical ranges
-  const normalizedScores = [];
   
-  // Strength Skills
-  // Push-ups (0-100 range, normalize to 0-10)
-  if (skillData.pushupScore !== undefined && skillData.pushupScore !== null) {
-    const pushupNormalized = Math.min(10, Math.max(0, (skillData.pushupScore / 100) * 10));
-    normalizedScores.push(pushupNormalized);
+  let totalScore = 0;
+  let maxPossibleScore = 0;
+  
+  // Strength Component (40 points max) - REALISTIC BENCHMARKS
+  const strengthScores = [];
+  if (skillData.pushupScore) {
+    // More challenging benchmarks: 80+ reps for perfect score
+    const age = skillData.student?.age || 18;
+    const pushupBenchmark = age < 16 ? 60 : age < 18 ? 70 : 80; // Much higher benchmarks
+    strengthScores.push(Math.min(10, (skillData.pushupScore / pushupBenchmark) * 10));
+  }
+  if (skillData.pullupScore) {
+    // 20+ pullups for perfect score (very challenging)
+    strengthScores.push(Math.min(10, (skillData.pullupScore / 20) * 10));
+  }
+  if (skillData.verticalJump) {
+    // 90cm+ for perfect score (elite level)
+    strengthScores.push(Math.min(10, (skillData.verticalJump / 90) * 10));
+  }
+  if (skillData.gripStrength) {
+    // Much higher grip strength benchmarks
+    const age = skillData.student?.age || 18;
+    const gripBenchmark = age < 16 ? 50 : age < 18 ? 60 : 70; // Elite level strength
+    strengthScores.push(Math.min(10, (skillData.gripStrength / gripBenchmark) * 10));
   }
   
-  // Pull-ups (0-50 range, normalize to 0-10)
-  if (skillData.pullupScore !== undefined && skillData.pullupScore !== null) {
-    const pullupNormalized = Math.min(10, Math.max(0, (skillData.pullupScore / 50) * 10));
-    normalizedScores.push(pullupNormalized);
+  if (strengthScores.length > 0) {
+    const strengthAvg = strengthScores.reduce((a, b) => a + b, 0) / strengthScores.length;
+    totalScore += (strengthAvg / 10) * 40; // Scale to 40 points
+    maxPossibleScore += 40;
   }
   
-  // Vertical Jump (0-80 cm range, normalize to 0-10)
-  if (skillData.verticalJump !== undefined && skillData.verticalJump !== null) {
-    const verticalJumpNormalized = Math.min(10, Math.max(0, (skillData.verticalJump / 80) * 10));
-    normalizedScores.push(verticalJumpNormalized);
+  // Speed & Agility Component (30 points max) - REALISTIC BENCHMARKS
+  const speedScores = [];
+  if (skillData.sprint50m) {
+    // 6.5 seconds for perfect score (competitive level)
+    const benchmark = 6.5; // Much more challenging
+    speedScores.push(Math.max(0, Math.min(10, (benchmark / skillData.sprint50m) * 10)));
+  }
+  if (skillData.shuttleRun) {
+    // 12 seconds for perfect score (assuming standard shuttle distance)
+    const benchmark = 12; // More challenging
+    speedScores.push(Math.max(0, Math.min(10, (benchmark / skillData.shuttleRun) * 10)));
+  }
+  if (skillData.sprintTime) {
+    // 10 seconds for perfect score (depending on distance)
+    const benchmark = 10; // More challenging
+    speedScores.push(Math.max(0, Math.min(10, (benchmark / skillData.sprintTime) * 10)));
   }
   
-  // Grip Strength (0-70 kg range, normalize to 0-10)
-  if (skillData.gripStrength !== undefined && skillData.gripStrength !== null) {
-    const gripStrengthNormalized = Math.min(10, Math.max(0, (skillData.gripStrength / 70) * 10));
-    normalizedScores.push(gripStrengthNormalized);
+  if (speedScores.length > 0) {
+    const speedAvg = speedScores.reduce((a, b) => a + b, 0) / speedScores.length;
+    totalScore += (speedAvg / 10) * 30; // Scale to 30 points
+    maxPossibleScore += 30;
   }
   
-  // Speed & Agility Skills
-  // Sprint time (8-20 seconds, lower is better)
-  if (skillData.sprintTime !== undefined && skillData.sprintTime !== null) {
-    const sprintNormalized = Math.min(10, Math.max(0, 10 - ((skillData.sprintTime - 8) / (20 - 8)) * 10));
-    normalizedScores.push(sprintNormalized);
+  // Endurance Component (30 points max) - REALISTIC BENCHMARKS
+  const enduranceScores = [];
+  if (skillData.run5kTime) {
+    // Much more challenging 5K benchmarks
+    const age = skillData.student?.age || 18;
+    const benchmark = age < 16 ? 18 : age < 18 ? 17 : 16; // Elite running times (minutes)
+    enduranceScores.push(Math.max(0, Math.min(10, (benchmark / skillData.run5kTime) * 10)));
+  }
+  if (skillData.yoyoTest) {
+    // Level 25+ for perfect score (elite endurance)
+    enduranceScores.push(Math.min(10, (skillData.yoyoTest / 25) * 10));
   }
   
-  // 50m Sprint (6-12 seconds, lower is better)
-  if (skillData.sprint50m !== undefined && skillData.sprint50m !== null) {
-    const sprint50mNormalized = Math.min(10, Math.max(0, 10 - ((skillData.sprint50m - 6) / (12 - 6)) * 10));
-    normalizedScores.push(sprint50mNormalized);
+  if (enduranceScores.length > 0) {
+    const enduranceAvg = enduranceScores.reduce((a, b) => a + b, 0) / enduranceScores.length;
+    totalScore += (enduranceAvg / 10) * 30; // Scale to 30 points
+    maxPossibleScore += 30;
   }
   
-  // Shuttle Run (12-20 seconds, lower is better)
-  if (skillData.shuttleRun !== undefined && skillData.shuttleRun !== null) {
-    const shuttleRunNormalized = Math.min(10, Math.max(0, 10 - ((skillData.shuttleRun - 12) / (20 - 12)) * 10));
-    normalizedScores.push(shuttleRunNormalized);
-  }
-  
-  // Endurance Skills
-  // 5K time (15-40 minutes, lower is better)
-  if (skillData.run5kTime !== undefined && skillData.run5kTime !== null) {
-    const run5kNormalized = Math.min(10, Math.max(0, 10 - ((skillData.run5kTime - 15) / (40 - 15)) * 10));
-    normalizedScores.push(run5kNormalized);
-  }
-  
-  // Yo-Yo Test (0-21 levels, higher is better)
-  if (skillData.yoyoTest !== undefined && skillData.yoyoTest !== null) {
-    const yoyoTestNormalized = Math.min(10, Math.max(0, (skillData.yoyoTest / 21) * 10));
-    normalizedScores.push(yoyoTestNormalized);
-  }
-
-  if (normalizedScores.length === 0) return 0;
-
-  const average = normalizedScores.reduce((a, b) => a + b, 0) / normalizedScores.length;
-  return Math.min(10, Math.max(0, Math.round(average * 10) / 10)); // Round to 1 decimal and ensure 0-10 range
+  // Return score out of 100, scaled based on available data
+  return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 };
 
 const calculateMentalAggregateScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
 
-  const scores = [
-    skillData.moodScore || 0,
-    skillData.sleepScore || 0,
-  ];
+  let totalScore = 0;
+  let maxPossibleScore = 0;
 
-  // Ensure all mental scores are capped at 10
-  const cappedScores = scores.map(score => Math.min(10, Math.max(0, score)));
-  const validScores = cappedScores.filter(score => score > 0);
-  if (validScores.length === 0) return 0;
+  // Mood Score (40 points max)
+  if (skillData.moodScore !== undefined && skillData.moodScore !== null) {
+    totalScore += (skillData.moodScore / 10) * 40;
+    maxPossibleScore += 40;
+  }
 
-  const average = validScores.reduce((a, b) => a + b, 0) / validScores.length;
-  return Math.min(10, Math.max(0, Math.round(average * 10) / 10));
+  // Sleep Score (40 points max)
+  if (skillData.sleepScore !== undefined && skillData.sleepScore !== null) {
+    totalScore += (skillData.sleepScore / 10) * 40;
+    maxPossibleScore += 40;
+  }
+
+  // Wellness component (20 points max) - placeholder for future wellness tracking
+  // This can be expanded later with additional wellness metrics
+  maxPossibleScore += 20;
+
+  return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 };
 
 const calculateNutritionAggregateScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
 
-  // Calculate recommended values based on student data
+  let totalScore = 0;
+  let maxPossibleScore = 0;
+
+  // Calculate personalized nutrition targets if we have student data
   const student = skillData.student;
-  if (!student || !student.weight || !student.height) {
-    // If no student data, use the values as percentages within their ranges
-    const scores = [];
+  if (student && student.weight && student.height) {
+    const nutrition = calculatePersonalizedNutrition(student.weight, student.height, student.age);
     
-    // Normalize calories (1000-4000 range to 0-10 scale)
+    // Calories (25 points max)
+    if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
+      const calorieScore = Math.max(0, 10 - Math.abs((skillData.totalCalories - nutrition.totalCalories) / nutrition.totalCalories) * 10);
+      totalScore += Math.min(10, calorieScore) * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+    
+    // Protein (25 points max)
+    if (skillData.protein !== undefined && skillData.protein !== null) {
+      const proteinScore = Math.max(0, 10 - Math.abs((skillData.protein - nutrition.protein) / nutrition.protein) * 10);
+      totalScore += Math.min(10, proteinScore) * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+    
+    // Carbohydrates (25 points max)
+    if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
+      const carbScore = Math.max(0, 10 - Math.abs((skillData.carbohydrates - nutrition.carbohydrates) / nutrition.carbohydrates) * 10);
+      totalScore += Math.min(10, carbScore) * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+    
+    // Water intake (25 points max)
+    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
+      const recommendedWater = 2.5; // liters
+      const waterScore = Math.max(0, 10 - Math.abs((skillData.waterIntake - recommendedWater) / recommendedWater) * 10);
+      totalScore += Math.min(10, waterScore) * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+  } else {
+    // Generic scoring when no personalized data available
+    // Calories (25 points max)
     if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
       const calorieScore = Math.min(10, Math.max(0, ((skillData.totalCalories - 1000) / (4000 - 1000)) * 10));
-      scores.push(calorieScore);
+      totalScore += calorieScore * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
     }
     
-    // Normalize protein (20-200g range to 0-10 scale) 
+    // Protein (25 points max)
     if (skillData.protein !== undefined && skillData.protein !== null) {
       const proteinScore = Math.min(10, Math.max(0, ((skillData.protein - 20) / (200 - 20)) * 10));
-      scores.push(proteinScore);
+      totalScore += proteinScore * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
     }
     
-    // Normalize carbs (50-500g range to 0-10 scale)
+    // Carbohydrates (25 points max)
     if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
       const carbScore = Math.min(10, Math.max(0, ((skillData.carbohydrates - 50) / (500 - 50)) * 10));
-      scores.push(carbScore);
+      totalScore += carbScore * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
     }
     
-    // Normalize fats (20-150g range to 0-10 scale)
-    if (skillData.fats !== undefined && skillData.fats !== null) {
-      const fatScore = Math.min(10, Math.max(0, ((skillData.fats - 20) / (150 - 20)) * 10));
-      scores.push(fatScore);
-    }
-    
-    // Normalize water intake (1-5 liters range to 0-10 scale)
+    // Water intake (25 points max)
     if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
       const waterScore = Math.min(10, Math.max(0, ((skillData.waterIntake - 1) / (5 - 1)) * 10));
-      scores.push(waterScore);
+      totalScore += waterScore * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
     }
-
-    if (scores.length === 0) return 0;
-    const average = scores.reduce((a, b) => a + b, 0) / scores.length;
-    return Math.min(10, Math.max(0, Math.round(average * 10) / 10));
   }
 
-  const nutrition = calculatePersonalizedNutrition(student.weight, student.height, student.age);
-
-  // Calculate scores based on how close actual values are to recommended values (0-10 scale)
-  const scores = [];
-  
-  if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
-    const calorieScore = Math.max(0, 10 - Math.abs((skillData.totalCalories - nutrition.totalCalories) / nutrition.totalCalories) * 10);
-    scores.push(Math.min(10, calorieScore));
-  }
-  
-  if (skillData.protein !== undefined && skillData.protein !== null) {
-    const proteinScore = Math.max(0, 10 - Math.abs((skillData.protein - nutrition.protein) / nutrition.protein) * 10);
-    scores.push(Math.min(10, proteinScore));
-  }
-  
-  if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
-    const carbScore = Math.max(0, 10 - Math.abs((skillData.carbohydrates - nutrition.carbohydrates) / nutrition.carbohydrates) * 10);
-    scores.push(Math.min(10, carbScore));
-  }
-  
-  if (skillData.fats !== undefined && skillData.fats !== null) {
-    const fatScore = Math.max(0, 10 - Math.abs((skillData.fats - nutrition.fats) / nutrition.fats) * 10);
-    scores.push(Math.min(10, fatScore));
-  }
-  
-  if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
-    // Recommended water intake is 2.5 liters
-    const recommendedWater = 2.5;
-    const waterScore = Math.max(0, 10 - Math.abs((skillData.waterIntake - recommendedWater) / recommendedWater) * 10);
-    scores.push(Math.min(10, waterScore));
-  }
-
-  if (scores.length === 0) return 0;
-
-  const average = scores.reduce((a, b) => a + b, 0) / scores.length;
-  return Math.min(10, Math.max(0, Math.round(average * 10) / 10));
+  return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 };
 
 const calculateTacticalAggregateScore = (skillData: SkillData | null): number => {
-  // For now, return 0 as we haven't implemented tactical skills yet
-  return 0;
+  // For now, return a fixed score of 65 to match PeakScore component
+  return 65;
 };
 
 // Helper function to calculate aggregate score for a skillset
@@ -687,8 +702,8 @@ export const calculateOverallProgress = (skillData: SkillData | null): number =>
   if (validScores.length === 0) return 0;
 
   const average = validScores.reduce((a, b) => a + b, 0) / validScores.length;
-  // Convert 0-10 scale to 0-100 percentage and ensure it's capped at 100
-  return Math.min(100, Math.max(0, Math.round(average * 10)));
+  // Scores are already 0-100, just ensure they're properly capped
+  return Math.min(100, Math.max(0, Math.round(average)));
 };
 
 // Progress Ring Component
@@ -758,9 +773,9 @@ const AggregateScoreDisplay: React.FC<{
   aggregateScore: number;
 }> = ({ category, aggregateScore }) => {
   const getScoreColor = (score: number) => {
-    if (score >= 8) return 'from-green-500 to-emerald-600';
-    if (score >= 6) return 'from-blue-500 to-indigo-600';
-    if (score >= 4) return 'from-yellow-500 to-orange-600';
+    if (score >= 80) return 'from-green-500 to-emerald-600';
+    if (score >= 60) return 'from-blue-500 to-indigo-600';
+    if (score >= 40) return 'from-yellow-500 to-orange-600';
     return 'from-red-500 to-pink-600';
   };
 
@@ -781,9 +796,9 @@ const AggregateScoreDisplay: React.FC<{
         <div>
           <p className="text-sm text-gray-600">Overall Score</p>
           <p className="font-semibold text-gray-900">
-            {aggregateScore >= 8 ? 'Excellent' : 
-             aggregateScore >= 6 ? 'Good' : 
-             aggregateScore >= 4 ? 'Fair' : 'Needs Improvement'}
+            {aggregateScore >= 80 ? 'Excellent' : 
+             aggregateScore >= 60 ? 'Good' : 
+             aggregateScore >= 40 ? 'Fair' : 'Needs Improvement'}
           </p>
         </div>
       </div>
@@ -792,9 +807,9 @@ const AggregateScoreDisplay: React.FC<{
         animate={{ rotate: [0, 10, -10, 0] }}
         transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
       >
-        {aggregateScore >= 8 ? '🌟' : 
-         aggregateScore >= 6 ? '⭐' : 
-         aggregateScore >= 4 ? '💪' : '🎯'}
+        {aggregateScore >= 80 ? '🌟' : 
+         aggregateScore >= 60 ? '⭐' : 
+         aggregateScore >= 40 ? '💪' : '🎯'}
       </motion.div>
     </motion.div>
   );
@@ -1315,8 +1330,8 @@ const CategoryCard: React.FC<{
   skillData: SkillData | null;
 }> = ({ category, onOpen, skillData }) => {
   const aggregateScore = calculateAggregateScore(category, skillData);
-  // Convert 0-10 aggregate score to 0-100 percentage, properly capped
-  const progress = Math.min(100, Math.max(0, Math.round(aggregateScore * 10)));
+  // Aggregate scores now return 0-100 directly, no need to multiply by 10
+  const progress = Math.min(100, Math.max(0, Math.round(aggregateScore)));
 
   return (
     <motion.div
@@ -1783,10 +1798,7 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
         sectionId="batting"
         skills={battingSkills}
         colorScheme="batting"
-        icon={
-          <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M2.5 17.5L7 13l11 11-4.5 4.5L2.5 17.5zm15-15L13 7l1.5 1.5L19 4l-1.5-1.5zM6 3l3 3-3 3-3-3 3-3z"/></svg>
-        }
+        icon={<span className="text-xl">🏏</span>}
       />
 
       <SectionCard
@@ -1794,19 +1806,7 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
         sectionId="bowling"
         skills={bowlingSkills}
         colorScheme="bowling"
-        icon={
-          <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="3"/>
-            <circle cx="8" cy="8" r="1"/>
-            <circle cx="16" cy="8" r="1"/>
-            <circle cx="8" cy="16" r="1"/>
-            <circle cx="16" cy="16" r="1"/>
-            <circle cx="12" cy="6" r="1"/>
-            <circle cx="12" cy="18" r="1"/>
-            <circle cx="6" cy="12" r="1"/>
-            <circle cx="18" cy="12" r="1"/>
-          </svg>
-        }
+        icon={<span className="text-xl">🔴</span>}
       />
 
       <SectionCard
@@ -1814,11 +1814,7 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
         sectionId="fielding"
         skills={fieldingSkills}
         colorScheme="fielding"
-        icon={
-          <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8 8s3.59 8 8 8 8-3.59 8-8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-          </svg>
-        }
+        icon={<span className="text-xl">🏃</span>}
       />
     </div>
   );
@@ -1827,30 +1823,70 @@ const TechnicalSkillsComponent: React.FC<TechnicalSkillsProps> = ({
 export const calculateTechnicalAggregateScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
 
-  const technicalSkillIds = [
-    // Batting skills
-    'battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift', 
-    'topHandDominance', 'highElbow', 'runningBetweenWickets', 'calling',
-    // Bowling skills
-    'bowlingGrip', 'runUp', 'backFootLanding', 'frontFootLanding', 'hipDrive', 
-    'backFootDrag', 'nonBowlingArm', 'release', 'followThrough',
-    // Fielding skills
-    'positioningOfBall', 'pickUp', 'aim', 'throw', 'softHands', 'receiving', 'highCatch', 'flatCatch'
-  ];
-
   let totalScore = 0;
-  let skillCount = 0;
+  let maxPossibleScore = 0;
 
-  technicalSkillIds.forEach(skillId => {
+  // Batting skills (35 points max)
+  const battingSkills = ['battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift', 
+    'topHandDominance', 'highElbow', 'runningBetweenWickets', 'calling'];
+  
+  let battingScore = 0;
+  let battingCount = 0;
+  
+  battingSkills.forEach(skillId => {
     const value = skillData[skillId as keyof SkillData] as number;
     if (value !== undefined && value !== null) {
-      // All technical skills are out of 10, cap at 10 for safety
-      totalScore += Math.min(10, Math.max(0, value));
-      skillCount++;
+      battingScore += Math.min(10, Math.max(0, value));
+      battingCount++;
     }
   });
+  
+  if (battingCount > 0) {
+    totalScore += (battingScore / battingCount) * 3.5; // Scale to 35 points
+    maxPossibleScore += 35;
+  }
 
-  return skillCount > 0 ? Math.min(10, totalScore / skillCount) : 0;
+  // Bowling skills (35 points max)
+  const bowlingSkills = ['bowlingGrip', 'runUp', 'backFootLanding', 'frontFootLanding', 'hipDrive', 
+    'backFootDrag', 'nonBowlingArm', 'release', 'followThrough'];
+  
+  let bowlingScore = 0;
+  let bowlingCount = 0;
+  
+  bowlingSkills.forEach(skillId => {
+    const value = skillData[skillId as keyof SkillData] as number;
+    if (value !== undefined && value !== null) {
+      bowlingScore += Math.min(10, Math.max(0, value));
+      bowlingCount++;
+    }
+  });
+  
+  if (bowlingCount > 0) {
+    totalScore += (bowlingScore / bowlingCount) * 3.5; // Scale to 35 points
+    maxPossibleScore += 35;
+  }
+
+  // Fielding skills (30 points max)
+  const fieldingSkills = ['positioningOfBall', 'pickUp', 'aim', 'throw', 'softHands', 'receiving', 'highCatch', 'flatCatch'];
+  
+  let fieldingScore = 0;
+  let fieldingCount = 0;
+  
+  fieldingSkills.forEach(skillId => {
+    const value = skillData[skillId as keyof SkillData] as number;
+    if (value !== undefined && value !== null) {
+      fieldingScore += Math.min(10, Math.max(0, value));
+      fieldingCount++;
+    }
+  });
+  
+  if (fieldingCount > 0) {
+    totalScore += (fieldingScore / fieldingCount) * 3.0; // Scale to 30 points
+    maxPossibleScore += 30;
+  }
+
+  // Return score out of 100, scaled based on available data
+  return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 };
 
 export default function SkillSnap({
@@ -1868,9 +1904,32 @@ export default function SkillSnap({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Check if editing is allowed based on user type and context
   const canEdit = isCoachView || ((session as any)?.user?.role === 'ATHLETE' && !studentId);
+
+  // Refresh function to reload skill data
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    setError(null);
+    try {
+      await fetchSkillData();
+      // Also refresh averages if we have age data
+      if (skillData?.student?.age) {
+        await fetchAverages(skillData.student.age);
+      }
+      // Call the callback if provided
+      if (onSkillsUpdated) {
+        onSkillsUpdated();
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      setError('Failed to refresh data. Please try again.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Add effect to manage body scroll when modals are open
   useEffect(() => {
@@ -2251,13 +2310,37 @@ export default function SkillSnap({
   };
 
   const closeModal = () => {
-    setSelectedCategory(null);
-    // Cancel any ongoing edits
+    // First, reset any ongoing edits
     if (isEditing) {
-      handleCancel(isEditing);
+      setIsEditing(null);
+      // Reset edited scores without calling handleCancel to avoid duplicate state updates
+      const resetScores: Record<string, number> = {};
+      if (isEditing === "TECHNIQUE") {
+        const technicalSkillIds = [
+          'battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift', 
+          'topHandDominance', 'highElbow', 'runningBetweenWickets', 'calling',
+          'bowlingGrip', 'runUp', 'backFootLanding', 'frontFootLanding', 'hipDrive', 
+          'backFootDrag', 'nonBowlingArm', 'release', 'followThrough',
+          'positioningOfBall', 'pickUp', 'aim', 'throw', 'softHands', 'receiving', 'highCatch', 'flatCatch'
+        ];
+        technicalSkillIds.forEach(skillId => {
+          resetScores[skillId] = skillData?.[skillId as keyof SkillData] as number || 0;
+        });
+      } else {
+        const categorySkills = skillCategories.find(cat => cat.id === isEditing)?.skills || [];
+        categorySkills.forEach(skill => {
+          resetScores[skill.id] = skillData?.[skill.id as keyof SkillData] as number || 0;
+        });
+      }
+      setEditedScores(prev => ({ ...prev, ...resetScores }));
     }
+    
+    // Close the modal by clearing selected category
+    setSelectedCategory(null);
+    
     // Unlock body scroll when modal closes
     unlockBodyScroll();
+    
     // Notify parent component
     onModalChange?.(false);
   };
@@ -2415,6 +2498,57 @@ export default function SkillSnap({
 
   return (
     <div className="relative">
+      {/* Refresh Header */}
+      <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+        <div className="flex items-center space-x-3">
+          <motion.div 
+            whileHover={{ rotate: 360 }}
+            transition={{ duration: 0.6 }}
+            className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg"
+          >
+            <FiActivity className="w-5 h-5 text-white" />
+          </motion.div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">SkillSnap Overview</h3>
+            <p className="text-sm text-gray-600">Track your progress across all skill categories</p>
+          </div>
+        </div>
+        
+        <motion.button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center space-x-2 px-4 py-2 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <motion.div
+            animate={isRefreshing ? { rotate: 360 } : { rotate: 0 }}
+            transition={{ duration: 1, repeat: isRefreshing ? Infinity : 0, ease: "linear" }}
+          >
+            <RefreshCw className="w-4 h-4" />
+          </motion.div>
+          <span className="text-sm font-medium">
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </span>
+        </motion.button>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
+        >
+          <div className="flex items-center space-x-2">
+            <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+              <X className="w-3 h-3 text-white" />
+            </div>
+            <span className="text-sm text-red-700">{error}</span>
+          </div>
+        </motion.div>
+      )}
+
       {/* Categories Grid */}
       <div className="grid grid-cols-1 gap-6">
         {skillCategories.map((category) => (
@@ -2433,7 +2567,11 @@ export default function SkillSnap({
           {/* Background overlay - separate from modal content */}
         <div 
             className="fixed inset-0 z-[9998] bg-black bg-opacity-80 backdrop-blur-sm"
-          onClick={closeModal}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              closeModal();
+            }
+          }}
             aria-hidden="true"
           />
           
@@ -2446,7 +2584,11 @@ export default function SkillSnap({
                   <div className="p-4 sm:p-6 max-w-5xl mx-auto">
                     {/* Close button */}
                     <button
-                      onClick={closeModal}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closeModal();
+                      }}
                       className="absolute top-4 right-4 p-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200 z-[10000] shadow-lg"
                       aria-label="Close modal"
                     >

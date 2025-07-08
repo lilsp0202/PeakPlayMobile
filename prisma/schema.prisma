@@ -82,6 +82,7 @@ model Student {
   hooperEntries     HooperIndex[]
   skillHistory      SkillHistory[]
   smartNotifications SmartNotification[]
+  actions           Action[]
 }
 
 model Coach {
@@ -100,6 +101,7 @@ model Coach {
   sessionTodos  SessionTodo[]
   notificationPreferences NotificationPreference?
   smartNotifications SmartNotification[]
+  actions       Action[]
 }
 
 model Skills {
@@ -251,6 +253,26 @@ model Feedback {
   updatedAt DateTime @updatedAt
   coach     Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
   student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model Action {
+  id            String   @id @default(cuid())
+  studentId     String
+  coachId       String
+  title         String
+  description   String
+  category      String   @default("GENERAL") // GENERAL, TECHNICAL, MENTAL, NUTRITIONAL, TACTICAL
+  priority      String   @default("MEDIUM")  // LOW, MEDIUM, HIGH
+  dueDate       DateTime?
+  isCompleted   Boolean  @default(false)
+  completedAt   DateTime?
+  isAcknowledged Boolean @default(false)
+  acknowledgedAt DateTime?
+  notes         String?  // Student notes when completing the action
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  coach         Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
 // Badge System Models
