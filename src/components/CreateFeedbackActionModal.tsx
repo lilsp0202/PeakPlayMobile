@@ -137,13 +137,13 @@ export default function CreateFeedbackActionModal({
     setError('');
 
     try {
-      const formData = new FormData();
+      const audioFormData = new FormData();
       const audioFile = new File([recordedAudio], 'recording.webm', { type: 'audio/webm' });
-      formData.append('audio', audioFile);
+      audioFormData.append('audio', audioFile);
 
       const response = await fetch('/api/transcribe-voice', {
         method: 'POST',
-        body: formData,
+        body: audioFormData,
         credentials: 'include',
       });
 

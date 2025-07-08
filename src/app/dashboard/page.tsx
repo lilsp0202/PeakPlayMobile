@@ -169,7 +169,7 @@ export default function Dashboard() {
   
   // Modal states for student features
   const [selectedStudentModal, setSelectedStudentModal] = useState<any>(null);
-  const [activeModal, setActiveModal] = useState<'skillsnap' | 'badges' | 'feedback' | null>(null);
+  const [activeModal, setActiveModal] = useState<'skillsnap' | 'badges' | 'feedback' | 'progress' | null>(null);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [isSkillSnapModalOpen, setIsSkillSnapModalOpen] = useState(false);
   const [multiStudentFeedbackOpen, setMultiStudentFeedbackOpen] = useState(false);

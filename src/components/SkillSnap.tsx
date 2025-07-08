@@ -1897,7 +1897,7 @@ export default function SkillSnap({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPhysicalLearnMore, setShowPhysicalLearnMore] = useState(false);
 
-  const canEdit = !isCoachView || (isCoachView && session?.user?.role === 'coach');
+  const canEdit = !isCoachView || (isCoachView && (session as Session | null)?.user?.role === 'COACH');
 
   // Refresh function to reload skill data
   const handleRefresh = async () => {
