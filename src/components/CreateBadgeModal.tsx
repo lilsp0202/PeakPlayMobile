@@ -225,7 +225,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-gray-900"
                     placeholder="Enter badge name"
                     required
                   />
@@ -240,7 +240,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
                     name="level"
                     value={formData.level}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-gray-900"
                   >
                     <option value="BRONZE">Bronze</option>
                     <option value="SILVER">Silver</option>
