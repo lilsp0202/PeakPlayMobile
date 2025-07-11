@@ -219,7 +219,7 @@ const CustomDot = (props: any) => {
   );
 };
 
-// Enhanced Expanded Modal with multiple visualization types
+// Enhanced Expanded Modal with mobile-friendly design
 const ExpandedGraphModal = ({ isOpen, onClose, metric, data, athleteName }: any) => {
   const [viewType, setViewType] = useState<'line' | 'area' | 'bar'>('area');
   
@@ -235,7 +235,7 @@ const ExpandedGraphModal = ({ isOpen, onClose, metric, data, athleteName }: any)
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       >
         <motion.div
@@ -243,37 +243,37 @@ const ExpandedGraphModal = ({ isOpen, onClose, metric, data, athleteName }: any)
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: "spring", damping: 20 }}
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden"
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden mx-4 my-4"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Modal Header */}
-          <div className={`p-6 bg-gradient-to-r ${metric.gradient} text-white`}>
+          {/* Modal Header - Mobile Optimized */}
+          <div className={`p-4 sm:p-6 bg-gradient-to-r ${metric.gradient} text-white`}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                 <motion.div 
-                  className="p-3 bg-white/20 backdrop-blur-md rounded-xl"
+                  className="p-2 sm:p-3 bg-white/20 backdrop-blur-md rounded-xl flex-shrink-0"
                   whileHover={{ scale: 1.1, rotate: 360 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <metric.icon className="w-6 h-6 text-white" />
+                  <metric.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </motion.div>
-                <div>
-                  <h2 className="text-2xl font-bold">{metric.label} Performance Analysis</h2>
-                  <p className="text-white/80 mt-1">{athleteName} • {metric.description}</p>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-lg sm:text-2xl font-bold truncate">{metric.label} Analysis</h2>
+                  <p className="text-white/80 text-sm sm:text-base truncate">{athleteName} • {metric.description}</p>
                 </div>
               </div>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className="p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors"
+                className="p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors flex-shrink-0"
               >
                 <FiX className="w-5 h-5" />
               </motion.button>
             </div>
 
-            {/* View Type Selector */}
-            <div className="flex gap-2 mt-4">
+            {/* View Type Selector - Mobile Optimized */}
+            <div className="flex gap-2 mt-4 overflow-x-auto">
               {[
                 { type: 'area', icon: FiBarChart2, label: 'Area' },
                 { type: 'line', icon: BiLineChart, label: 'Line' },
@@ -284,7 +284,7 @@ const ExpandedGraphModal = ({ isOpen, onClose, metric, data, athleteName }: any)
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setViewType(view.type as any)}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all whitespace-nowrap ${
                     viewType === view.type 
                       ? 'bg-white text-gray-800 shadow-lg' 
                       : 'bg-white/20 text-white hover:bg-white/30'
@@ -297,8 +297,8 @@ const ExpandedGraphModal = ({ isOpen, onClose, metric, data, athleteName }: any)
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-4 gap-4 p-6 bg-gray-50">
+          {/* Stats Cards - Mobile Responsive Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6 bg-gray-50">
             {[
               { label: 'Average', value: averageScore.toFixed(1), icon: FiActivity },
               { label: 'Maximum', value: maxScore.toFixed(1), icon: FiTrendingUp },
@@ -310,25 +310,25 @@ const ExpandedGraphModal = ({ isOpen, onClose, metric, data, athleteName }: any)
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl p-4 shadow-sm"
+                className="bg-white rounded-xl p-3 sm:p-4 shadow-sm"
               >
                 <div className="flex items-center gap-2 mb-1">
                   <stat.icon className={`w-4 h-4 ${metric.textColor}`} />
                   <span className="text-xs text-gray-600">{stat.label}</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-800">
+                <p className="text-lg sm:text-2xl font-bold text-gray-800">
                   {stat.value}{stat.label !== 'Data Points' ? '%' : ''}
                 </p>
               </motion.div>
             ))}
           </div>
 
-          {/* Modal Body with Chart */}
-          <div className="p-6 overflow-y-auto bg-white">
-            <div className="h-[400px]">
+          {/* Modal Body with Chart - Mobile Optimized */}
+          <div className="p-4 sm:p-6 overflow-y-auto bg-white">
+            <div className="h-[300px] sm:h-[400px] md:h-[500px]">
               <ResponsiveContainer width="100%" height="100%">
                 {viewType === 'area' ? (
-                  <AreaChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                  <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                     <defs>
                       <linearGradient id={`gradient-modal-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={metric.color} stopOpacity={0.4} />
@@ -338,20 +338,22 @@ const ExpandedGraphModal = ({ isOpen, onClose, metric, data, athleteName }: any)
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis 
                       dataKey="date" 
-                      tick={{ fontSize: 12 }}
+                      tick={{ fontSize: 11 }}
                       tickFormatter={(value) => format(parseISO(value), 'MMM d')}
+                      interval="preserveStartEnd"
                     />
                     <YAxis 
                       domain={[0, 100]} 
                       ticks={[0, 25, 50, 75, 100]}
-                      tick={{ fontSize: 12 }}
+                      tick={{ fontSize: 11 }}
+                      width={35}
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Area 
                       type="monotone" 
                       dataKey={`${metric.key}Score`} 
                       stroke={metric.color} 
-                      strokeWidth={3}
+                      strokeWidth={2}
                       fill={`url(#gradient-modal-${metric.key})`}
                       dot={<CustomDot />}
                     />
@@ -359,42 +361,46 @@ const ExpandedGraphModal = ({ isOpen, onClose, metric, data, athleteName }: any)
                     <ReferenceLine y={averageScore} stroke="#6366f1" strokeDasharray="3 3" />
                   </AreaChart>
                 ) : viewType === 'line' ? (
-                  <LineChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                  <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis 
                       dataKey="date" 
-                      tick={{ fontSize: 12 }}
+                      tick={{ fontSize: 11 }}
                       tickFormatter={(value) => format(parseISO(value), 'MMM d')}
+                      interval="preserveStartEnd"
                     />
                     <YAxis 
                       domain={[0, 100]} 
-                      tick={{ fontSize: 12 }}
+                      tick={{ fontSize: 11 }}
+                      width={35}
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Line 
                       type="monotone" 
                       dataKey={`${metric.key}Score`} 
                       stroke={metric.color} 
-                      strokeWidth={3}
-                      dot={{ fill: metric.color, strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6 }}
+                      strokeWidth={2}
+                      dot={{ fill: metric.color, strokeWidth: 2, r: 3 }}
+                      activeDot={{ r: 5 }}
                     />
                     <ReferenceLine y={75} stroke="#10b981" strokeDasharray="5 5" />
                   </LineChart>
                 ) : (
-                  <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                  <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis 
                       dataKey="date" 
-                      tick={{ fontSize: 12 }}
+                      tick={{ fontSize: 11 }}
                       tickFormatter={(value) => format(parseISO(value), 'MMM d')}
+                      interval="preserveStartEnd"
                     />
                     <YAxis 
                       domain={[0, 100]} 
-                      tick={{ fontSize: 12 }}
+                      tick={{ fontSize: 11 }}
+                      width={35}
                     />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey={`${metric.key}Score`} fill={metric.color} radius={[8, 8, 0, 0]}>
+                    <Bar dataKey={`${metric.key}Score`} fill={metric.color} radius={[4, 4, 0, 0]}>
                       {data.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={metric.color} />
                       ))}
@@ -978,11 +984,11 @@ const AthleteProgressTracker: React.FC<AthleteProgressTrackerProps> = ({ athlete
                     </div>
                   </div>
 
-              {/* Chart Container */}
-              <div className="h-[400px] sm:h-[500px]">
+              {/* Chart Container - Mobile Optimized */}
+              <div className="h-[350px] sm:h-[400px] md:h-[500px]">
                     <ResponsiveContainer width="100%" height="100%">
                   {selectedVisualization === 'overview' ? (
-                    <ComposedChart data={skillHistory} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                    <ComposedChart data={skillHistory} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
                       <defs>
                         {metricConfig.map(metric => (
                           <linearGradient key={metric.key} id={`gradient-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
@@ -994,19 +1000,21 @@ const AthleteProgressTracker: React.FC<AthleteProgressTrackerProps> = ({ athlete
                       <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                         <XAxis 
                           dataKey="date" 
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        tick={{ fontSize: 11, fill: '#6b7280' }}
                         tickFormatter={(value) => format(parseISO(value), 'MMM d')}
+                        interval="preserveStartEnd"
                         />
                         <YAxis 
                           domain={[0, 100]}
                         ticks={[0, 25, 50, 75, 100]}
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        tick={{ fontSize: 11, fill: '#6b7280' }}
+                        width={35}
                         />
                         <Tooltip content={<CustomTooltip />} />
                         <Legend 
-                        wrapperStyle={{ paddingTop: 20 }}
+                        wrapperStyle={{ paddingTop: 10 }}
                         iconType="circle"
-                      />
+                        />
                       {metricConfig.map((metric) => (
                         <Area
                           key={metric.key}
@@ -1021,21 +1029,23 @@ const AthleteProgressTracker: React.FC<AthleteProgressTrackerProps> = ({ athlete
                         ))}
                     </ComposedChart>
                   ) : selectedVisualization === 'comparison' ? (
-                    <LineChart data={skillHistory} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                    <LineChart data={skillHistory} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                       <XAxis 
                         dataKey="date" 
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        tick={{ fontSize: 11, fill: '#6b7280' }}
                         tickFormatter={(value) => format(parseISO(value), 'MMM d')}
+                        interval="preserveStartEnd"
                       />
                       <YAxis 
                         domain={[0, 100]} 
                         ticks={[0, 25, 50, 75, 100]}
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        tick={{ fontSize: 11, fill: '#6b7280' }}
+                        width={35}
                       />
                       <Tooltip content={<CustomTooltip />} />
                       <Legend 
-                        wrapperStyle={{ paddingTop: 20 }}
+                        wrapperStyle={{ paddingTop: 10 }}
                         iconType="line"
                       />
                       {metricConfig.map((metric) => (
@@ -1045,19 +1055,19 @@ const AthleteProgressTracker: React.FC<AthleteProgressTrackerProps> = ({ athlete
                           dataKey={`${metric.key}Score`}
                           name={metric.label}
                               stroke={metric.color}
-                              strokeWidth={3}
+                              strokeWidth={2}
                           dot={false}
-                          activeDot={{ r: 6 }}
+                          activeDot={{ r: 5 }}
                         />
                       ))}
                       <ReferenceLine y={75} stroke="#10b981" strokeDasharray="5 5" label="Target" />
                       </LineChart>
                   ) : (
-                    <RadarChart data={radarData} margin={{ top: 20, right: 50, bottom: 20, left: 50 }}>
+                    <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
                       <PolarGrid stroke="#e5e7eb" />
                       <PolarAngleAxis 
                         dataKey="metric" 
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        tick={{ fontSize: 11, fill: '#6b7280' }}
                       />
                       <PolarRadiusAxis 
                         domain={[0, 100]}

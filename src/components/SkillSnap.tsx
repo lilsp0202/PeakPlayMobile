@@ -475,7 +475,7 @@ const skillCategories: SkillCategory[] = [
 // Helper function to calculate aggregate scores for each category (returns 0-100 to match PeakScore)
 const calculatePhysicalAggregateScore = (skillData: SkillData | null): number => {
   if (!skillData) return 0;
-  
+
   let totalScore = 0;
   let maxPossibleScore = 0;
   
@@ -622,21 +622,21 @@ const calculateNutritionAggregateScore = (skillData: SkillData | null): number =
   } else {
     // Generic scoring when no personalized data available
     // Calories (25 points max)
-    if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
+  if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
       const calorieScore = Math.min(10, Math.max(0, ((skillData.totalCalories - 1000) / (4000 - 1000)) * 10));
       totalScore += calorieScore * 2.5; // Scale to 25 points
       maxPossibleScore += 25;
-    }
-    
+  }
+  
     // Protein (25 points max)
-    if (skillData.protein !== undefined && skillData.protein !== null) {
+  if (skillData.protein !== undefined && skillData.protein !== null) {
       const proteinScore = Math.min(10, Math.max(0, ((skillData.protein - 20) / (200 - 20)) * 10));
       totalScore += proteinScore * 2.5; // Scale to 25 points
       maxPossibleScore += 25;
-    }
-    
+  }
+  
     // Carbohydrates (25 points max)
-    if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
+  if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
       const carbScore = Math.min(10, Math.max(0, ((skillData.carbohydrates - 50) / (500 - 50)) * 10));
       totalScore += carbScore * 2.5; // Scale to 25 points
       maxPossibleScore += 25;
@@ -2620,12 +2620,12 @@ export default function SkillSnap({
                         </>
                       ) : canEdit ? (
                         <>
-                          <button
-                            onClick={() => handleStartEdit(selectedCategory.id)}
-                            className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl"
-                          >
-                            <FiEdit className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
-                            Edit All Skills
+                        <button
+                          onClick={() => handleStartEdit(selectedCategory.id)}
+                          className="flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl"
+                        >
+                          <FiEdit className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
+                          Edit All Skills
                           </button>
                           {/* Learn More Button for Physical Category */}
                           {selectedCategory.id === "PHYSICAL" && (
@@ -2637,7 +2637,7 @@ export default function SkillSnap({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                               Learn More
-                            </button>
+                        </button>
                           )}
                         </>
                       ) : (
@@ -2959,7 +2959,7 @@ export default function SkillSnap({
                         <p className="text-sm font-medium text-purple-800">Let's get better, one step at a time!</p>
                       </div>
                     </div>
-                  </div>
+              </div>
                 </div>
               </div>
             </div>

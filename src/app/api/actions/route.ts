@@ -55,10 +55,15 @@ export async function GET(request: Request) {
       }
 
       // Only get actions from assigned coach
+      // If student has no coach, return empty array immediately
+      if (!student.coachId) {
+        return NextResponse.json([], { status: 200 });
+      }
+
       const actions = await prisma.action.findMany({
         where: { 
           studentId: student.id,
-          coachId: student.coachId || undefined,
+          coachId: student.coachId,
         },
         include: {
           coach: {

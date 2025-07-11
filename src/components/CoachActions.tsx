@@ -44,12 +44,17 @@ export default function CoachActions({ studentId, isCoachView = false }: CoachAc
     try {
       setLoading(true);
       
+      // Use a shorter timeout for better UX
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
       const url = studentId ? `/api/actions?studentId=${studentId}` : '/api/actions';
+      
       const response = await fetch(url, {
-        signal: controller.signal
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       
       clearTimeout(timeoutId);
@@ -58,16 +63,25 @@ export default function CoachActions({ studentId, isCoachView = false }: CoachAc
         const data = await response.json();
         setActions(data);
       } else if (response.status === 404) {
+        // Student profile not found - this is ok, just show no actions
+        setActions([]);
+      } else if (response.status === 401) {
+        // Unauthorized - user might need to log in again
+        console.error("Unauthorized access to actions");
         setActions([]);
       } else {
         console.error("Failed to fetch actions:", response.status);
+        setActions([]);
       }
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') {
-        console.error("Actions request timeout");
+        console.log("Actions request timeout - showing empty state");
+        // Don't show error for timeout, just show empty state
+        setActions([]);
       } else {
         console.error("Error fetching actions:", error);
-        setError(error instanceof Error ? error.message : 'Unknown error');
+        // Don't set error state, just show empty actions
+        setActions([]);
       }
     } finally {
       setLoading(false);
