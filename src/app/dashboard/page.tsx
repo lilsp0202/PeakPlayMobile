@@ -646,7 +646,7 @@ export default function Dashboard() {
                   <p className="text-sm text-gray-600 mt-1">Latest insights from your coaches</p>
                 </div>
               </div>
-              <CoachFeedback />
+              <CoachFeedback studentId={profileData?.id} />
             </motion.div>
           </div>
         );
@@ -748,7 +748,7 @@ export default function Dashboard() {
                       </motion.div>
                       Feedback & Actions
                     </h2>
-                    <FeedbackActions />
+                    <FeedbackActions studentId={profileData?.id} />
                   </div>
                 </motion.div>
               );
