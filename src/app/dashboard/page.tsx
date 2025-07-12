@@ -3,7 +3,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw } from "react-icons/fi";
+import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw, FiEye } from "react-icons/fi";
 import { Check } from "lucide-react";
 import dynamic from 'next/dynamic';
 import PeakPlayLogo from "@/components/PeakPlayLogo";
@@ -178,11 +178,23 @@ export default function Dashboard() {
   const [smartNotificationsOpen, setSmartNotificationsOpen] = useState(false);
   const [expandedStudents, setExpandedStudents] = useState<string[]>([]);
   const [showAllStudents, setShowAllStudents] = useState(false);
-  const [studentsSubTab, setStudentsSubTab] = useState<'assigned' | 'available'>('assigned');
+  const [studentsSubTab, setStudentsSubTab] = useState<'assigned' | 'available' | 'track'>('assigned');
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [progressModalOpen, setProgressModalOpen] = useState(false);
   const [selectedStudentForProgress, setSelectedStudentForProgress] = useState<any>(null);
   const [isRefreshingSkills, setIsRefreshingSkills] = useState(false);
+
+  // Track tab state variables
+  const [trackViewType, setTrackViewType] = useState<'feedback' | 'actions'>('feedback');
+  const [trackData, setTrackData] = useState<any[]>([]);
+  const [isLoadingTrackData, setIsLoadingTrackData] = useState(false);
+  const [trackFilters, setTrackFilters] = useState({
+    student: 'all',
+    category: 'all',
+    priority: 'all',
+    dateRange: 'week',
+    status: 'all'
+  });
 
   useEffect(() => {
     console.log('🔍 Dashboard useEffect - Status:', status, 'Session exists:', !!session);
@@ -459,6 +471,112 @@ export default function Dashboard() {
   const isStudentExpanded = (studentId: string) => {
     return expandedStudents.includes(studentId);
   };
+
+  // Track tab helper functions
+  const fetchTrackData = async () => {
+    if (!assignedStudents || assignedStudents.length === 0) {
+      setTrackData([]);
+      return;
+    }
+
+    setIsLoadingTrackData(true);
+    try {
+      const trackResults = [];
+      
+      for (const student of assignedStudents) {
+        const endpoint = trackViewType === 'feedback' 
+          ? `/api/feedback?studentId=${student.id}`
+          : `/api/actions?studentId=${student.id}`;
+        
+        const response = await fetch(endpoint);
+        if (response.ok) {
+          const data = await response.json();
+          const enrichedData = data.map((item: any) => ({
+            ...item,
+            studentName: student.studentName || student.name,
+            studentId: student.id
+          }));
+          trackResults.push(...enrichedData);
+        }
+      }
+      
+      // Apply filters
+      const filteredData = applyTrackFilters(trackResults);
+      setTrackData(filteredData);
+    } catch (error) {
+      console.error('Error fetching track data:', error);
+      setTrackData([]);
+    } finally {
+      setIsLoadingTrackData(false);
+    }
+  };
+
+  const applyTrackFilters = (data: any[]) => {
+    let filtered = [...data];
+
+    // Filter by student
+    if (trackFilters.student !== 'all') {
+      filtered = filtered.filter(item => item.studentId === trackFilters.student);
+    }
+
+    // Filter by category
+    if (trackFilters.category !== 'all') {
+      filtered = filtered.filter(item => item.category === trackFilters.category);
+    }
+
+    // Filter by priority
+    if (trackFilters.priority !== 'all') {
+      filtered = filtered.filter(item => item.priority === trackFilters.priority);
+    }
+
+    // Filter by date range
+    const now = new Date();
+    const dateFilterMap = {
+      'today': 1,
+      'week': 7,
+      'month': 30,
+      'quarter': 90,
+      'all': null
+    };
+    
+    const daysBack = dateFilterMap[trackFilters.dateRange as keyof typeof dateFilterMap];
+    if (daysBack) {
+      const cutoffDate = new Date(now.getTime() - (daysBack * 24 * 60 * 60 * 1000));
+      filtered = filtered.filter(item => new Date(item.createdAt) >= cutoffDate);
+    }
+
+    // Filter by status (for actions)
+    if (trackViewType === 'actions' && trackFilters.status !== 'all') {
+      if (trackFilters.status === 'completed') {
+        filtered = filtered.filter(item => item.isCompleted);
+      } else if (trackFilters.status === 'pending') {
+        filtered = filtered.filter(item => !item.isCompleted);
+      } else if (trackFilters.status === 'acknowledged') {
+        filtered = filtered.filter(item => item.isAcknowledged);
+      }
+    }
+
+    // Filter by status (for feedback)
+    if (trackViewType === 'feedback' && trackFilters.status !== 'all') {
+      if (trackFilters.status === 'read') {
+        filtered = filtered.filter(item => item.isRead);
+      } else if (trackFilters.status === 'unread') {
+        filtered = filtered.filter(item => !item.isRead);
+      }
+    }
+
+    // Sort by creation date (newest first)
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return filtered;
+  };
+
+  // Fetch track data when view type or filters change
+  useEffect(() => {
+    if (studentsSubTab === 'track' && assignedStudents.length > 0) {
+      fetchTrackData();
+    }
+  }, [trackViewType, trackFilters, assignedStudents, studentsSubTab]);
 
   const athleteTabs = [
     { id: 'skillsnap', label: 'SkillSnap', icon: <FiActivity className="w-5 h-5" /> },
@@ -1383,6 +1501,29 @@ export default function Dashboard() {
                     </span>
                   )}
                 </motion.button>
+
+                <motion.button
+                  onClick={() => setStudentsSubTab('track')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex-1 flex items-center justify-center px-4 py-3 sm:py-2 rounded-md font-medium text-sm transition-all duration-200 ${
+                    studentsSubTab === 'track'
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                      : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
+                  }`}
+                >
+                  <FiEye className="w-4 h-4 mr-2" />
+                  <span>Track</span>
+                  {trackData && trackData.length > 0 && (
+                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                      studentsSubTab === 'track' 
+                        ? 'bg-white/20 text-white' 
+                        : 'bg-purple-100 text-purple-600'
+                    }`}>
+                      {trackData.length}
+                    </span>
+                  )}
+                </motion.button>
               </div>
             </motion.div>
             
@@ -1764,6 +1905,278 @@ export default function Dashboard() {
                   )}
                 </>
                 )}
+                </motion.div>
+              )}
+
+              {studentsSubTab === 'track' && (
+                <motion.div 
+                  key="track"
+                  className="card-modern p-4 sm:p-6"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {/* Track Header */}
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-3 sm:space-y-0">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-2">
+                        <FiEye className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800">Track Feedback & Actions</h3>
+                        <p className="text-xs text-gray-600 sm:hidden">Monitor your provided feedback and actions</p>
+                      </div>
+                    </div>
+                    
+                    {/* Refresh Button */}
+                    <motion.button
+                      onClick={fetchTrackData}
+                      disabled={isLoadingTrackData}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      <motion.div
+                        animate={{ rotate: isLoadingTrackData ? 360 : 0 }}
+                        transition={{ duration: 1, repeat: isLoadingTrackData ? Infinity : 0 }}
+                      >
+                        <FiRefreshCw className="w-4 h-4" />
+                      </motion.div>
+                      <span>Refresh</span>
+                    </motion.button>
+                  </div>
+
+                  {/* Toggle between Feedback and Actions */}
+                  <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+                    <motion.button
+                      onClick={() => setTrackViewType('feedback')}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex-1 flex items-center justify-center px-4 py-3 sm:py-2 rounded-md font-medium text-sm transition-all duration-200 ${
+                        trackViewType === 'feedback'
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                          : 'text-gray-600 hover:text-blue-600 hover:bg-white/50'
+                      }`}
+                    >
+                      <FiMessageSquare className="w-4 h-4 mr-2" />
+                      <span>Feedback</span>
+                    </motion.button>
+                    
+                    <motion.button
+                      onClick={() => setTrackViewType('actions')}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex-1 flex items-center justify-center px-4 py-3 sm:py-2 rounded-md font-medium text-sm transition-all duration-200 ${
+                        trackViewType === 'actions'
+                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md'
+                          : 'text-gray-600 hover:text-green-600 hover:bg-white/50'
+                      }`}
+                    >
+                      <FiCheckSquare className="w-4 h-4 mr-2" />
+                      <span>Actions</span>
+                    </motion.button>
+                  </div>
+
+                  {/* Filters */}
+                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div className="flex flex-wrap gap-4">
+                      {/* Student Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Student</label>
+                        <select
+                          value={trackFilters.student}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, student: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="all">All Students</option>
+                          {assignedStudents?.map(student => (
+                            <option key={student.id} value={student.id}>
+                              {student.studentName || student.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Category Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+                        <select
+                          value={trackFilters.category}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, category: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="all">All Categories</option>
+                          <option value="GENERAL">General</option>
+                          <option value="TECHNICAL">Technical</option>
+                          <option value="PHYSICAL">Physical</option>
+                          <option value="MENTAL">Mental</option>
+                          <option value="TACTICAL">Tactical</option>
+                        </select>
+                      </div>
+
+                      {/* Priority Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
+                        <select
+                          value={trackFilters.priority}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, priority: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="all">All Priorities</option>
+                          <option value="LOW">Low</option>
+                          <option value="MEDIUM">Medium</option>
+                          <option value="HIGH">High</option>
+                        </select>
+                      </div>
+
+                      {/* Date Range Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Time Period</label>
+                        <select
+                          value={trackFilters.dateRange}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, dateRange: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="today">Today</option>
+                          <option value="week">This Week</option>
+                          <option value="month">This Month</option>
+                          <option value="quarter">This Quarter</option>
+                          <option value="all">All Time</option>
+                        </select>
+                      </div>
+
+                      {/* Status Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                        <select
+                          value={trackFilters.status}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, status: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="all">All Status</option>
+                          {trackViewType === 'feedback' ? (
+                            <>
+                              <option value="read">Read</option>
+                              <option value="unread">Unread</option>
+                            </>
+                          ) : (
+                            <>
+                              <option value="completed">Completed</option>
+                              <option value="pending">Pending</option>
+                              <option value="acknowledged">Acknowledged</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Track Data Display */}
+                  {isLoadingTrackData ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-center">
+                        <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading {trackViewType}...</p>
+                      </div>
+                    </div>
+                  ) : trackData.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        {trackViewType === 'feedback' ? (
+                          <FiMessageSquare className="w-8 h-8 text-gray-400" />
+                        ) : (
+                          <FiCheckSquare className="w-8 h-8 text-gray-400" />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-700 mb-2">
+                        No {trackViewType} found
+                      </h3>
+                      <p className="text-gray-500">
+                        {trackViewType === 'feedback' 
+                          ? 'You haven\'t provided any feedback yet.'
+                          : 'You haven\'t created any actions yet.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {trackData.map((item, index) => (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <h4 className="font-semibold text-gray-900">
+                                  {item.title}
+                                </h4>
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  item.priority === 'HIGH' 
+                                    ? 'bg-red-100 text-red-700' 
+                                    : item.priority === 'MEDIUM'
+                                    ? 'bg-yellow-100 text-yellow-700'
+                                    : 'bg-green-100 text-green-700'
+                                }`}>
+                                  {item.priority}
+                                </span>
+                                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">
+                                  {item.category}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600 mb-2">
+                                <strong>For:</strong> {item.studentName}
+                              </p>
+                              <p className="text-sm text-gray-800 mb-2">
+                                {trackViewType === 'feedback' ? item.content : item.description}
+                              </p>
+                            </div>
+                            <div className="flex flex-col sm:items-end space-y-1">
+                              <span className="text-xs text-gray-500">
+                                {new Date(item.createdAt).toLocaleDateString()}
+                              </span>
+                              {trackViewType === 'feedback' ? (
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  item.isRead 
+                                    ? 'bg-green-100 text-green-700' 
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {item.isRead ? 'Read' : 'Unread'}
+                                </span>
+                              ) : (
+                                <div className="flex flex-col space-y-1">
+                                  <span className={`px-2 py-1 text-xs rounded-full ${
+                                    item.isCompleted 
+                                      ? 'bg-green-100 text-green-700' 
+                                      : 'bg-yellow-100 text-yellow-700'
+                                  }`}>
+                                    {item.isCompleted ? 'Completed' : 'Pending'}
+                                  </span>
+                                  {item.isAcknowledged && (
+                                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+                                      Acknowledged
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Additional info for actions */}
+                          {trackViewType === 'actions' && item.dueDate && (
+                            <div className="mt-2 pt-2 border-t border-gray-100">
+                              <p className="text-xs text-gray-600">
+                                <strong>Due:</strong> {new Date(item.dueDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
