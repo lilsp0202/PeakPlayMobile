@@ -2206,7 +2206,7 @@ export default function Dashboard() {
       )}
 
       {/* Athlete SkillSnap Modal */}
-              {(session as unknown as Session)?.user?.role === 'ATHLETE' && isSkillSnapModalOpen && (
+      {(session as unknown as Session)?.user?.role === 'ATHLETE' && isSkillSnapModalOpen && (
         <Portal>
           <div 
             className="fixed inset-0 z-[999999] overflow-hidden"
