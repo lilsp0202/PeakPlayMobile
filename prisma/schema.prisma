@@ -78,6 +78,7 @@ model Student {
   skillHistory       SkillHistory[]
   skills             Skills?
   smartNotifications SmartNotification[]
+  teamMemberships    TeamMember[]
   coach              Coach?               @relation(fields: [coachId], references: [id])
   user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   badges             StudentBadge[]
@@ -100,6 +101,7 @@ model Coach {
   sessionTodos            SessionTodo[]
   smartNotifications      SmartNotification[]
   students                Student[]
+  teams                   Team[]
 }
 
 model Skills {
@@ -221,18 +223,22 @@ model MatchPerformance {
 }
 
 model Feedback {
-  id        String   @id @default(cuid())
-  studentId String
-  coachId   String
-  title     String
-  content   String
-  category  String   @default("GENERAL")
-  priority  String   @default("MEDIUM")
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  coach     Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id             String    @id @default(cuid())
+  studentId      String
+  coachId        String
+  title          String
+  content        String
+  category       String    @default("GENERAL")
+  priority       String    @default("MEDIUM")
+  isRead         Boolean   @default(false)
+  isAcknowledged Boolean   @default(false)
+  acknowledgedAt DateTime?
+  teamId         String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  coach          Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  student        Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  team           Team?     @relation(fields: [teamId], references: [id], onDelete: SetNull)
 }
 
 model Action {
@@ -249,10 +255,12 @@ model Action {
   isAcknowledged Boolean   @default(false)
   acknowledgedAt DateTime?
   notes          String?
+  teamId         String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   coach          Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
   student        Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  team           Team?     @relation(fields: [teamId], references: [id], onDelete: SetNull)
 }
 
 model BadgeCategory {
@@ -471,4 +479,32 @@ model SmartNotification {
 
   @@index([coachId, createdAt])
   @@index([coachId, isRead])
+}
+
+model Team {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  coachId     String
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  coach       Coach        @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  members     TeamMember[]
+  feedback    Feedback[]
+  actions     Action[]
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  studentId String
+  role      String   @default("MEMBER")
+  joinedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, studentId])
 }

@@ -3,7 +3,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw, FiEye } from "react-icons/fi";
+import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw, FiEye, FiPlus } from "react-icons/fi";
 import { Check } from "lucide-react";
 import dynamic from 'next/dynamic';
 import PeakPlayLogo from "@/components/PeakPlayLogo";
@@ -185,7 +185,7 @@ export default function Dashboard() {
   const [isRefreshingSkills, setIsRefreshingSkills] = useState(false);
 
   // Track tab state variables
-  const [trackViewType, setTrackViewType] = useState<'feedback' | 'actions'>('feedback');
+  const [trackViewType, setTrackViewType] = useState<'feedback' | 'actions' | 'teams'>('feedback');
   const [trackData, setTrackData] = useState<any[]>([]);
   const [isLoadingTrackData, setIsLoadingTrackData] = useState(false);
   const [trackFilters, setTrackFilters] = useState({
@@ -194,6 +194,17 @@ export default function Dashboard() {
     priority: 'all',
     dateRange: 'week',
     status: 'all'
+  });
+
+  // Teams state variables
+  const [teams, setTeams] = useState<any[]>([]);
+  const [isLoadingTeams, setIsLoadingTeams] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<any>(null);
+  const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState(false);
+  const [teamFormData, setTeamFormData] = useState({
+    name: '',
+    description: '',
+    memberIds: [] as string[]
   });
 
   useEffect(() => {
@@ -574,9 +585,70 @@ export default function Dashboard() {
   // Fetch track data when view type or filters change
   useEffect(() => {
     if (studentsSubTab === 'track' && assignedStudents.length > 0) {
-      fetchTrackData();
+      if (trackViewType === 'teams') {
+        fetchTeams();
+      } else {
+        fetchTrackData();
+      }
     }
   }, [trackViewType, trackFilters, assignedStudents, studentsSubTab]);
+
+  // Team helper functions
+  const fetchTeams = async () => {
+    setIsLoadingTeams(true);
+    try {
+      const response = await fetch('/api/teams?includeMembers=true&includeStats=true');
+      if (response.ok) {
+        const data = await response.json();
+        setTeams(data.teams || []);
+      }
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      setTeams([]);
+    } finally {
+      setIsLoadingTeams(false);
+    }
+  };
+
+  const handleCreateTeam = async () => {
+    try {
+      const response = await fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(teamFormData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setTeams(prev => [result.team, ...prev]);
+        setIsCreateTeamModalOpen(false);
+        setTeamFormData({ name: '', description: '', memberIds: [] });
+      }
+    } catch (error) {
+      console.error('Error creating team:', error);
+    }
+  };
+
+  const handleTeamSelect = async (teamId: string) => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedTeam(data.team);
+      }
+    } catch (error) {
+      console.error('Error fetching team details:', error);
+    }
+  };
+
+  const handleTeamMemberToggle = (studentId: string) => {
+    setTeamFormData(prev => ({
+      ...prev,
+      memberIds: prev.memberIds.includes(studentId)
+        ? prev.memberIds.filter(id => id !== studentId)
+        : [...prev, studentId]
+    }));
+  };
 
   const athleteTabs = [
     { id: 'skillsnap', label: 'SkillSnap', icon: <FiActivity className="w-5 h-5" /> },
@@ -1937,7 +2009,7 @@ export default function Dashboard() {
                     </motion.button>
                   </div>
 
-                  {/* Toggle between Feedback and Actions */}
+                  {/* Toggle between Feedback, Actions, and Teams */}
                   <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
                     <motion.button
                       onClick={() => setTrackViewType('feedback')}
@@ -1966,602 +2038,143 @@ export default function Dashboard() {
                       <FiCheckSquare className="w-4 h-4 mr-2" />
                       <span>Actions</span>
                     </motion.button>
+
+                    <motion.button
+                      onClick={() => setTrackViewType('teams')}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex-1 flex items-center justify-center px-4 py-3 sm:py-2 rounded-md font-medium text-sm transition-all duration-200 ${
+                        trackViewType === 'teams'
+                          ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
+                          : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
+                      }`}
+                    >
+                      <FiUsers className="w-4 h-4 mr-2" />
+                      <span>Teams</span>
+                      {teams.length > 0 && (
+                        <span className="ml-2 bg-white bg-opacity-30 px-2 py-1 rounded-full text-xs">
+                          {teams.length}
+                        </span>
+                      )}
+                    </motion.button>
                   </div>
 
-                  {/* Filters */}
-                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                    <div className="flex flex-wrap gap-4">
-                      {/* Student Filter */}
-                      <div className="flex-1 min-w-[120px]">
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Student</label>
-                        <select
-                          value={trackFilters.student}
-                          onChange={(e) => setTrackFilters(prev => ({ ...prev, student: e.target.value }))}
-                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  {/* Teams Content */}
+                  {trackViewType === 'teams' && (
+                    <div className="space-y-6">
+                      {/* Teams Header with Create Button */}
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-900">Your Teams</h4>
+                          <p className="text-sm text-gray-600">Create and manage athlete teams for group feedback and actions</p>
+                        </div>
+                        <motion.button
+                          onClick={() => setIsCreateTeamModalOpen(true)}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-md flex items-center gap-2"
                         >
-                          <option value="all">All Students</option>
-                          {assignedStudents?.map(student => (
-                            <option key={student.id} value={student.id}>
-                              {student.studentName || student.name}
-                            </option>
-                          ))}
-                        </select>
+                          <FiPlus className="w-4 h-4" />
+                          <span>Create Team</span>
+                        </motion.button>
                       </div>
 
-                      {/* Category Filter */}
-                      <div className="flex-1 min-w-[120px]">
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
-                        <select
-                          value={trackFilters.category}
-                          onChange={(e) => setTrackFilters(prev => ({ ...prev, category: e.target.value }))}
-                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                          <option value="all">All Categories</option>
-                          <option value="GENERAL">General</option>
-                          <option value="TECHNICAL">Technical</option>
-                          <option value="PHYSICAL">Physical</option>
-                          <option value="MENTAL">Mental</option>
-                          <option value="TACTICAL">Tactical</option>
-                        </select>
-                      </div>
-
-                      {/* Priority Filter */}
-                      <div className="flex-1 min-w-[120px]">
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
-                        <select
-                          value={trackFilters.priority}
-                          onChange={(e) => setTrackFilters(prev => ({ ...prev, priority: e.target.value }))}
-                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                          <option value="all">All Priorities</option>
-                          <option value="LOW">Low</option>
-                          <option value="MEDIUM">Medium</option>
-                          <option value="HIGH">High</option>
-                        </select>
-                      </div>
-
-                      {/* Date Range Filter */}
-                      <div className="flex-1 min-w-[120px]">
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Time Period</label>
-                        <select
-                          value={trackFilters.dateRange}
-                          onChange={(e) => setTrackFilters(prev => ({ ...prev, dateRange: e.target.value }))}
-                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                          <option value="today">Today</option>
-                          <option value="week">This Week</option>
-                          <option value="month">This Month</option>
-                          <option value="quarter">This Quarter</option>
-                          <option value="all">All Time</option>
-                        </select>
-                      </div>
-
-                      {/* Status Filter */}
-                      <div className="flex-1 min-w-[120px]">
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
-                        <select
-                          value={trackFilters.status}
-                          onChange={(e) => setTrackFilters(prev => ({ ...prev, status: e.target.value }))}
-                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                          <option value="all">All Status</option>
-                          {trackViewType === 'feedback' ? (
-                            <>
-                              <option value="read">Read</option>
-                              <option value="unread">Unread</option>
-                            </>
-                          ) : (
-                            <>
-                              <option value="completed">Completed</option>
-                              <option value="pending">Pending</option>
-                              <option value="acknowledged">Acknowledged</option>
-                            </>
-                          )}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Track Data Display */}
-                  {isLoadingTrackData ? (
-                    <div className="flex items-center justify-center py-12">
-                      <div className="text-center">
-                        <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <p className="text-gray-600">Loading {trackViewType}...</p>
-                      </div>
-                    </div>
-                  ) : trackData.length === 0 ? (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        {trackViewType === 'feedback' ? (
-                          <FiMessageSquare className="w-8 h-8 text-gray-400" />
-                        ) : (
-                          <FiCheckSquare className="w-8 h-8 text-gray-400" />
-                        )}
-                      </div>
-                      <h3 className="text-lg font-medium text-gray-700 mb-2">
-                        No {trackViewType} found
-                      </h3>
-                      <p className="text-gray-500">
-                        {trackViewType === 'feedback' 
-                          ? 'You haven\'t provided any feedback yet.'
-                          : 'You haven\'t created any actions yet.'}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {trackData.map((item, index) => (
-                        <motion.div
-                          key={item.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200"
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <h4 className="font-semibold text-gray-900">
-                                  {item.title}
-                                </h4>
-                                <span className={`px-2 py-1 text-xs rounded-full ${
-                                  item.priority === 'HIGH' 
-                                    ? 'bg-red-100 text-red-700' 
-                                    : item.priority === 'MEDIUM'
-                                    ? 'bg-yellow-100 text-yellow-700'
-                                    : 'bg-green-100 text-green-700'
-                                }`}>
-                                  {item.priority}
-                                </span>
-                                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">
-                                  {item.category}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">
-                                <strong>For:</strong> {item.studentName}
-                              </p>
-                              <p className="text-sm text-gray-800 mb-2">
-                                {trackViewType === 'feedback' ? item.content : item.description}
-                              </p>
-                            </div>
-                            <div className="flex flex-col sm:items-end space-y-1">
-                              <span className="text-xs text-gray-500">
-                                {new Date(item.createdAt).toLocaleDateString()}
-                              </span>
-                              {trackViewType === 'feedback' ? (
-                                <span className={`px-2 py-1 text-xs rounded-full ${
-                                  item.isRead 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-gray-100 text-gray-700'
-                                }`}>
-                                  {item.isRead ? 'Read' : 'Unread'}
-                                </span>
-                              ) : (
-                                <div className="flex flex-col space-y-1">
-                                  <span className={`px-2 py-1 text-xs rounded-full ${
-                                    item.isCompleted 
-                                      ? 'bg-green-100 text-green-700' 
-                                      : 'bg-yellow-100 text-yellow-700'
-                                  }`}>
-                                    {item.isCompleted ? 'Completed' : 'Pending'}
-                                  </span>
-                                  {item.isAcknowledged && (
-                                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
-                                      Acknowledged
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
+                      {/* Teams List */}
+                      {isLoadingTeams ? (
+                        <div className="flex items-center justify-center py-12">
+                          <div className="text-center">
+                            <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                            <p className="text-gray-600">Loading teams...</p>
                           </div>
-                          
-                          {/* Additional info for actions */}
-                          {trackViewType === 'actions' && item.dueDate && (
-                            <div className="mt-2 pt-2 border-t border-gray-100">
-                              <p className="text-xs text-gray-600">
-                                <strong>Due:</strong> {new Date(item.dueDate).toLocaleDateString()}
-                              </p>
-                            </div>
-                          )}
-                        </motion.div>
-                      ))}
+                        </div>
+                      ) : teams.length === 0 ? (
+                        <div className="text-center py-12">
+                          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <FiUsers className="w-8 h-8 text-purple-600" />
+                          </div>
+                          <h3 className="text-lg font-medium text-gray-700 mb-2">No Teams Created</h3>
+                          <p className="text-gray-500 mb-4">Create your first team to provide group feedback and actions</p>
+                          <motion.button
+                            onClick={() => setIsCreateTeamModalOpen(true)}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-md inline-flex items-center gap-2"
+                          >
+                            <FiPlus className="w-4 h-4" />
+                            <span>Create Your First Team</span>
+                          </motion.button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {teams.map((team, index) => (
+                            <motion.div
+                              key={team.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.1 }}
+                              className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                              onClick={() => handleTeamSelect(team.id)}
+                            >
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                    <FiUsers className="w-6 h-6 text-white" />
+                                  </div>
+                                  <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">{team.name}</h3>
+                                    <p className="text-sm text-gray-600">{team.description}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-3 gap-4 mb-4">
+                                <div className="text-center">
+                                  <div className="text-2xl font-bold text-purple-600">{team._count?.members || 0}</div>
+                                  <div className="text-xs text-gray-500">Members</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-2xl font-bold text-blue-600">{team._count?.feedback || 0}</div>
+                                  <div className="text-xs text-gray-500">Feedback</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-2xl font-bold text-green-600">{team._count?.actions || 0}</div>
+                                  <div className="text-xs text-gray-500">Actions</div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">
+                                  Created {new Date(team.createdAt).toLocaleDateString()}
+                                </span>
+                                <motion.button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleTeamSelect(team.id);
+                                  }}
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200 transition-colors"
+                                >
+                                  View Details
+                                </motion.button>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        );
 
-      case 'progress':
-        return (
-          <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            {/* Smart Notifications Button */}
-            <div className="flex justify-end">
-              <motion.button
-                onClick={() => setSmartNotificationsOpen(true)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <FiBell className="w-5 h-5" />
-                <span className="font-medium">Smart Notifications</span>
-              </motion.button>
-            </div>
-            
-            <div className="h-[calc(100vh-20rem)] bg-white rounded-xl shadow-lg overflow-hidden">
-              {assignedStudents && assignedStudents.length > 0 ? (
-              <AthleteProgressTracker 
-                athletes={assignedStudents.map((student: any) => ({
-                  id: student.id,
-                  name: student.studentName || student.name,
-                  sport: student.sport || 'Basketball'
-                }))}
-              />
-              ) : (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <FiUsers className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">No Students Assigned</h3>
-                    <p className="text-gray-500">Assign students from the Students tab to track their progress.</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        );
-
-      case 'badges':
-        return (
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">Redirecting to Badge Centre...</h2>
-                <p className="text-gray-600">Taking you to the complete badge management interface.</p>
-              </div>
-            </div>
-                          </div>
-        );
-
-      case 'todo':
-        return (
-          <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <div className="card-modern glass">
-              <div className="p-6">
-                <div className="flex items-center mb-6">
-                  <motion.div 
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.6 }}
-                    className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"
-                  >
-                    <FiCheckSquare className="w-6 h-6 text-white" />
-                  </motion.div>
-                  <div>
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                      Session To-Do Lists
-                    </h2>
-                    <p className="text-sm text-gray-600 mt-1">Create and manage training checklists for your students</p>
-                  </div>
-                </div>
-                <SessionTodoCoach assignedStudents={assignedStudents} />
-              </div>
-            </div>
-          </motion.div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 font-sans overscroll-none">
-      <motion.header 
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="sticky top-0 z-40 bg-gradient-to-r from-indigo-100 via-indigo-200 to-indigo-100 backdrop-blur-xl shadow-2xl border-b border-indigo-300/50"
-      >
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-4 -right-4 w-16 h-16 bg-indigo-300/20 rounded-full blur-xl animate-pulse"></div>
-          <div className="absolute -bottom-4 -left-4 w-12 h-12 bg-purple-300/20 rounded-full blur-xl animate-pulse delay-300"></div>
-          <div className="absolute top-2 left-1/2 w-8 h-8 bg-blue-300/20 rounded-full blur-lg animate-pulse delay-700"></div>
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            <motion.div 
-              className="flex items-center space-x-2 md:space-x-4"
-              whileHover={{ scale: 1.02 }}
-            >
-              <motion.div
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.8 }}
-                className="p-1.5 md:p-2"
-              >
-                <PeakPlayLogo size="default" variant="gradient" className="h-6 md:h-8 w-auto" />
-            </motion.div>
-              <div className="hidden md:block">
-                <motion.h1 
-                  className="text-lg md:text-xl font-bold text-indigo-900"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  PeakPlay Dashboard
-                </motion.h1>
-                <motion.p 
-                  className="text-xs md:text-sm text-indigo-700"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  Elevate your game to the next level
-                </motion.p>
-              </div>
-            </motion.div>
-            
-            <div className="flex items-center space-x-1 md:space-x-3">
-              {/* Status indicator */}
-              <motion.div 
-                className="hidden lg:flex items-center space-x-2 px-3 py-1.5 bg-white/60 rounded-full backdrop-blur-sm border border-indigo-200"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-indigo-800 font-medium">Online</span>
-              </motion.div>
-              
-              {/* Notification bell - Only for coaches */}
-              {(session as unknown as Session)?.user?.role === 'COACH' && (
-                <motion.button
-                  onClick={() => setSmartNotificationsOpen(true)}
-                  whileHover={{ scale: 1.1, rotate: 12 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="hidden md:flex p-2.5 rounded-full bg-white/60 hover:bg-white/80 text-indigo-700 hover:text-indigo-900 transition-all duration-300 shadow-lg backdrop-blur-sm border border-indigo-200"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <FiBell className="w-4 h-4" />
-                </motion.button>
-              )}
-              
-              {/* Profile section */}
-              <motion.button
-                onClick={() => setProfileModalOpen(true)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center space-x-2 md:space-x-3 p-1.5 md:p-2 rounded-xl hover:bg-white/30 transition-all duration-300 backdrop-blur-sm"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm md:text-md font-semibold text-indigo-900 truncate max-w-[120px]">{profileData?.name || session?.user.name}</p>
-                  <div className="flex items-center justify-end space-x-1">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
-                    <p className="text-xs text-indigo-700 capitalize font-medium">
-                      {profileData?.role?.toLowerCase() || (session as unknown as Session)?.user?.role?.toLowerCase()}
-                    </p>
-                  </div>
-                </div>
-                <motion.div 
-                  className="w-9 h-9 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-indigo-300/50"
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <FiUser className="w-4 h-4 md:w-6 md:h-6 text-white" />
-              </motion.div>
-              </motion.button>
-              
-              {/* Sign out button */}
-              <motion.button
-                onClick={handleSignOut}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2 md:p-3 rounded-full bg-red-100/80 hover:bg-red-200/80 text-red-600 hover:text-red-700 transition-all duration-300 shadow-lg backdrop-blur-sm border border-red-200"
-                disabled={isSigningOut}
-                aria-label="Sign Out"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                {isSigningOut ? (
-                  <motion.div 
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-4 h-4 md:w-5 md:h-5 border-2 border-red-600 border-t-transparent rounded-full" 
-                  />
-                ) : (
-                  <FiLogOut className="w-4 h-4 md:w-5 md:h-5" />
-                )}
-              </motion.button>
-            </div>
-          </div>
-        </div>
-      </motion.header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Desktop Tab Navigation */}
-        <motion.div 
-          className="hidden lg:block mb-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <nav className="flex space-x-2 bg-white/60 backdrop-blur-sm rounded-2xl p-2 shadow-lg">
-            {tabs.map((tab, index) => (
-              <motion.button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * index }}
-                className={`flex items-center px-6 py-3 text-sm font-medium rounded-xl transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25'
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
-                }`}
-              >
-                {tab.icon}
-                <span className="ml-2">{tab.label}</span>
-              </motion.button>
-            ))}
-          </nav>
-        </motion.div>
-        
-        <motion.div 
-          className="space-y-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-                                {(session as unknown as Session)?.user?.role === 'ATHLETE' ? renderAthleteContent() : renderCoachContent()}
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
-      </main>
-
-      {/* Bottom Tab Navigation for Mobile */}
-      {!isSkillSnapModalOpen && (
-      <motion.footer 
-        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-purple-100 lg:hidden shadow-2xl"
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-      >
-        <nav className="flex items-center justify-around max-w-7xl mx-auto px-2 py-1">
-          {tabs.map((tab, index) => (
-            <motion.div
-              key={tab.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index + 0.9 }}
-            >
-              <TabButton
-                text={tab.label}
-                icon={tab.icon}
-                active={activeTab === tab.id}
-                onClick={() => setActiveTab(tab.id)}
-              />
-            </motion.div>
-          ))}
-        </nav>
-      </motion.footer>
-      )}
-
-      {/* Add padding to the bottom of the main content to prevent overlap with the footer */}
-      <div className="pb-20 lg:pb-0"></div>
-      
-      {/* Smart Notifications Modal */}
-      {smartNotificationsOpen && (
-        <SmartNotifications onClose={() => setSmartNotificationsOpen(false)} />
-      )}
-
-      {/* Profile Modal */}
-      {profileModalOpen && (
-        <ProfileModal
-          isOpen={profileModalOpen}
-          onClose={() => setProfileModalOpen(false)}
-        />
-      )}
-      
-      {/* Modal Components */}
-      {selectedStudentModal && activeModal && !studentDetailModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            {/* Background overlay */}
-            <div
-              className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"
-              onClick={closeModal}
-            />
-
-            {/* Modal content */}
-            <div
-              className="inline-block w-full max-w-6xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl relative"
-            >
-              {/* Close button */}
-                        <button
-                onClick={closeModal}
-                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
-                        >
-                <FiX className="w-6 h-6" />
-                        </button>
-
-              {/* Modal header */}
-              <div className="mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                    <FiUser className="w-6 h-6 text-white" />
-                      </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900">
-                      {selectedStudentModal.studentName || selectedStudentModal.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 capitalize">
-                      {activeModal === 'skillsnap' && 'SkillSnap Tracking'}
-                      {activeModal === 'badges' && 'Badge Progress'}
-                      {activeModal === 'feedback' && 'Provide Feedback'}
-                    </p>
-                    </div>
-                </div>
-              </div>
-
-              {/* Modal content based on active modal type */}
-              <div className="max-h-[70vh] overflow-y-auto">
-                {activeModal === 'skillsnap' && (
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                      <h4 className="text-lg font-semibold text-blue-900 mb-2 flex items-center">
-                        <FiActivity className="mr-2" />
-                        Skill Development Tracking
-                      </h4>
-                      <p className="text-blue-700 text-sm mb-4">
-                        Track and monitor {selectedStudentModal.studentName || selectedStudentModal.name}&apos;s skill development progress.
-                      </p>
-                    </div>
-                    <SkillSnap studentId={selectedStudentModal.id} isCoachView={true} />
-            </div>
-          )}
-
-                {activeModal === 'badges' && (
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200">
-                      <h4 className="text-lg font-semibold text-yellow-900 mb-2 flex items-center">
-                        <FiAward className="mr-2" />
-                        Badge Achievement Progress
-                      </h4>
-                      <p className="text-yellow-700 text-sm mb-4">
-                        View {selectedStudentModal.studentName || selectedStudentModal.name}&apos;s earned badges and progress toward new achievements.
-                      </p>
-        </div>
-                    <BadgeDisplay studentId={selectedStudentModal.id} />
-                  </div>
-                )}
-
+                  {/* Filters - Only show for feedback/actions */}
+                  {trackViewType !== 'teams' && (
+                    <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                      <div className="flex flex-wrap gap-4">
+                        {/* Student Filter */}
+                        <div className="flex-1 min-w-[120px]">
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Student</label>
+                          <select
+                            value={trackFilters.student}
+                            onChange={(e) => setTrackFilters(prev => ({ ...prev, student: e.target.value }))}
                 {activeModal === 'feedback' && (
                   <div className="space-y-6">
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">

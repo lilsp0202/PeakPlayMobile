@@ -17,6 +17,7 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
+    const teamId = searchParams.get('teamId');
     
     // If coach is requesting specific student actions
     if (studentId && session.user.role === "COACH") {
@@ -27,6 +28,45 @@ export async function GET(request: Request) {
             select: {
               name: true,
               academy: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+      
+      return NextResponse.json(actions, { status: 200 });
+    }
+    
+    // If coach is requesting team actions
+    if (teamId && session.user.role === "COACH") {
+      const actions = await prisma.action.findMany({
+        where: { teamId },
+        include: {
+          coach: {
+            select: {
+              name: true,
+              academy: true,
+            },
+          },
+          student: {
+            select: {
+              id: true,
+              studentName: true,
+              email: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
             },
           },
         },
@@ -72,6 +112,12 @@ export async function GET(request: Request) {
               academy: true,
             },
           },
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -105,11 +151,18 @@ export async function POST(request: Request) {
       );
     }
 
-    const { studentId, title, description, category, priority, dueDate } = await request.json();
+    const { studentId, teamId, title, description, category, priority, dueDate } = await request.json();
 
-    if (!studentId || !title || !description) {
+    if (!title || !description) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: "Title and description are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!studentId && !teamId) {
+      return NextResponse.json(
+        { message: "Either studentId or teamId is required" },
         { status: 400 }
       );
     }
@@ -126,43 +179,92 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify the student exists and is assigned to this coach
-    const student = await prisma.student.findFirst({
-      where: {
-        id: studentId,
-        coachId: coach.id,
-      },
-    });
+    // If creating action for a team
+    if (teamId) {
+      const team = await prisma.team.findFirst({
+        where: {
+          id: teamId,
+          coachId: coach.id,
+          isActive: true,
+        },
+        include: {
+          members: {
+            include: {
+              student: true,
+            },
+          },
+        },
+      });
 
-    if (!student) {
-      return NextResponse.json(
-        { message: "Student not found or not assigned to you" },
-        { status: 404 }
-      );
-    }
+      if (!team) {
+        return NextResponse.json(
+          { message: "Team not found" },
+          { status: 404 }
+        );
+      }
 
-    // Create action
-    const action = await prisma.action.create({
-      data: {
-        studentId,
+      // Create action for all team members
+      const actionData = team.members.map(member => ({
+        studentId: member.studentId,
         coachId: coach.id,
+        teamId: teamId,
         title,
         description,
         category: category || "GENERAL",
         priority: priority || "MEDIUM",
         dueDate: dueDate ? new Date(dueDate) : null,
-      },
-      include: {
-        coach: {
-          select: {
-            name: true,
-            academy: true,
+      }));
+
+      const action = await prisma.action.createMany({
+        data: actionData,
+      });
+
+      return NextResponse.json({ count: action.count, message: "Team action created" }, { status: 201 });
+    }
+
+    // If creating action for individual student
+    if (studentId) {
+      const student = await prisma.student.findFirst({
+        where: {
+          id: studentId,
+          coachId: coach.id,
+        },
+      });
+
+      if (!student) {
+        return NextResponse.json(
+          { message: "Student not found or not assigned to you" },
+          { status: 404 }
+        );
+      }
+
+      const action = await prisma.action.create({
+        data: {
+          studentId,
+          coachId: coach.id,
+          title,
+          description,
+          category: category || "GENERAL",
+          priority: priority || "MEDIUM",
+          dueDate: dueDate ? new Date(dueDate) : null,
+        },
+        include: {
+          coach: {
+            select: {
+              name: true,
+              academy: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return NextResponse.json(action, { status: 201 });
+      return NextResponse.json(action, { status: 201 });
+    }
+
+    return NextResponse.json(
+      { message: "Invalid request" },
+      { status: 400 }
+    );
   } catch (error) {
     console.error("Error creating action:", error);
     return NextResponse.json(

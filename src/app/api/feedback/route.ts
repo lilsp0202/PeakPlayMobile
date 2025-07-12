@@ -17,6 +17,7 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
+    const teamId = searchParams.get('teamId');
     
     // If coach is requesting specific student feedback
     if (studentId && session.user.role === "COACH") {
@@ -27,6 +28,45 @@ export async function GET(request: Request) {
             select: {
               name: true,
               academy: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+      
+      return NextResponse.json(feedback, { status: 200 });
+    }
+    
+    // If coach is requesting team feedback
+    if (teamId && session.user.role === "COACH") {
+      const feedback = await prisma.feedback.findMany({
+        where: { teamId },
+        include: {
+          coach: {
+            select: {
+              name: true,
+              academy: true,
+            },
+          },
+          student: {
+            select: {
+              id: true,
+              studentName: true,
+              email: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
             },
           },
         },
@@ -58,6 +98,12 @@ export async function GET(request: Request) {
             select: {
               name: true,
               academy: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
             },
           },
         },
@@ -93,11 +139,18 @@ export async function POST(request: Request) {
       );
     }
 
-    const { studentId, title, content, category, priority } = await request.json();
+    const { studentId, teamId, title, content, category, priority } = await request.json();
 
-    if (!studentId || !title || !content) {
+    if (!title || !content) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: "Title and content are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!studentId && !teamId) {
+      return NextResponse.json(
+        { message: "Either studentId or teamId is required" },
         { status: 400 }
       );
     }
@@ -114,42 +167,90 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify the student exists and is assigned to this coach
-    const student = await prisma.student.findFirst({
-      where: {
-        id: studentId,
-        coachId: coach.id,
-      },
-    });
+    // If creating feedback for a team
+    if (teamId) {
+      const team = await prisma.team.findFirst({
+        where: {
+          id: teamId,
+          coachId: coach.id,
+          isActive: true,
+        },
+        include: {
+          members: {
+            include: {
+              student: true,
+            },
+          },
+        },
+      });
 
-    if (!student) {
-      return NextResponse.json(
-        { message: "Student not found or not assigned to you" },
-        { status: 404 }
-      );
-    }
+      if (!team) {
+        return NextResponse.json(
+          { message: "Team not found" },
+          { status: 404 }
+        );
+      }
 
-    // Create feedback
-    const feedback = await prisma.feedback.create({
-      data: {
-        studentId,
+      // Create feedback for all team members
+      const feedbackData = team.members.map(member => ({
+        studentId: member.studentId,
         coachId: coach.id,
+        teamId: teamId,
         title,
         content,
         category: category || "GENERAL",
         priority: priority || "MEDIUM",
-      },
-      include: {
-        coach: {
-          select: {
-            name: true,
-            academy: true,
+      }));
+
+      const feedback = await prisma.feedback.createMany({
+        data: feedbackData,
+      });
+
+      return NextResponse.json({ count: feedback.count, message: "Team feedback created" }, { status: 201 });
+    }
+
+    // If creating feedback for individual student
+    if (studentId) {
+      const student = await prisma.student.findFirst({
+        where: {
+          id: studentId,
+          coachId: coach.id,
+        },
+      });
+
+      if (!student) {
+        return NextResponse.json(
+          { message: "Student not found or not assigned to you" },
+          { status: 404 }
+        );
+      }
+
+      const feedback = await prisma.feedback.create({
+        data: {
+          studentId,
+          coachId: coach.id,
+          title,
+          content,
+          category: category || "GENERAL",
+          priority: priority || "MEDIUM",
+        },
+        include: {
+          coach: {
+            select: {
+              name: true,
+              academy: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return NextResponse.json(feedback, { status: 201 });
+      return NextResponse.json(feedback, { status: 201 });
+    }
+
+    return NextResponse.json(
+      { message: "Invalid request" },
+      { status: 400 }
+    );
   } catch (error) {
     console.error("Error creating feedback:", error);
     return NextResponse.json(
@@ -170,7 +271,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const { feedbackId, isRead } = await request.json();
+    const { feedbackId, isRead, isAcknowledged } = await request.json();
 
     if (!feedbackId) {
       return NextResponse.json(
@@ -179,7 +280,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    // For athletes marking feedback as read
+    // For athletes marking feedback as read or acknowledged
     if (session.user.role === "ATHLETE") {
       const student = await prisma.student.findUnique({
         where: { userId: session.user.id },
@@ -192,14 +293,27 @@ export async function PATCH(request: Request) {
         );
       }
 
+      const updateData: any = {};
+      
+      if (isRead !== undefined) {
+        updateData.isRead = isRead;
+      }
+      
+      if (isAcknowledged !== undefined) {
+        updateData.isAcknowledged = isAcknowledged;
+        if (isAcknowledged) {
+          updateData.acknowledgedAt = new Date();
+        } else {
+          updateData.acknowledgedAt = null;
+        }
+      }
+
       const feedback = await prisma.feedback.updateMany({
         where: {
           id: feedbackId,
           studentId: student.id,
         },
-        data: {
-          isRead: isRead !== undefined ? isRead : true,
-        },
+        data: updateData,
       });
 
       if (feedback.count === 0) {
