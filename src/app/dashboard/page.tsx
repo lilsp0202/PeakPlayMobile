@@ -1687,16 +1687,6 @@ export default function Dashboard() {
                               <FiMessageSquare className="w-4 h-4 sm:w-3 sm:h-3" />
                           <span className="truncate">Feedback</span>
                             </motion.button>
-
-                          <motion.button
-                          onClick={() => openStudentModal(student, 'progress')}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="flex-1 px-3 py-3 sm:px-2 sm:py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[48px] sm:min-h-0 shadow-md"
-                          >
-                              <FiTrendingUp className="w-4 h-4 sm:w-3 sm:h-3" />
-                            <span className="truncate">Track</span>
-                            </motion.button>
                           </div>
                       </motion.div>
                       ))}
