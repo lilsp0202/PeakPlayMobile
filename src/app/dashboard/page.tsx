@@ -2266,114 +2266,112 @@ export default function Dashboard() {
                   </div>
 
                   {/* Track Data Display */}
-                  {trackViewType !== 'teams' && (
-                    <>
-                      {isLoadingTrackData ? (
-                        <div className="flex items-center justify-center py-12">
-                          <div className="text-center">
-                            <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                            <p className="text-gray-600">Loading {trackViewType}...</p>
-                          </div>
+                  <>
+                    {isLoadingTrackData ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="text-center">
+                          <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                          <p className="text-gray-600">Loading {trackViewType}...</p>
                         </div>
-                      ) : trackData.length === 0 ? (
-                        <div className="text-center py-12">
-                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            {trackViewType === 'feedback' ? (
-                              <FiMessageSquare className="w-8 h-8 text-gray-400" />
-                            ) : (
-                              <FiCheckSquare className="w-8 h-8 text-gray-400" />
-                            )}
-                          </div>
-                          <h3 className="text-lg font-medium text-gray-700 mb-2">
-                            No {trackViewType} found
-                          </h3>
-                          <p className="text-gray-500">
-                            {trackViewType === 'feedback' 
-                              ? 'You haven\'t provided any feedback yet.'
-                              : 'You haven\'t created any actions yet.'}
-                          </p>
+                      </div>
+                    ) : trackData.length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          {trackViewType === 'feedback' ? (
+                            <FiMessageSquare className="w-8 h-8 text-gray-400" />
+                          ) : (
+                            <FiCheckSquare className="w-8 h-8 text-gray-400" />
+                          )}
                         </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {trackData.map((item, index) => (
-                            <motion.div
-                              key={item.id}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.05 }}
-                              className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200"
-                            >
-                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center space-x-2 mb-2">
-                                    <h4 className="font-semibold text-gray-900">
-                                      {item.title}
-                                    </h4>
-                                    <span className={`px-2 py-1 text-xs rounded-full ${
-                                      item.priority === 'HIGH' 
-                                        ? 'bg-red-100 text-red-700' 
-                                        : item.priority === 'MEDIUM'
-                                        ? 'bg-yellow-100 text-yellow-700'
-                                        : 'bg-green-100 text-green-700'
-                                    }`}>
-                                      {item.priority}
-                                    </span>
-                                    <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">
-                                      {item.category}
-                                    </span>
-                                  </div>
-                                  <p className="text-sm text-gray-600 mb-2">
-                                    <strong>For:</strong> {item.studentName}
-                                  </p>
-                                  <p className="text-sm text-gray-800 mb-2">
-                                    {trackViewType === 'feedback' ? item.content : item.description}
-                                  </p>
-                                </div>
-                                <div className="flex flex-col sm:items-end space-y-1">
-                                  <span className="text-xs text-gray-500">
-                                    {new Date(item.createdAt).toLocaleDateString()}
+                        <h3 className="text-lg font-medium text-gray-700 mb-2">
+                          No {trackViewType} found
+                        </h3>
+                        <p className="text-gray-500">
+                          {trackViewType === 'feedback' 
+                            ? 'You haven\'t provided any feedback yet.'
+                            : 'You haven\'t created any actions yet.'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {trackData.map((item, index) => (
+                          <motion.div
+                            key={item.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <h4 className="font-semibold text-gray-900">
+                                    {item.title}
+                                  </h4>
+                                  <span className={`px-2 py-1 text-xs rounded-full ${
+                                    item.priority === 'HIGH' 
+                                      ? 'bg-red-100 text-red-700' 
+                                      : item.priority === 'MEDIUM'
+                                      ? 'bg-yellow-100 text-yellow-700'
+                                      : 'bg-green-100 text-green-700'
+                                  }`}>
+                                    {item.priority}
                                   </span>
-                                  {trackViewType === 'feedback' ? (
-                                    <span className={`px-2 py-1 text-xs rounded-full ${
-                                      item.isRead 
-                                        ? 'bg-green-100 text-green-700' 
-                                        : 'bg-gray-100 text-gray-700'
-                                    }`}>
-                                      {item.isRead ? 'Read' : 'Unread'}
-                                    </span>
-                                  ) : (
-                                    <div className="flex flex-col space-y-1">
-                                      <span className={`px-2 py-1 text-xs rounded-full ${
-                                        item.isCompleted 
-                                          ? 'bg-green-100 text-green-700' 
-                                          : 'bg-yellow-100 text-yellow-700'
-                                      }`}>
-                                        {item.isCompleted ? 'Completed' : 'Pending'}
-                                      </span>
-                                      {item.isAcknowledged && (
-                                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
-                                          Acknowledged
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
+                                  <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">
+                                    {item.category}
+                                  </span>
                                 </div>
+                                <p className="text-sm text-gray-600 mb-2">
+                                  <strong>For:</strong> {item.studentName}
+                                </p>
+                                <p className="text-sm text-gray-800 mb-2">
+                                  {trackViewType === 'feedback' ? item.content : item.description}
+                                </p>
                               </div>
-                              
-                              {/* Additional info for actions */}
-                              {trackViewType === 'actions' && item.dueDate && (
-                                <div className="mt-2 pt-2 border-t border-gray-100">
-                                  <p className="text-xs text-gray-600">
-                                    <strong>Due:</strong> {new Date(item.dueDate).toLocaleDateString()}
-                                  </p>
-                                </div>
-                              )}
-                            </motion.div>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
+                              <div className="flex flex-col sm:items-end space-y-1">
+                                <span className="text-xs text-gray-500">
+                                  {new Date(item.createdAt).toLocaleDateString()}
+                                </span>
+                                {trackViewType === 'feedback' ? (
+                                  <span className={`px-2 py-1 text-xs rounded-full ${
+                                    item.isRead 
+                                      ? 'bg-green-100 text-green-700' 
+                                      : 'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {item.isRead ? 'Read' : 'Unread'}
+                                  </span>
+                                ) : (
+                                  <div className="flex flex-col space-y-1">
+                                    <span className={`px-2 py-1 text-xs rounded-full ${
+                                      item.isCompleted 
+                                        ? 'bg-green-100 text-green-700' 
+                                        : 'bg-yellow-100 text-yellow-700'
+                                    }`}>
+                                      {item.isCompleted ? 'Completed' : 'Pending'}
+                                    </span>
+                                    {item.isAcknowledged && (
+                                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+                                        Acknowledged
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Additional info for actions */}
+                            {trackViewType === 'actions' && item.dueDate && (
+                              <div className="mt-2 pt-2 border-t border-gray-100">
+                                <p className="text-xs text-gray-600">
+                                  <strong>Due:</strong> {new Date(item.dueDate).toLocaleDateString()}
+                                </p>
+                              </div>
+                            )}
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 </motion.div>
               )}
             </AnimatePresence>
