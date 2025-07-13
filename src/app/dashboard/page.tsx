@@ -2591,7 +2591,7 @@ export default function Dashboard() {
                       <div className="mb-4">
                         <h4 className="text-sm md:text-base font-medium text-gray-700 mb-2">Team Members</h4>
                         <div className="flex flex-wrap gap-2">
-                          {team.members?.slice(0, 2).map((member) => (
+                          {team.members?.slice(0, 2).map((member: any) => (
                             <span
                               key={member.id}
                               className="px-2 py-1 md:px-3 md:py-1 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm truncate max-w-[120px]"
