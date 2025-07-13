@@ -21,7 +21,10 @@ const BadgeDisplay = dynamic(() => import("@/components/BadgeDisplay").catch(() 
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-32 flex items-center justify-center"><div className="text-gray-500">Loading badges...</div></div>
 });
 
-
+const AthleteTeams = dynamic(() => import("@/components/AthleteTeams").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Teams temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-64 flex items-center justify-center"><div className="text-gray-500">Loading Teams...</div></div>
+});
 
 const SessionTodoStudent = dynamic(() => import("@/components/SessionTodoStudent").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Session todos temporarily unavailable</div> })), { 
   ssr: false,
@@ -94,6 +97,20 @@ const ProfileModal = dynamic(() => import("@/components/ProfileModal").catch(() 
 });
 
 const StudentProgressModal = dynamic(() => import("@/components/StudentProgressModal").catch(() => ({ default: () => null })), {
+  ssr: false
+});
+
+
+
+const TeamDetailsModal = dynamic(() => import("@/components/TeamDetailsModal").catch(() => ({ default: () => null })), {
+  ssr: false
+});
+
+const TeamFeedbackModal = dynamic(() => import("@/components/TeamFeedbackModal").catch(() => ({ default: () => null })), {
+  ssr: false
+});
+
+const TeamActionModal = dynamic(() => import("@/components/TeamActionModal").catch(() => ({ default: () => null })), {
   ssr: false
 });
 
@@ -185,7 +202,7 @@ export default function Dashboard() {
   const [isRefreshingSkills, setIsRefreshingSkills] = useState(false);
 
   // Track tab state variables
-  const [trackViewType, setTrackViewType] = useState<'feedback' | 'actions' | 'teams'>('feedback');
+  const [trackViewType, setTrackViewType] = useState<'feedback' | 'actions'>('feedback');
   const [trackData, setTrackData] = useState<any[]>([]);
   const [isLoadingTrackData, setIsLoadingTrackData] = useState(false);
   const [trackFilters, setTrackFilters] = useState({
@@ -200,12 +217,22 @@ export default function Dashboard() {
   const [teams, setTeams] = useState<any[]>([]);
   const [isLoadingTeams, setIsLoadingTeams] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
-  const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState(false);
-  const [teamFormData, setTeamFormData] = useState({
-    name: '',
-    description: '',
-    memberIds: [] as string[]
-  });
+  // const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState(false);
+  // const [teamFormData, setTeamFormData] = useState({
+  //   name: '',
+  //   description: '',
+  //   memberIds: [] as string[]
+  // });
+
+  // Team details, feedback, and actions state
+  const [isTeamDetailsModalOpen, setIsTeamDetailsModalOpen] = useState(false);
+  const [isTeamFeedbackModalOpen, setIsTeamFeedbackModalOpen] = useState(false);
+  const [isTeamActionModalOpen, setIsTeamActionModalOpen] = useState(false);
+  const [selectedTeamForDetails, setSelectedTeamForDetails] = useState<any>(null);
+  const [teamDetailsData, setTeamDetailsData] = useState<{ feedback: any[], actions: any[] }>({ feedback: [], actions: [] });
+  const [isLoadingTeamDetails, setIsLoadingTeamDetails] = useState(false);
+  const [teamDetailsViewType, setTeamDetailsViewType] = useState<'feedback' | 'actions'>('feedback');
+  const [expandedTeamItems, setExpandedTeamItems] = useState<string[]>([]);
 
   useEffect(() => {
     console.log('🔍 Dashboard useEffect - Status:', status, 'Session exists:', !!session);
@@ -585,11 +612,7 @@ export default function Dashboard() {
   // Fetch track data when view type or filters change
   useEffect(() => {
     if (studentsSubTab === 'track' && assignedStudents.length > 0) {
-      if (trackViewType === 'teams') {
-        fetchTeams();
-      } else {
-        fetchTrackData();
-      }
+      fetchTrackData();
     }
   }, [trackViewType, trackFilters, assignedStudents, studentsSubTab]);
 
@@ -611,22 +634,7 @@ export default function Dashboard() {
   };
 
   const handleCreateTeam = async () => {
-    try {
-      const response = await fetch('/api/teams', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(teamFormData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setTeams(prev => [result.team, ...prev]);
-        setIsCreateTeamModalOpen(false);
-        setTeamFormData({ name: '', description: '', memberIds: [] });
-      }
-    } catch (error) {
-      console.error('Error creating team:', error);
-    }
+    // Team creation functionality removed - CreateTeamModal was deleted
   };
 
   const handleTeamSelect = async (teamId: string) => {
@@ -642,12 +650,102 @@ export default function Dashboard() {
   };
 
   const handleTeamMemberToggle = (studentId: string) => {
-    setTeamFormData(prev => ({
-      ...prev,
-      memberIds: prev.memberIds.includes(studentId)
-        ? prev.memberIds.filter(id => id !== studentId)
-        : [...prev.memberIds, studentId]
-    }));
+    // setTeamFormData(prev => ({
+    //   ...prev,
+    //   memberIds: prev.memberIds.includes(studentId)
+    //     ? prev.memberIds.filter(id => id !== studentId)
+    //     : [...prev.memberIds, studentId]
+    // }));
+  };
+
+  // Team details functionality
+  const handleViewTeamDetails = async (team: any) => {
+    setSelectedTeamForDetails(team);
+    setIsLoadingTeamDetails(true);
+    setIsTeamDetailsModalOpen(true);
+    
+    try {
+      const response = await fetch(`/api/teams/${team.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setTeamDetailsData({
+          feedback: data.team.feedback || [],
+          actions: data.team.actions || []
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching team details:', error);
+    } finally {
+      setIsLoadingTeamDetails(false);
+    }
+  };
+
+  const toggleTeamItemExpanded = (itemId: string) => {
+    setExpandedTeamItems(prev => 
+      prev.includes(itemId)
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const isTeamItemExpanded = (itemId: string) => {
+    return expandedTeamItems.includes(itemId);
+  };
+
+  // Team feedback functionality
+  const handleTeamFeedback = (team: any) => {
+    setSelectedTeamForDetails(team);
+    setIsTeamFeedbackModalOpen(true);
+  };
+
+  const handleCreateTeamFeedback = async (feedbackData: any) => {
+    try {
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...feedbackData,
+          teamId: selectedTeamForDetails?.id,
+          studentIds: selectedTeamForDetails?.members?.map((m: any) => m.studentId) || []
+        })
+      });
+
+      if (response.ok) {
+        setIsTeamFeedbackModalOpen(false);
+        // Refresh teams data if needed
+        fetchTeams();
+      }
+    } catch (error) {
+      console.error('Error creating team feedback:', error);
+    }
+  };
+
+  // Team actions functionality
+  const handleTeamActions = (team: any) => {
+    setSelectedTeamForDetails(team);
+    setIsTeamActionModalOpen(true);
+  };
+
+  const handleCreateTeamAction = async (actionData: any) => {
+    try {
+      const response = await fetch('/api/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...actionData,
+          teamId: selectedTeamForDetails?.id,
+          studentIds: selectedTeamForDetails?.members?.map((m: any) => m.studentId) || []
+        })
+      });
+
+      if (response.ok) {
+        setIsTeamActionModalOpen(false);
+        // Refresh teams data if needed
+        fetchTeams();
+      }
+    } catch (error) {
+      console.error('Error creating team action:', error);
+    }
   };
 
   const athleteTabs = [
@@ -655,12 +753,14 @@ export default function Dashboard() {
     { id: 'matches', label: 'Matches', icon: <FiTarget className="w-5 h-5" /> },
     { id: 'badges', label: 'Badges', icon: <FiAward className="w-5 h-5" /> },
     { id: 'feedback', label: 'Feedback', icon: <FiMessageSquare className="w-5 h-5" /> },
+    { id: 'teams', label: 'Teams', icon: <FiUsers className="w-5 h-5" /> },
     { id: 'todo', label: 'To-Do', icon: <FiCheckSquare className="w-5 h-5" /> },
   ];
 
   const coachTabs = [
     { id: 'overview', label: 'Overview', icon: <FiGrid className="w-5 h-5" /> },
     { id: 'students', label: 'Students', icon: <FiUsers className="w-5 h-5" /> },
+    { id: 'teams', label: 'Teams', icon: <FiUsers className="w-5 h-5" /> },
     { id: 'progress', label: 'Progress', icon: <FiTrendingUp className="w-5 h-5" /> },
     { id: 'badges', label: 'Badges', icon: <FiAward className="w-5 h-5" /> },
     { id: 'todo', label: 'To-Do', icon: <FiCheckSquare className="w-5 h-5" /> },
@@ -675,6 +775,13 @@ export default function Dashboard() {
       setActiveTab(defaultTab);
     }
   }, [tabs, (session as unknown as Session)?.user?.role]);
+
+  // Fetch teams when teams tab is active
+  useEffect(() => {
+    if (activeTab === 'teams' && (session as unknown as Session)?.user?.role === 'COACH') {
+      fetchTeams();
+    }
+  }, [activeTab, (session as unknown as Session)?.user?.role]);
 
 
   // Show loading while session is loading or profile is being fetched
@@ -963,6 +1070,30 @@ export default function Dashboard() {
                       Training To-Do
                     </h2>
                     <SessionTodoStudent studentId={profileData?.id || ''} coachName={profileData?.name || ''} />
+                  </div>
+                </motion.div>
+              );
+
+            case 'teams':
+              return (
+                <motion.div 
+                  className="card-modern"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div className="p-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                      <motion.div
+                        animate={{ rotate: [0, 5, -5, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="mr-2"
+                      >
+                        <FiUsers className="text-purple-600" />
+                      </motion.div>
+                      My Teams
+                    </h2>
+                    <AthleteTeams studentId={profileData?.id || ''} />
                   </div>
                 </motion.div>
               );
@@ -1511,7 +1642,7 @@ export default function Dashboard() {
                     <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                     </svg>
-                </div>
+                  </div>
                   <div className="ml-3">
                     <p className="text-sm font-medium text-red-800">{error}</p>
               </div>
@@ -1628,13 +1759,13 @@ export default function Dashboard() {
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   {assignedStudents?.length > 0 && (
                     <motion.button 
-                      onClick={() => setMultiStudentFeedbackOpen(true)}
+                      onClick={() => console.log('Create team functionality disabled')}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex-1 sm:flex-none px-3 py-2 sm:py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm flex items-center justify-center gap-1 min-h-[44px] sm:min-h-0"
+                      className="flex-1 sm:flex-none px-3 py-2 sm:py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm flex items-center justify-center gap-1 min-h-[44px] sm:min-h-0"
                     >
-                      <FiMessageSquare className="w-4 h-4" />
-                      <span className="sm:inline">Multi-Feedback</span>
+                      <FiUsers className="w-4 h-4" />
+                      <span className="sm:inline">Create Team</span>
                     </motion.button>
                   )}
                   <motion.button 
@@ -1984,12 +2115,12 @@ export default function Dashboard() {
                     <div className="flex items-center">
                       <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-2">
                         <FiEye className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
+                                </div>
+                                <div>
                         <h3 className="text-lg font-semibold text-gray-800">Track Feedback & Actions</h3>
                         <p className="text-xs text-gray-600 sm:hidden">Monitor your provided feedback and actions</p>
-                      </div>
-                    </div>
+                                </div>
+                              </div>
                     
                     {/* Refresh Button */}
                     <motion.button
@@ -2009,7 +2140,7 @@ export default function Dashboard() {
                     </motion.button>
                   </div>
 
-                  {/* Toggle between Feedback, Actions, and Teams */}
+                  {/* Toggle between Feedback and Actions */}
                   <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
                     <motion.button
                       onClick={() => setTrackViewType('feedback')}
@@ -2038,228 +2169,101 @@ export default function Dashboard() {
                       <FiCheckSquare className="w-4 h-4 mr-2" />
                       <span>Actions</span>
                     </motion.button>
+                            </div>
 
-                    <motion.button
-                      onClick={() => setTrackViewType('teams')}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`flex-1 flex items-center justify-center px-4 py-3 sm:py-2 rounded-md font-medium text-sm transition-all duration-200 ${
-                        trackViewType === 'teams'
-                          ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
-                          : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
-                      }`}
-                    >
-                      <FiUsers className="w-4 h-4 mr-2" />
-                      <span>Teams</span>
-                      {teams.length > 0 && (
-                        <span className="ml-2 bg-white bg-opacity-30 px-2 py-1 rounded-full text-xs">
-                          {teams.length}
-                        </span>
-                      )}
-                    </motion.button>
-                  </div>
-
-                  {/* Teams Content */}
-                  {trackViewType === 'teams' && (
-                    <div className="space-y-6">
-                      {/* Teams Header with Create Button */}
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
-                        <div>
-                          <h4 className="text-lg font-semibold text-gray-900">Your Teams</h4>
-                          <p className="text-sm text-gray-600">Create and manage athlete teams for group feedback and actions</p>
-                        </div>
-                        <motion.button
-                          onClick={() => setIsCreateTeamModalOpen(true)}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-md flex items-center gap-2"
+                  {/* Filters - Show for feedback/actions */}
+                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div className="flex flex-wrap gap-4">
+                      {/* Student Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Student</label>
+                        <select
+                          value={trackFilters.student}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, student: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
-                          <FiPlus className="w-4 h-4" />
-                          <span>Create Team</span>
-                        </motion.button>
-                      </div>
-
-                      {/* Teams List */}
-                      {isLoadingTeams ? (
-                        <div className="flex items-center justify-center py-12">
-                          <div className="text-center">
-                            <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                            <p className="text-gray-600">Loading teams...</p>
-                          </div>
-                        </div>
-                      ) : teams.length === 0 ? (
-                        <div className="text-center py-12">
-                          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <FiUsers className="w-8 h-8 text-purple-600" />
-                          </div>
-                          <h3 className="text-lg font-medium text-gray-700 mb-2">No Teams Created</h3>
-                          <p className="text-gray-500 mb-4">Create your first team to provide group feedback and actions</p>
-                          <motion.button
-                            onClick={() => setIsCreateTeamModalOpen(true)}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-md inline-flex items-center gap-2"
-                          >
-                            <FiPlus className="w-4 h-4" />
-                            <span>Create Your First Team</span>
-                          </motion.button>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {teams.map((team, index) => (
-                            <motion.div
-                              key={team.id}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                              onClick={() => handleTeamSelect(team.id)}
-                            >
-                              <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-3">
-                                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                    <FiUsers className="w-6 h-6 text-white" />
-                                  </div>
-                                  <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">{team.name}</h3>
-                                    <p className="text-sm text-gray-600">{team.description}</p>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="grid grid-cols-3 gap-4 mb-4">
-                                <div className="text-center">
-                                  <div className="text-2xl font-bold text-purple-600">{team._count?.members || 0}</div>
-                                  <div className="text-xs text-gray-500">Members</div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-2xl font-bold text-blue-600">{team._count?.feedback || 0}</div>
-                                  <div className="text-xs text-gray-500">Feedback</div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-2xl font-bold text-green-600">{team._count?.actions || 0}</div>
-                                  <div className="text-xs text-gray-500">Actions</div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-500">
-                                  Created {new Date(team.createdAt).toLocaleDateString()}
-                                </span>
-                                <motion.button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleTeamSelect(team.id);
-                                  }}
-                                  whileHover={{ scale: 1.02 }}
-                                  whileTap={{ scale: 0.98 }}
-                                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200 transition-colors"
-                                >
-                                  View Details
-                                </motion.button>
-                              </div>
-                            </motion.div>
+                          <option value="all">All Students</option>
+                          {assignedStudents?.map(student => (
+                            <option key={student.id} value={student.id}>
+                              {student.studentName || student.name}
+                            </option>
                           ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        </select>
+                          </div>
 
-                  {/* Filters - Only show for feedback/actions */}
-                  {trackViewType !== 'teams' && (
-                    <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                      <div className="flex flex-wrap gap-4">
-                        {/* Student Filter */}
-                        <div className="flex-1 min-w-[120px]">
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Student</label>
-                          <select
-                            value={trackFilters.student}
-                            onChange={(e) => setTrackFilters(prev => ({ ...prev, student: e.target.value }))}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          >
-                            <option value="all">All Students</option>
-                            {assignedStudents?.map(student => (
-                              <option key={student.id} value={student.id}>
-                                {student.studentName || student.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                      {/* Category Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+                        <select
+                          value={trackFilters.category}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, category: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="all">All Categories</option>
+                          <option value="GENERAL">General</option>
+                          <option value="TECHNICAL">Technical</option>
+                          <option value="PHYSICAL">Physical</option>
+                          <option value="MENTAL">Mental</option>
+                          <option value="TACTICAL">Tactical</option>
+                        </select>
+                      </div>
 
-                        {/* Category Filter */}
-                        <div className="flex-1 min-w-[120px]">
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
-                          <select
-                            value={trackFilters.category}
-                            onChange={(e) => setTrackFilters(prev => ({ ...prev, category: e.target.value }))}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          >
-                            <option value="all">All Categories</option>
-                            <option value="GENERAL">General</option>
-                            <option value="TECHNICAL">Technical</option>
-                            <option value="PHYSICAL">Physical</option>
-                            <option value="MENTAL">Mental</option>
-                            <option value="TACTICAL">Tactical</option>
-                          </select>
-                        </div>
+                      {/* Priority Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
+                        <select
+                          value={trackFilters.priority}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, priority: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="all">All Priorities</option>
+                          <option value="LOW">Low</option>
+                          <option value="MEDIUM">Medium</option>
+                          <option value="HIGH">High</option>
+                        </select>
+                      </div>
 
-                        {/* Priority Filter */}
-                        <div className="flex-1 min-w-[120px]">
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
-                          <select
-                            value={trackFilters.priority}
-                            onChange={(e) => setTrackFilters(prev => ({ ...prev, priority: e.target.value }))}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          >
-                            <option value="all">All Priorities</option>
-                            <option value="LOW">Low</option>
-                            <option value="MEDIUM">Medium</option>
-                            <option value="HIGH">High</option>
-                          </select>
-                        </div>
+                      {/* Date Range Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Time Period</label>
+                        <select
+                          value={trackFilters.dateRange}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, dateRange: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="today">Today</option>
+                          <option value="week">This Week</option>
+                          <option value="month">This Month</option>
+                          <option value="quarter">This Quarter</option>
+                          <option value="all">All Time</option>
+                        </select>
+                      </div>
 
-                        {/* Date Range Filter */}
-                        <div className="flex-1 min-w-[120px]">
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Time Period</label>
-                          <select
-                            value={trackFilters.dateRange}
-                            onChange={(e) => setTrackFilters(prev => ({ ...prev, dateRange: e.target.value }))}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          >
-                            <option value="today">Today</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                            <option value="quarter">This Quarter</option>
-                            <option value="all">All Time</option>
-                          </select>
-                        </div>
-
-                        {/* Status Filter */}
-                        <div className="flex-1 min-w-[120px]">
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
-                          <select
-                            value={trackFilters.status}
-                            onChange={(e) => setTrackFilters(prev => ({ ...prev, status: e.target.value }))}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          >
-                            <option value="all">All Status</option>
-                            {trackViewType === 'feedback' ? (
-                              <>
-                                <option value="read">Read</option>
-                                <option value="unread">Unread</option>
-                              </>
-                            ) : (
-                              <>
-                                <option value="completed">Completed</option>
-                                <option value="pending">Pending</option>
-                                <option value="acknowledged">Acknowledged</option>
-                              </>
-                            )}
-                          </select>
-                        </div>
+                      {/* Status Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                        <select
+                          value={trackFilters.status}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, status: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="all">All Status</option>
+                          {trackViewType === 'feedback' ? (
+                            <>
+                              <option value="read">Read</option>
+                              <option value="unread">Unread</option>
+                            </>
+                          ) : (
+                            <>
+                              <option value="completed">Completed</option>
+                              <option value="pending">Pending</option>
+                              <option value="acknowledged">Acknowledged</option>
+                            </>
+                          )}
+                        </select>
                       </div>
                     </div>
-                  )}
+                  </div>
 
                   {/* Track Data Display */}
                   {trackViewType !== 'teams' && (
@@ -2399,13 +2403,13 @@ export default function Dashboard() {
             
             <div className="h-[calc(100vh-20rem)] bg-white rounded-xl shadow-lg overflow-hidden">
               {assignedStudents && assignedStudents.length > 0 ? (
-                <AthleteProgressTracker 
-                  athletes={assignedStudents.map((student: any) => ({
-                    id: student.id,
-                    name: student.studentName || student.name,
-                    sport: student.sport || 'Basketball'
-                  }))}
-                />
+              <AthleteProgressTracker 
+                athletes={assignedStudents.map((student: any) => ({
+                  id: student.id,
+                  name: student.studentName || student.name,
+                  sport: student.sport || 'Basketball'
+                }))}
+              />
               ) : (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center p-8">
@@ -2429,12 +2433,224 @@ export default function Dashboard() {
                 <p className="text-gray-600">Taking you to the complete badge management interface.</p>
               </div>
             </div>
-          </div>
+                          </div>
+        );
+
+      case 'teams':
+        return (
+          <motion.div 
+            className="space-y-4 md:space-y-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            {/* Teams Header - Mobile Optimized */}
+            <div className="card-modern glass bg-gradient-to-r from-purple-50/50 to-blue-50/50 border border-purple-100">
+              <div className="p-4 md:p-6">
+                {/* Mobile-friendly header layout */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 md:mb-6">
+                  <div className="flex items-center">
+                    <motion.div 
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
+                      className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 md:mr-4 shadow-lg"
+                    >
+                      <FiUsers className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                    </motion.div>
+                    <div>
+                      <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                        Team Management
+                      </h2>
+                      <p className="text-xs md:text-sm text-gray-600 mt-1 hidden sm:block">Create and manage athlete teams for group feedback and actions</p>
+                    </div>
+                  </div>
+
+                  {/* Create Team Button - Mobile optimized */}
+                  {assignedStudents?.length > 0 && (
+                    <motion.button 
+                      onClick={() => setIsCreateTeamModalOpen(true)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="flex items-center justify-center gap-2 px-4 py-3 md:px-4 md:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg font-medium min-h-[44px] md:min-h-0"
+                    >
+                      <FiPlus className="w-4 h-4" />
+                      <span className="text-sm md:text-base">Create Team</span>
+                    </motion.button>
+                  )}
+                </div>
+
+                {/* Mobile description for small screens */}
+                <p className="text-xs text-gray-600 mb-4 block sm:hidden">Create and manage athlete teams for group feedback and actions</p>
+
+                {/* Teams Stats - Mobile optimized */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+                  <div className="bg-white/60 rounded-lg p-3 md:p-4 text-center">
+                    <div className="text-xl md:text-2xl font-bold text-purple-600">{teams?.length || 0}</div>
+                    <div className="text-xs md:text-sm text-gray-600">Total Teams</div>
+                  </div>
+                  <div className="bg-white/60 rounded-lg p-3 md:p-4 text-center">
+                    <div className="text-xl md:text-2xl font-bold text-blue-600">
+                      {teams?.reduce((total, team) => total + (team._count?.members || 0), 0) || 0}
+                    </div>
+                    <div className="text-xs md:text-sm text-gray-600">Team Members</div>
+                  </div>
+                  <div className="bg-white/60 rounded-lg p-3 md:p-4 text-center">
+                    <div className="text-xl md:text-2xl font-bold text-green-600">
+                      {teams?.reduce((total, team) => total + (team._count?.feedback || 0) + (team._count?.actions || 0), 0) || 0}
+                    </div>
+                    <div className="text-xs md:text-sm text-gray-600">Total Activities</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Teams List - Mobile Optimized */}
+            {isLoadingTeams ? (
+              <div className="card-modern p-6 md:p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 text-sm md:text-base">Loading teams...</p>
+              </div>
+            ) : teams?.length === 0 ? (
+              <div className="card-modern p-6 md:p-8 text-center">
+                <FiUsers className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">No Teams Created Yet</h3>
+                <p className="text-sm md:text-base text-gray-500 mb-6">Create your first team to organize students for group activities</p>
+                {assignedStudents?.length > 0 ? (
+                  <motion.button
+                    onClick={() => setIsCreateTeamModalOpen(true)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg min-h-[44px]"
+                  >
+                    <FiPlus className="w-4 h-4 mr-2 inline" />
+                    Create Your First Team
+                  </motion.button>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p className="text-yellow-800 text-sm md:text-base">
+                      You need to assign students first before creating teams.
+                    </p>
+                    <motion.button
+                      onClick={() => setActiveTab('students')}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors min-h-[44px]"
+                    >
+                      Go to Students
+                    </motion.button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:gap-6">
+                {teams.map((team, index) => (
+                  <motion.div
+                    key={team.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="card-modern border-2 border-purple-100 hover:border-purple-200 transition-all duration-200"
+                  >
+                    <div className="p-4 md:p-6">
+                      {/* Team Header - Mobile optimized */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2 truncate">{team.name}</h3>
+                          <p className="text-gray-600 text-sm md:text-base mb-3 line-clamp-2">{team.description}</p>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm text-gray-500">
+                            <span>Created {new Date(team.createdAt).toLocaleDateString()}</span>
+                            <span className={`px-2 py-1 rounded-full text-xs self-start ${
+                              team.isActive 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {team.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg ml-3">
+                          <FiUsers className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                        </div>
+                      </div>
+
+                      {/* Team Stats - Mobile optimized */}
+                      <div className="grid grid-cols-3 gap-3 md:gap-4 mb-4">
+                        <div className="text-center">
+                          <div className="text-xl md:text-2xl font-bold text-purple-600">{team._count?.members || 0}</div>
+                          <div className="text-xs md:text-sm text-gray-600">Members</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xl md:text-2xl font-bold text-blue-600">{team._count?.feedback || 0}</div>
+                          <div className="text-xs md:text-sm text-gray-600">Feedback</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xl md:text-2xl font-bold text-green-600">{team._count?.actions || 0}</div>
+                          <div className="text-xs md:text-sm text-gray-600">Actions</div>
+                        </div>
+                      </div>
+
+                      {/* Team Members Preview - Mobile optimized */}
+                      <div className="mb-4">
+                        <h4 className="text-sm md:text-base font-medium text-gray-700 mb-2">Team Members</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {team.members?.slice(0, 2).map((member) => (
+                            <span
+                              key={member.id}
+                              className="px-2 py-1 md:px-3 md:py-1 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm truncate max-w-[120px]"
+                            >
+                              {member.student.studentName}
+                            </span>
+                          ))}
+                          {team.members?.length > 2 && (
+                            <span className="px-2 py-1 md:px-3 md:py-1 bg-gray-100 text-gray-600 rounded-full text-xs md:text-sm">
+                              +{team.members.length - 2} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons - Mobile optimized */}
+                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
+                        <motion.button
+                          onClick={() => handleViewTeamDetails(team)}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="flex-1 px-4 py-3 md:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 text-sm md:text-base font-medium min-h-[44px] md:min-h-0"
+                        >
+                          View Details
+                        </motion.button>
+                        <div className="flex gap-2">
+                          <motion.button
+                            onClick={() => handleTeamFeedback(team)}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1 sm:flex-none px-4 py-3 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm md:text-base min-h-[44px] md:min-h-0 flex items-center justify-center"
+                          >
+                            <FiMessageSquare className="w-4 h-4 sm:mr-0 mr-2" />
+                            <span className="sm:hidden">Feedback</span>
+                          </motion.button>
+                          <motion.button
+                            onClick={() => handleTeamActions(team)}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1 sm:flex-none px-4 py-3 md:py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm md:text-base min-h-[44px] md:min-h-0 flex items-center justify-center"
+                          >
+                            <FiCheckSquare className="w-4 h-4 sm:mr-0 mr-2" />
+                            <span className="sm:hidden">Actions</span>
+                          </motion.button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
         );
 
       case 'todo':
         return (
-          <motion.div
+          <motion.div 
             className="space-y-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2494,7 +2710,7 @@ export default function Dashboard() {
                 className="p-1.5 md:p-2"
               >
                 <PeakPlayLogo size="default" variant="gradient" className="h-6 md:h-8 w-auto" />
-              </motion.div>
+            </motion.div>
               <div className="hidden md:block">
                 <motion.h1 
                   className="text-lg md:text-xl font-bold text-indigo-900"
@@ -2567,7 +2783,7 @@ export default function Dashboard() {
                   transition={{ duration: 0.6 }}
                 >
                   <FiUser className="w-4 h-4 md:w-6 md:h-6 text-white" />
-                </motion.div>
+              </motion.div>
               </motion.button>
               
               {/* Sign out button */}
@@ -2642,7 +2858,7 @@ export default function Dashboard() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {(session as unknown as Session)?.user?.role === 'ATHLETE' ? renderAthleteContent() : renderCoachContent()}
+                                {(session as unknown as Session)?.user?.role === 'ATHLETE' ? renderAthleteContent() : renderCoachContent()}
             </motion.div>
           </AnimatePresence>
         </motion.div>
@@ -2650,30 +2866,30 @@ export default function Dashboard() {
 
       {/* Bottom Tab Navigation for Mobile */}
       {!isSkillSnapModalOpen && (
-        <motion.footer 
-          className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-purple-100 lg:hidden shadow-2xl"
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
-          <nav className="flex items-center justify-around max-w-7xl mx-auto px-2 py-1">
-            {tabs.map((tab, index) => (
-              <motion.div
-                key={tab.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index + 0.9 }}
-              >
-                <TabButton
-                  text={tab.label}
-                  icon={tab.icon}
-                  active={activeTab === tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                />
-              </motion.div>
-            ))}
-          </nav>
-        </motion.footer>
+      <motion.footer 
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-purple-100 lg:hidden shadow-2xl"
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+      >
+        <nav className="flex items-center justify-around max-w-7xl mx-auto px-2 py-1">
+          {tabs.map((tab, index) => (
+            <motion.div
+              key={tab.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index + 0.9 }}
+            >
+              <TabButton
+                text={tab.label}
+                icon={tab.icon}
+                active={activeTab === tab.id}
+                onClick={() => setActiveTab(tab.id)}
+              />
+            </motion.div>
+          ))}
+        </nav>
+      </motion.footer>
       )}
 
       {/* Add padding to the bottom of the main content to prevent overlap with the footer */}
@@ -2707,19 +2923,19 @@ export default function Dashboard() {
               className="inline-block w-full max-w-6xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl relative"
             >
               {/* Close button */}
-              <button
+                        <button
                 onClick={closeModal}
                 className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
-              >
+                        >
                 <FiX className="w-6 h-6" />
-              </button>
+                        </button>
 
               {/* Modal header */}
               <div className="mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
                     <FiUser className="w-6 h-6 text-white" />
-                  </div>
+                      </div>
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">
                       {selectedStudentModal.studentName || selectedStudentModal.name}
@@ -2729,7 +2945,7 @@ export default function Dashboard() {
                       {activeModal === 'badges' && 'Badge Progress'}
                       {activeModal === 'feedback' && 'Provide Feedback'}
                     </p>
-                  </div>
+                    </div>
                 </div>
               </div>
 
@@ -2747,8 +2963,8 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <SkillSnap studentId={selectedStudentModal.id} isCoachView={true} />
-                  </div>
-                )}
+            </div>
+          )}
 
                 {activeModal === 'badges' && (
                   <div className="space-y-6">
@@ -2760,7 +2976,7 @@ export default function Dashboard() {
                       <p className="text-yellow-700 text-sm mb-4">
                         View {selectedStudentModal.studentName || selectedStudentModal.name}&apos;s earned badges and progress toward new achievements.
                       </p>
-                    </div>
+        </div>
                     <BadgeDisplay studentId={selectedStudentModal.id} />
                   </div>
                 )}
@@ -2777,7 +2993,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <CreateFeedbackActionModal
-                      isOpen={feedbackModalOpen}
+          isOpen={feedbackModalOpen}
                       onClose={closeModal}
                       student={{
                         id: selectedStudentModal.id,
@@ -2786,7 +3002,7 @@ export default function Dashboard() {
                         age: selectedStudentModal.age || 18
                       }}
                       onCreated={handleFeedbackCreated}
-                    />
+        />
                   </div>
                 )}
               </div>
@@ -2796,7 +3012,7 @@ export default function Dashboard() {
       )}
 
       {/* Athlete SkillSnap Modal */}
-      {(session as unknown as Session)?.user?.role === 'ATHLETE' && isSkillSnapModalOpen && (
+              {(session as unknown as Session)?.user?.role === 'ATHLETE' && isSkillSnapModalOpen && (
         <Portal>
           <div 
             className="fixed inset-0 z-[999999] overflow-hidden"
@@ -2908,6 +3124,71 @@ export default function Dashboard() {
             age: selectedStudentForProgress.age,
             email: selectedStudentForProgress.email
           }}
+        />
+      )}
+
+      {/* Create Team Modal */}
+      {/* {isCreateTeamModalOpen && (
+        <CreateTeamModal
+          isOpen={isCreateTeamModalOpen}
+          onClose={() => setIsCreateTeamModalOpen(false)}
+          students={assignedStudents || []}
+          onTeamCreated={() => {
+            // Refresh teams list
+            if (studentsSubTab === 'track' && trackViewType === 'teams') {
+              fetchTeams();
+            }
+            setSuccessMessage('Team created successfully!');
+            setTimeout(() => setSuccessMessage(null), 3000);
+          }}
+          teamFormData={teamFormData}
+          setTeamFormData={setTeamFormData}
+          onCreateTeam={handleCreateTeam}
+        />
+      )} */}
+
+      {/* Team Details Modal */}
+      {isTeamDetailsModalOpen && selectedTeamForDetails && (
+        <TeamDetailsModal
+          isOpen={isTeamDetailsModalOpen}
+          onClose={() => {
+            setIsTeamDetailsModalOpen(false);
+            setSelectedTeamForDetails(null);
+            setExpandedTeamItems([]);
+          }}
+          team={selectedTeamForDetails}
+          teamData={teamDetailsData}
+          isLoading={isLoadingTeamDetails}
+          viewType={teamDetailsViewType}
+          setViewType={setTeamDetailsViewType}
+          expandedItems={expandedTeamItems}
+          onToggleItemExpanded={toggleTeamItemExpanded}
+        />
+      )}
+
+      {/* Team Feedback Modal */}
+      {isTeamFeedbackModalOpen && selectedTeamForDetails && (
+        <TeamFeedbackModal
+          isOpen={isTeamFeedbackModalOpen}
+          onClose={() => {
+            setIsTeamFeedbackModalOpen(false);
+            setSelectedTeamForDetails(null);
+          }}
+          team={selectedTeamForDetails}
+          onCreateFeedback={handleCreateTeamFeedback}
+        />
+      )}
+
+      {/* Team Action Modal */}
+      {isTeamActionModalOpen && selectedTeamForDetails && (
+        <TeamActionModal
+          isOpen={isTeamActionModalOpen}
+          onClose={() => {
+            setIsTeamActionModalOpen(false);
+            setSelectedTeamForDetails(null);
+          }}
+          team={selectedTeamForDetails}
+          onCreateAction={handleCreateTeamAction}
         />
       )}
     </div>
