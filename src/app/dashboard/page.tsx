@@ -217,12 +217,12 @@ export default function Dashboard() {
   const [teams, setTeams] = useState<any[]>([]);
   const [isLoadingTeams, setIsLoadingTeams] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
-  // const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState(false);
-  // const [teamFormData, setTeamFormData] = useState({
-  //   name: '',
-  //   description: '',
-  //   memberIds: [] as string[]
-  // });
+  const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState(false);
+  const [teamFormData, setTeamFormData] = useState({
+    name: '',
+    description: '',
+    memberIds: [] as string[]
+  });
 
   // Team details, feedback, and actions state
   const [isTeamDetailsModalOpen, setIsTeamDetailsModalOpen] = useState(false);
@@ -2466,7 +2466,7 @@ export default function Dashboard() {
                   {/* Create Team Button - Mobile optimized */}
                   {assignedStudents?.length > 0 && (
                     <motion.button 
-                      onClick={() => setIsCreateTeamModalOpen(true)}
+                      onClick={() => alert('Team creation feature coming soon!')}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="flex items-center justify-center gap-2 px-4 py-3 md:px-4 md:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg font-medium min-h-[44px] md:min-h-0"
@@ -2515,7 +2515,7 @@ export default function Dashboard() {
                 <p className="text-sm md:text-base text-gray-500 mb-6">Create your first team to organize students for group activities</p>
                 {assignedStudents?.length > 0 ? (
                   <motion.button
-                    onClick={() => setIsCreateTeamModalOpen(true)}
+                    onClick={() => alert('Team creation feature coming soon!')}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg min-h-[44px]"
