@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -16,48 +16,101 @@ export async function GET(request: NextRequest) {
     const includeMembers = searchParams.get('includeMembers') === 'true';
     const includeStats = searchParams.get('includeStats') === 'true';
 
-    // Get coach info
+    // Check if user is a coach
     const coach = await prisma.coach.findUnique({
       where: { userId: session.user.id }
     });
 
-    if (!coach) {
-      return NextResponse.json({ error: 'Coach not found' }, { status: 404 });
-    }
+    // Check if user is a student
+    const student = await prisma.student.findUnique({
+      where: { userId: session.user.id }
+    });
 
-    // Fetch teams
-    const teams = await prisma.team.findMany({
-      where: {
-        coachId: coachId || coach.id,
-        isActive: true
-      },
-      include: {
-        members: includeMembers ? {
-          include: {
-            student: {
-              select: {
-                id: true,
-                studentName: true,
-                email: true,
-                academy: true,
-                sport: true,
-                role: true
+    let teams;
+
+    if (coach) {
+      // User is a coach - return teams they manage
+      teams = await prisma.team.findMany({
+        where: {
+          coachId: coachId || coach.id,
+          isActive: true
+        },
+        include: {
+          members: includeMembers ? {
+            include: {
+              student: {
+                select: {
+                  id: true,
+                  studentName: true,
+                  email: true,
+                  academy: true,
+                  sport: true,
+                  role: true
+                }
               }
             }
+          } : false,
+          _count: includeStats ? {
+            select: {
+              members: true,
+              feedback: true,
+              actions: true
+            }
+          } : false
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+    } else if (student) {
+      // User is a student - return teams they are members of
+      teams = await prisma.team.findMany({
+        where: {
+          isActive: true,
+          members: {
+            some: {
+              studentId: student.id
+            }
           }
-        } : false,
-        _count: includeStats ? {
-          select: {
-            members: true,
-            feedback: true,
-            actions: true
-          }
-        } : false
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+        },
+        include: {
+          coach: {
+            select: {
+              id: true,
+              userId: true,
+              name: true,
+              email: true
+            }
+          },
+          members: includeMembers ? {
+            include: {
+              student: {
+                select: {
+                  id: true,
+                  studentName: true,
+                  email: true,
+                  academy: true,
+                  sport: true,
+                  role: true
+                }
+              }
+            }
+          } : false,
+          _count: includeStats ? {
+            select: {
+              members: true,
+              feedback: true,
+              actions: true
+            }
+          } : false
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+    } else {
+      return NextResponse.json({ error: 'User not found as coach or student' }, { status: 404 });
+    }
 
     return NextResponse.json({ teams });
   } catch (error) {

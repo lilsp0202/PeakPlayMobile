@@ -475,7 +475,7 @@ export default function Dashboard() {
     setExpandedStudents(prev => 
       prev.includes(studentId) 
         ? prev.filter(id => id !== studentId)
-        : [...prev.memberIds, studentId]
+        : [...prev, studentId]
     );
   };
 
