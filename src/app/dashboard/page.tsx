@@ -114,6 +114,10 @@ const TeamActionModal = dynamic(() => import("@/components/TeamActionModal").cat
   ssr: false
 });
 
+const CreateTeamModal = dynamic(() => import("@/components/CreateTeamModal").catch(() => ({ default: () => null })), {
+  ssr: false
+});
+
 interface ProfileData {
   id: string;
   name: string;
@@ -218,11 +222,6 @@ export default function Dashboard() {
   const [isLoadingTeams, setIsLoadingTeams] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState(false);
-  const [teamFormData, setTeamFormData] = useState({
-    name: '',
-    description: '',
-    memberIds: [] as string[]
-  });
 
   // Team details, feedback, and actions state
   const [isTeamDetailsModalOpen, setIsTeamDetailsModalOpen] = useState(false);
@@ -633,8 +632,30 @@ export default function Dashboard() {
     }
   };
 
-  const handleCreateTeam = async () => {
-    // Team creation functionality removed - CreateTeamModal was deleted
+  const handleCreateTeam = async (teamData: any) => {
+    try {
+      const response = await fetch('/api/teams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(teamData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create team');
+      }
+
+      const result = await response.json();
+      
+      // Refresh teams list
+      await fetchTeams();
+      
+      return result;
+    } catch (error) {
+      console.error('Error creating team:', error);
+      throw error;
+    }
   };
 
   const handleTeamSelect = async (teamId: string) => {
@@ -1759,7 +1780,7 @@ export default function Dashboard() {
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   {assignedStudents?.length > 0 && (
                     <motion.button 
-                      onClick={() => console.log('Create team functionality disabled')}
+                      onClick={() => setIsCreateTeamModalOpen(true)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="flex-1 sm:flex-none px-3 py-2 sm:py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm flex items-center justify-center gap-1 min-h-[44px] sm:min-h-0"
@@ -2466,7 +2487,7 @@ export default function Dashboard() {
                   {/* Create Team Button - Mobile optimized */}
                   {assignedStudents?.length > 0 && (
                     <motion.button 
-                      onClick={() => alert('Team creation feature coming soon!')}
+                      onClick={() => setIsCreateTeamModalOpen(true)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="flex items-center justify-center gap-2 px-4 py-3 md:px-4 md:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg font-medium min-h-[44px] md:min-h-0"
@@ -2515,7 +2536,7 @@ export default function Dashboard() {
                 <p className="text-sm md:text-base text-gray-500 mb-6">Create your first team to organize students for group activities</p>
                 {assignedStudents?.length > 0 ? (
                   <motion.button
-                    onClick={() => alert('Team creation feature coming soon!')}
+                    onClick={() => setIsCreateTeamModalOpen(true)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg min-h-[44px]"
@@ -3126,24 +3147,22 @@ export default function Dashboard() {
       )}
 
       {/* Create Team Modal */}
-      {/* {isCreateTeamModalOpen && (
+      {isCreateTeamModalOpen && (
         <CreateTeamModal
           isOpen={isCreateTeamModalOpen}
           onClose={() => setIsCreateTeamModalOpen(false)}
-          students={assignedStudents || []}
+          availableStudents={assignedStudents || []}
           onTeamCreated={() => {
             // Refresh teams list
-            if (studentsSubTab === 'track' && trackViewType === 'teams') {
+            if (studentsSubTab === 'assigned') {
               fetchTeams();
             }
             setSuccessMessage('Team created successfully!');
             setTimeout(() => setSuccessMessage(null), 3000);
           }}
-          teamFormData={teamFormData}
-          setTeamFormData={setTeamFormData}
           onCreateTeam={handleCreateTeam}
         />
-      )} */}
+      )}
 
       {/* Team Details Modal */}
       {isTeamDetailsModalOpen && selectedTeamForDetails && (
