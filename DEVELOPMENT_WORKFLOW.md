@@ -1,221 +1,169 @@
 # PeakPlay Development Workflow
 
-This guide will help you make changes to the PeakPlay application locally without disrupting the production deployment on Vercel.
+## 🚀 **Branching Strategy**
 
-## 🚀 Quick Start Development Environment
+### **Production Environment**
+- **Branch**: `production`
+- **Purpose**: Production deployments
+- **Vercel URL**: Will be configured as production environment
+- **Deployment**: Automatic on push to `production` branch
 
-### 1. Start Development Services
+### **Development/Staging Environment**
+- **Branch**: `main`
+- **Purpose**: Development and staging
+- **Vercel URL**: Will be configured as preview environment
+- **Deployment**: Automatic on push to `main` branch
 
-Run these commands to start your local development environment:
+## 📋 **Development Workflow**
 
+### **1. Daily Development**
 ```bash
-# Clean up any existing processes
-pkill -f "next dev" && pkill -f "prisma studio"
+# Work on main branch for development
+git checkout main
+git pull mobile main
 
-# Clear cache and regenerate Prisma client
-rm -rf .next && npx prisma generate
+# Make your changes
+# ... code changes ...
 
-# Start development server (in background)
-npm run dev > dev.log 2>&1 &
-
-# Start Prisma Studio for database management (in background)
-npx prisma studio --port 5555 > prisma.log 2>&1 &
-```
-
-### 2. Verify Services are Running
-
-Check that all services are operational:
-
-```bash
-# Check service status
-curl -s -I http://localhost:3000 | head -1    # Main App
-curl -s -I http://localhost:5555 | head -1    # Prisma Studio  
-curl -s -I http://192.168.1.75:3000 | head -1 # PWA
-
-# Test database connection
-curl -s http://localhost:3000/api/test-db | jq
-```
-
-### 3. Access Your Development Environment
-
-- **Main Application**: http://localhost:3000
-- **Prisma Studio**: http://localhost:5555
-- **PWA (Mobile Testing)**: http://192.168.1.75:3000
-
-## 🔄 Development Workflow
-
-### Making Changes
-
-1. **Code Changes**: Edit files in `src/` directory
-2. **Database Changes**: Use Prisma Studio or edit `prisma/schema.prisma`
-3. **Hot Reload**: Changes are automatically reflected (no restart needed)
-
-### Testing Changes
-
-1. **Manual Testing**: Use localhost URLs above
-2. **Database Testing**: Use Prisma Studio to inspect/modify data
-3. **Mobile Testing**: Use the PWA URL on mobile devices
-
-### Before Committing
-
-1. **Check Logs**: `tail -20 dev.log` for any errors
-2. **Test Core Features**: Authentication, coach assignment, badge system
-3. **Build Test**: `npm run build` to ensure production build works
-
-## 🚢 Deployment to Production
-
-### Only When Ready
-
-```bash
-# Commit your changes
+# Commit and push
 git add .
-git commit -m "Your descriptive commit message"
-
-# Push to GitHub (triggers Vercel deployment)
-git push origin main
-
-# Optional: Manual Vercel deployment
-vercel --prod
+git commit -m "feat: your feature description"
+git push mobile main
 ```
 
-## 🛠️ Troubleshooting
-
-### If Services Won't Start
-
+### **2. Production Deployment**
 ```bash
-# Kill all related processes
-pkill -f "next" && pkill -f "prisma" && pkill -f "node"
+# Switch to production branch
+git checkout production
 
-# Clean everything
-rm -rf .next node_modules/.cache
+# Merge latest changes from main
+git merge main
 
-# Reinstall if needed
-npm install
+# Push to production (triggers production deployment)
+git push mobile production
 
-# Restart development environment
-npm run dev > dev.log 2>&1 &
-npx prisma studio --port 5555 > prisma.log 2>&1 &
+# Switch back to main for continued development
+git checkout main
 ```
 
-### If Database Issues Occur
-
+### **3. Hotfix Process**
 ```bash
-# Regenerate Prisma client
-npx prisma generate
+# Create hotfix branch from production
+git checkout production
+git checkout -b hotfix/critical-fix
 
-# Reset database (WARNING: This will delete all data)
-npx prisma migrate reset
+# Make the fix
+# ... fix code ...
 
-# Or push schema changes
-npx prisma db push
+# Push hotfix
+git add .
+git commit -m "hotfix: critical fix description"
+git push mobile hotfix/critical-fix
+
+# Merge to production
+git checkout production
+git merge hotfix/critical-fix
+git push mobile production
+
+# Merge back to main
+git checkout main
+git merge production
+git push mobile main
 ```
 
-### Check Logs for Errors
+## 🔧 **Local Development Setup**
 
+### **Start Development Servers**
 ```bash
-# Development server logs
-tail -f dev.log
-
-# Prisma Studio logs  
-tail -f prisma.log
-
-# Real-time monitoring
-tail -f dev.log & tail -f prisma.log
-```
-
-## 📝 Environment Isolation
-
-### Local vs Production
-
-- **Local**: Uses your local database and environment variables
-- **Production**: Uses Vercel environment and production database
-- **No Cross-Contamination**: Changes made locally don't affect production until deployed
-
-### Environment Variables
-
-- Local environment uses `.env` file
-- Production uses Vercel environment variables
-- Database URLs are different (local vs production)
-
-## 🔧 Useful Commands
-
-### Development
-
-```bash
-# Start fresh development environment
+# Terminal 1: Next.js Development Server
 npm run dev
 
-# Build for production testing
+# Terminal 2: Database Management
+npx prisma studio --port 5555
+```
+
+### **Access URLs**
+- **Local Development**: `http://localhost:3000`
+- **Local PWA**: `http://192.168.1.213:3000`
+- **Database Studio**: `http://localhost:5555`
+
+## 📦 **Deployment Configuration**
+
+### **Vercel Settings**
+1. **Production Environment**:
+   - Connected to: `production` branch
+   - Environment: Production
+   - Domain: Custom production domain
+
+2. **Preview Environment**:
+   - Connected to: `main` branch
+   - Environment: Preview
+   - Domain: Auto-generated preview URL
+
+### **Environment Variables**
+- Configure environment variables for both environments in Vercel dashboard
+- Production and preview environments should have separate database connections
+
+## 🧪 **Testing & Quality Assurance**
+
+### **Before Production Deployment**
+```bash
+# Run build test
 npm run build
 
-# Run tests
+# Run tests (if available)
 npm test
 
-# Lint code
+# Check for linting errors
 npm run lint
 ```
 
-### Database
+### **Deployment Checklist**
+- [ ] All tests passing
+- [ ] Build successful
+- [ ] Database migrations applied
+- [ ] Environment variables configured
+- [ ] Team creation functionality tested
+- [ ] PWA features working
 
-```bash
-# Open Prisma Studio
-npx prisma studio
+## 🚦 **Branch Protection Rules**
 
-# Apply schema changes
-npx prisma db push
+### **Recommended Settings**
+- **Production Branch**: 
+  - Require pull request reviews
+  - Require status checks to pass
+  - Require up-to-date branches
 
-# Generate Prisma client
-npx prisma generate
+- **Main Branch**:
+  - Allow direct pushes for development
+  - Require builds to pass
 
-# View database in browser
-open http://localhost:5555
-```
+## 📱 **Features Status**
 
-### Production Deployment
+### **✅ Currently Working**
+- User authentication (NextAuth.js)
+- Team creation functionality
+- Dashboard with skill tracking
+- Badge system
+- PWA capabilities
+- Database integration (Prisma + Supabase)
 
-```bash
-# Check Vercel deployments
-vercel ls
+### **🔧 Environment Health**
+- **Build Status**: ✅ Successful
+- **Database**: ✅ Connected
+- **API Endpoints**: ✅ Functional
+- **Authentication**: ✅ Working
+- **PWA**: ✅ Enabled
 
-# Check domain status
-vercel domains ls
+## 📞 **Support**
 
-# Deploy to production
-vercel --prod
-```
-
-## ✅ Best Practices
-
-1. **Always test locally first** before deploying to production
-2. **Use meaningful commit messages** for easy tracking
-3. **Test on mobile** using the PWA URL
-4. **Check logs regularly** for early error detection
-5. **Keep production stable** - only deploy tested changes
-
-## 🎯 Current Working Setup
-
-As of now, your development environment is configured with:
-
-- ✅ Main App: http://localhost:3000 (Ready)
-- ✅ Prisma Studio: http://localhost:5555 (Ready)  
-- ✅ PWA: http://192.168.1.75:3000 (Ready)
-- ✅ Database: Connected (14 users)
-- ✅ All services: Running in background
-
-## 🆘 Emergency Commands
-
-If something breaks completely:
-
-```bash
-# Nuclear option - restart everything
-pkill -f "next" && pkill -f "prisma" && pkill -f "node"
-rm -rf .next node_modules/.cache
-npm install
-rm -rf .next && npx prisma generate
-npm run dev > dev.log 2>&1 &
-npx prisma studio --port 5555 > prisma.log 2>&1 &
-```
+For issues with deployment or development workflow:
+1. Check build logs in Vercel dashboard
+2. Review terminal output for errors
+3. Ensure all environment variables are set
+4. Verify database connectivity
 
 ---
 
-You're now ready to develop safely without affecting your production deployment! 🚀 
+**Last Updated**: $(date)
+**Current Version**: Production-ready with team creation functionality 
