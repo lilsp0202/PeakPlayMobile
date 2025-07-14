@@ -1,6 +1,7 @@
 "use client";
 
-// Team Creation Modal Component - Updated for Vercel deployment - Active
+// Team Creation Modal Component - Updated for deployment verification - Active
+// Force deployment check - Team creation functionality active
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
