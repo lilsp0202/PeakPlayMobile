@@ -5,19 +5,17 @@ import type { Session } from "next-auth";
 import { prisma } from '@/lib/prisma';
 
 // PUT /api/badges/[id] - Update a badge
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id || session.user.role !== 'COACH') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Extract id from URL
-    const url = new URL(request.url);
-    const idMatch = url.pathname.match(/\/api\/badges\/(.+)$/);
-    const badgeId = idMatch ? idMatch[1] : undefined;
+    // Extract id from params
+    const { id: badgeId } = await params;
     if (!badgeId) {
-      return NextResponse.json({ error: 'Badge ID not found in URL' }, { status: 400 });
+      return NextResponse.json({ error: 'Badge ID not found in params' }, { status: 400 });
     }
 
     const body = await request.json();

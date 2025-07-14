@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -11,12 +11,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Extract id from URL
-    const url = new URL(request.url);
-    const idMatch = url.pathname.match(/\/api\/marketplace\/coaches\/(.+)$/);
-    const coachId = idMatch ? idMatch[1] : undefined;
+    // Extract id from params
+    const { id: coachId } = await params;
     if (!coachId) {
-      return NextResponse.json({ error: 'Coach ID not found in URL' }, { status: 400 });
+      return NextResponse.json({ error: 'Coach ID not found in params' }, { status: 400 });
     }
 
     const coach = await prisma.specializedCoach.findUnique({
