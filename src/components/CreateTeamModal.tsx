@@ -1,5 +1,6 @@
 "use client";
 
+// Team Creation Modal Component - Updated for Vercel deployment
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
