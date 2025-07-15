@@ -69,8 +69,15 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
       
+      - name: Reset database
+        run: npx prisma migrate reset --force --skip-seed
+        continue-on-error: true
+      
       - name: Run Prisma migrations
         run: npx prisma migrate deploy
+      
+      - name: Seed database
+        run: npx prisma db seed
         continue-on-error: true
       
       - name: Run unit tests
@@ -79,6 +86,13 @@ jobs:
       
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+      
+      - name: Setup database for E2E tests
+        run: |
+          npx prisma migrate reset --force --skip-seed
+          npx prisma migrate deploy
+          npx prisma db seed
+        continue-on-error: true
       
       - name: Run Playwright tests
         run: npx playwright test
@@ -183,5 +197,6 @@ jobs:
         with:
           urls: |
             http://localhost:3000
-          uploadArtifacts: true
-          temporaryPublicStorage: true 
+          uploadArtifacts: false
+          temporaryPublicStorage: true
+          configPath: .lighthouserc.json 

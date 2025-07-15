@@ -53,7 +53,6 @@ const customJestConfig = {
   testPathIgnorePatterns: [
     '<rootDir>/.next/',
     '<rootDir>/node_modules/',
-    '<rootDir>/src/app/api/',  // Temporarily ignore API route tests
   ],
 }
 

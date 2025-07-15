@@ -113,7 +113,18 @@ function aggregateStats(performances: MatchPerformance[]): AggregatedStats {
   return { batting, bowling, fielding };
 }
 
-export default function OverallStats() {
+interface SkillsData {
+  mental: number;
+  nutrition: number;
+  physical: number;
+  technical: number;
+}
+
+interface OverallStatsProps {
+  skillsData?: SkillsData;
+}
+
+export default function OverallStats({ skillsData }: OverallStatsProps = {}) {
   const [performances, setPerformances] = useState<MatchPerformance[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AggregatedStats | null>(null);

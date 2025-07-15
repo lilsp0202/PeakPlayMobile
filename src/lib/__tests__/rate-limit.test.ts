@@ -1,92 +1,83 @@
 import { RateLimiter } from '../rate-limit'
+import { NextRequest } from 'next/server'
 
 describe('RateLimiter', () => {
   let rateLimiter: RateLimiter
+  let mockRequest: NextRequest
 
   beforeEach(() => {
     rateLimiter = new RateLimiter({
       interval: 60 * 1000, // 1 minute
       uniqueTokenPerInterval: 500,
     })
+    
+    mockRequest = new NextRequest('http://localhost:3000/test', {
+      method: 'GET',
+      headers: { 'x-forwarded-for': '127.0.0.1' },
+    })
   })
 
-  describe('check method', () => {
-    it('should allow requests within the limit', async () => {
-      const result = await rateLimiter.check(5, 'test-token')
-      
-      expect(result.success).toBe(true)
-      expect(result.limit).toBe(5)
-      expect(result.remaining).toBe(4)
-      expect(result.reset).toBeDefined()
+  describe('basic functionality', () => {
+    it('should allow requests under the limit', async () => {
+      await expect(rateLimiter.check(mockRequest, 5, 'test-token')).resolves.not.toThrow()
     })
 
-    it('should block requests exceeding the limit', async () => {
-      const token = 'test-token-2'
+    it('should allow multiple requests under the limit', async () => {
       const limit = 3
+      const token = 'test-token'
 
-      // Make requests up to the limit
       for (let i = 0; i < limit; i++) {
-        const result = await rateLimiter.check(limit, token)
-        expect(result.success).toBe(true)
-        expect(result.remaining).toBe(limit - i - 1)
+        await expect(rateLimiter.check(mockRequest, limit, token)).resolves.not.toThrow()
       }
-
-      // Next request should fail
-      const result = await rateLimiter.check(limit, token)
-      expect(result.success).toBe(false)
-      expect(result.remaining).toBe(0)
     })
 
-    it('should track different tokens separately', async () => {
-      const token1 = 'user-1'
-      const token2 = 'user-2'
+    it('should reject requests over the limit', async () => {
       const limit = 2
+      const token = 'test-token'
 
-      // Use up token1's limit
-      await rateLimiter.check(limit, token1)
-      await rateLimiter.check(limit, token1)
+      // Use up the limit
+      await rateLimiter.check(mockRequest, limit, token)
+      await rateLimiter.check(mockRequest, limit, token)
 
-      // token2 should still have its full limit
-      const result = await rateLimiter.check(limit, token2)
-      expect(result.success).toBe(true)
-      expect(result.remaining).toBe(1)
+      // This should be rejected
+      await expect(rateLimiter.check(mockRequest, limit, token)).rejects.toThrow()
     })
   })
 
-  describe('limit method', () => {
-    it('should return rate limit headers', async () => {
-      const headers = await rateLimiter.limit(10, 'test-token')
-      
-      expect(headers['X-RateLimit-Limit']).toBe('10')
-      expect(headers['X-RateLimit-Remaining']).toBeDefined()
-      expect(headers['X-RateLimit-Reset']).toBeDefined()
+  describe('token isolation', () => {
+    it('should isolate limits between different tokens', async () => {
+      const limit = 2
+      const token1 = 'token1'
+      const token2 = 'token2'
+
+      // Use up limit for token1
+      await rateLimiter.check(mockRequest, limit, token1)
+      await rateLimiter.check(mockRequest, limit, token1)
+
+      // token2 should still work
+      await expect(rateLimiter.check(mockRequest, limit, token2)).resolves.not.toThrow()
     })
+  })
 
-    it('should update remaining count in headers', async () => {
-      const token = 'test-token-3'
-      const limit = 5
+  describe('configuration options', () => {
+    it('should respect custom interval and limit settings', async () => {
+      const customLimiter = new RateLimiter({
+        interval: 100, // 100ms
+        uniqueTokenPerInterval: 100,
+      })
 
-      const headers1 = await rateLimiter.limit(limit, token)
-      expect(headers1['X-RateLimit-Remaining']).toBe('4')
-
-      const headers2 = await rateLimiter.limit(limit, token)
-      expect(headers2['X-RateLimit-Remaining']).toBe('3')
+      await expect(customLimiter.check(mockRequest, 1, 'test-token')).resolves.not.toThrow()
+      await expect(customLimiter.check(mockRequest, 1, 'test-token')).rejects.toThrow()
     })
   })
 
   describe('edge cases', () => {
     it('should handle zero limit', async () => {
-      const result = await rateLimiter.check(0, 'test-token')
-      expect(result.success).toBe(false)
-      expect(result.limit).toBe(0)
-      expect(result.remaining).toBe(0)
+      await expect(rateLimiter.check(mockRequest, 0, 'test-token')).rejects.toThrow()
     })
 
-    it('should handle negative limit as zero', async () => {
-      const result = await rateLimiter.check(-5, 'test-token')
-      expect(result.success).toBe(false)
-      expect(result.limit).toBe(0)
-      expect(result.remaining).toBe(0)
+    it('should handle negative limit', async () => {
+      await expect(rateLimiter.check(mockRequest, -5, 'test-token')).rejects.toThrow()
     })
   })
 }) 

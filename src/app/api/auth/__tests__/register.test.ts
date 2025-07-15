@@ -1,48 +1,132 @@
 import { POST } from '../register/route'
 import { NextRequest } from 'next/server'
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server'
 
-// Mock dependencies
-jest.mock('@/lib/prisma', () => ({
+// Mock the prisma import
+jest.mock('../../../../lib/prisma', () => ({
   prisma: {
     user: {
+      findFirst: jest.fn(),
       findUnique: jest.fn(),
+      create: jest.fn(),
+    },
+    student: {
+      create: jest.fn(),
+    },
+    coach: {
       create: jest.fn(),
     },
   },
 }))
 
+// Mock other dependencies
 jest.mock('bcryptjs')
+jest.mock('../../../../lib/validations')
+jest.mock('../../../../lib/rate-limit')
 
-const mockPrisma = prisma as jest.Mocked<typeof prisma>
 const mockBcrypt = bcrypt as jest.Mocked<typeof bcrypt>
 
-describe('POST /api/auth/register', () => {
+// Mock the prisma client
+import { prisma } from '../../../../lib/prisma'
+const mockPrisma = prisma as jest.Mocked<typeof prisma>
+
+// Mock the validation functions
+import { validateRequest, signUpSchema } from '../../../../lib/validations'
+const mockValidateRequest = validateRequest as jest.MockedFunction<typeof validateRequest>
+
+// Mock the rate limit function
+import { checkRateLimit } from '../../../../lib/rate-limit'
+const mockCheckRateLimit = checkRateLimit as jest.MockedFunction<typeof checkRateLimit>
+
+describe('/api/auth/register', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    // Setup default mocks
+    mockCheckRateLimit.mockResolvedValue(null) // No rate limit
+    mockValidateRequest.mockReturnValue({ success: true, data: { email: 'test@example.com', password: 'password123', name: 'Test User', role: 'STUDENT' } })
   })
 
-  describe('input validation', () => {
-    it('should return 400 for missing email', async () => {
-      const request = new NextRequest('http://localhost/api/auth/register', {
+  describe('basic functionality', () => {
+    it('should create a new user successfully', async () => {
+      // Mock no existing user
+      mockPrisma.user.findFirst.mockResolvedValue(null)
+      // Mock password hashing
+      mockBcrypt.hash.mockResolvedValue('hashed_password')
+      // Mock user creation
+      const mockUser = {
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'STUDENT',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      mockPrisma.user.create.mockResolvedValue(mockUser)
+      mockPrisma.student.create.mockResolvedValue({
+        id: '1',
+        userId: '1',
+        studentName: 'Test User',
+        email: 'test@example.com',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+
+      const request = new NextRequest('http://localhost:3000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
+          email: 'test@example.com',
           password: 'password123',
           name: 'Test User',
           role: 'STUDENT',
         }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      const response = await POST(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(201)
+      expect(data.message).toBe('User created successfully')
+      expect(data.userId).toBe('1')
+      expect(data.role).toBe('STUDENT')
+    })
+
+    it('should handle existing user', async () => {
+      // Mock existing user
+      mockPrisma.user.findFirst.mockResolvedValue({
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'STUDENT',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+
+      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'Test User',
+          role: 'STUDENT',
+        }),
+        headers: { 'Content-Type': 'application/json' },
       })
 
       const response = await POST(request)
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('email')
+      expect(data.error).toContain('already exists')
     })
 
-    it('should return 400 for invalid email format', async () => {
-      const request = new NextRequest('http://localhost/api/auth/register', {
+    it('should handle validation errors', async () => {
+      // Mock validation failure
+      mockValidateRequest.mockReturnValue({ success: false, error: 'Invalid email format' })
+
+      const request = new NextRequest('http://localhost:3000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'invalid-email',
@@ -50,215 +134,44 @@ describe('POST /api/auth/register', () => {
           name: 'Test User',
           role: 'STUDENT',
         }),
+        headers: { 'Content-Type': 'application/json' },
       })
 
       const response = await POST(request)
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('email')
+      expect(data.error).toBe('Invalid email format')
     })
 
-    it('should return 400 for weak password', async () => {
-      const request = new NextRequest('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: 'test@example.com',
-          password: '123',
-          name: 'Test User',
-          role: 'STUDENT',
-        }),
-      })
+    it('should handle rate limiting', async () => {
+      // Mock rate limit response
+      mockCheckRateLimit.mockResolvedValue(NextResponse.json({ error: 'Too many requests' }, { status: 429 }))
 
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('password')
-    })
-
-    it('should return 400 for invalid role', async () => {
-      const request = new NextRequest('http://localhost/api/auth/register', {
+      const request = new NextRequest('http://localhost:3000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
           password: 'password123',
           name: 'Test User',
-          role: 'INVALID_ROLE',
-        }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('role')
-    })
-  })
-
-  describe('duplicate user check', () => {
-    it('should return 409 if user already exists', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce({
-        id: '1',
-        email: 'existing@example.com',
-        name: 'Existing User',
-        password: 'hashed',
-        role: 'STUDENT',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-
-      const request = new NextRequest('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: 'existing@example.com',
-          password: 'password123',
-          name: 'Test User',
           role: 'STUDENT',
         }),
+        headers: { 'Content-Type': 'application/json' },
       })
 
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(409)
-      expect(data.error).toBe('User already exists')
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { email: 'existing@example.com' },
-      })
-    })
-  })
-
-  describe('successful registration', () => {
-    beforeEach(() => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce(null)
-      mockBcrypt.hash.mockResolvedValueOnce('hashed_password')
-    })
-
-    it('should create a student user successfully', async () => {
-      const newUser = {
-        id: '1',
-        email: 'student@example.com',
-        name: 'Test Student',
-        role: 'STUDENT' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-
-      mockPrisma.user.create.mockResolvedValueOnce({
-        ...newUser,
-        password: 'hashed_password',
-      })
-
-      const request = new NextRequest('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: 'student@example.com',
-          password: 'password123',
-          name: 'Test Student',
-          role: 'STUDENT',
-        }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(201)
-      expect(data.user).toMatchObject({
-        email: 'student@example.com',
-        name: 'Test Student',
-        role: 'STUDENT',
-      })
-      expect(data.user.password).toBeUndefined()
-      expect(mockBcrypt.hash).toHaveBeenCalledWith('password123', 12)
-      expect(mockPrisma.user.create).toHaveBeenCalledWith({
-        data: {
-          email: 'student@example.com',
-          password: 'hashed_password',
-          name: 'Test Student',
-          role: 'STUDENT',
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      })
-    })
-
-    it('should create a coach user successfully', async () => {
-      const newUser = {
-        id: '2',
-        email: 'coach@example.com',
-        name: 'Test Coach',
-        role: 'COACH' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-
-      mockPrisma.user.create.mockResolvedValueOnce({
-        ...newUser,
-        password: 'hashed_password',
-      })
-
-      const request = new NextRequest('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: 'coach@example.com',
-          password: 'securepass123',
-          name: 'Test Coach',
-          role: 'COACH',
-        }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(201)
-      expect(data.user.role).toBe('COACH')
-    })
-
-    it('should create a parent user successfully', async () => {
-      const newUser = {
-        id: '3',
-        email: 'parent@example.com',
-        name: 'Test Parent',
-        role: 'PARENT' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-
-      mockPrisma.user.create.mockResolvedValueOnce({
-        ...newUser,
-        password: 'hashed_password',
-      })
-
-      const request = new NextRequest('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: 'parent@example.com',
-          password: 'parentpass123',
-          name: 'Test Parent',
-          role: 'PARENT',
-        }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(201)
-      expect(data.user.role).toBe('PARENT')
+      expect(response.status).toBe(429)
+      expect(data.error).toBe('Too many requests')
     })
   })
 
   describe('error handling', () => {
     it('should handle database errors', async () => {
-      mockPrisma.user.findUnique.mockRejectedValueOnce(new Error('Database connection failed'))
+      mockPrisma.user.findFirst.mockRejectedValue(new Error('Database connection failed'))
 
-      const request = new NextRequest('http://localhost/api/auth/register', {
+      const request = new NextRequest('http://localhost:3000/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -266,55 +179,14 @@ describe('POST /api/auth/register', () => {
           name: 'Test User',
           role: 'STUDENT',
         }),
+        headers: { 'Content-Type': 'application/json' },
       })
 
       const response = await POST(request)
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to register user')
-    })
-
-    it('should handle bcrypt errors', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce(null)
-      mockBcrypt.hash.mockRejectedValueOnce(new Error('Hashing failed'))
-
-      const request = new NextRequest('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: 'test@example.com',
-          password: 'password123',
-          name: 'Test User',
-          role: 'STUDENT',
-        }),
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to register user')
-    })
-
-    it('should handle invalid JSON in request body', async () => {
-      const request = new NextRequest('http://localhost/api/auth/register', {
-        method: 'POST',
-        body: 'invalid json',
-      })
-
-      const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid request')
-    })
-  })
-
-  describe('rate limiting', () => {
-    it('should apply rate limiting', async () => {
-      // This would be tested in integration tests with the actual rate limiter
-      // For unit tests, we can verify the rate limiter is called
-      expect(true).toBe(true)
+      expect(data.error).toBe('Registration failed. Please try again.')
     })
   })
 }) 

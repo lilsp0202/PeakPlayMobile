@@ -6,6 +6,32 @@ type Options = {
   interval?: number;
 };
 
+export class RateLimiter {
+  private tokenCache: LRUCache<string, number[]>;
+
+  constructor(options?: Options) {
+    this.tokenCache = new LRUCache({
+      max: options?.uniqueTokenPerInterval || 500,
+      ttl: options?.interval || 60000,
+    });
+  }
+
+  check(request: NextRequest, limit: number, token: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const tokenCount = (this.tokenCache.get(token) as number[]) || [0];
+      if (tokenCount[0] === 0) {
+        this.tokenCache.set(token, tokenCount);
+      }
+      tokenCount[0] += 1;
+
+      const currentUsage = tokenCount[0];
+      const isRateLimited = currentUsage >= limit;
+
+      return isRateLimited ? reject() : resolve();
+    });
+  }
+}
+
 export default function rateLimit(options?: Options) {
   const tokenCache = new LRUCache({
     max: options?.uniqueTokenPerInterval || 500,
