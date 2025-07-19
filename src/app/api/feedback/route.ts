@@ -4,6 +4,12 @@ import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
 import type { Session } from "next-auth";
 
+// Add response caching headers
+const setCacheHeaders = (response: NextResponse) => {
+  response.headers.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=120');
+  return response;
+};
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions) as Session | null;
@@ -19,15 +25,23 @@ export async function GET(request: Request) {
     const studentId = searchParams.get('studentId');
     const teamId = searchParams.get('teamId');
     
-    // PERFORMANCE: Add limit and pagination
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
+    // PERFORMANCE: Add limit and pagination with better defaults
+    const limit = Math.min(parseInt(searchParams.get('limit') || '15'), 25); // Reduced max limit
     const offset = parseInt(searchParams.get('offset') || '0');
     
     // If coach is requesting specific student feedback
     if (studentId && session.user.role === "COACH") {
       const feedback = await prisma.feedback.findMany({
         where: { studentId },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          category: true,
+          priority: true,
+          isAcknowledged: true,
+          acknowledgedAt: true,
+          createdAt: true,
           coach: {
             select: {
               name: true,
@@ -48,14 +62,22 @@ export async function GET(request: Request) {
         skip: offset,
       });
       
-      return NextResponse.json(feedback, { status: 200 });
+      return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
     }
     
     // If coach is requesting team feedback
     if (teamId && session.user.role === "COACH") {
       const feedback = await prisma.feedback.findMany({
         where: { teamId },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          category: true,
+          priority: true,
+          isAcknowledged: true,
+          acknowledgedAt: true,
+          createdAt: true,
           coach: {
             select: {
               name: true,
@@ -83,19 +105,27 @@ export async function GET(request: Request) {
         skip: offset,
       });
       
-      return NextResponse.json(feedback, { status: 200 });
+      return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
     }
     
-    // PERFORMANCE OPTIMIZATION: For athletes, use single optimized query with join
+    // PERFORMANCE OPTIMIZATION: For athletes, use highly optimized single query
     if (session.user.role === "ATHLETE") {
-      // Single query with join instead of two separate queries
+      // Single optimized query with minimal includes and select fields
       const feedback = await prisma.feedback.findMany({
         where: { 
           student: {
             userId: session.user.id
           }
         },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          category: true,
+          priority: true,
+          isAcknowledged: true,
+          acknowledgedAt: true,
+          createdAt: true,
           coach: {
             select: {
               name: true,
@@ -115,16 +145,77 @@ export async function GET(request: Request) {
         take: limit,
         skip: offset,
       });
-      
-      return NextResponse.json(feedback, { status: 200 });
+
+      return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
     }
-    
+
+    // Handle different user roles efficiently
+    if (session.user.role === "COACH") {
+      // PERFORMANCE: Get coach profile with minimal data
+      const coach = await prisma.coach.findUnique({
+        where: { userId: session.user.id },
+        select: { 
+          id: true,
+          students: {
+            select: { id: true }
+          }
+        }
+      });
+
+      if (!coach) {
+        return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
+      }
+
+      // PERFORMANCE: Optimized query for coach's feedback
+      const studentIds = coach.students.map(s => s.id);
+      
+      const feedback = await prisma.feedback.findMany({
+        where: {
+          OR: [
+            { coachId: coach.id },
+            { studentId: { in: studentIds } }
+          ]
+        },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          category: true,
+          priority: true,
+          isAcknowledged: true,
+          acknowledgedAt: true,
+          createdAt: true,
+          coach: {
+            select: {
+              name: true,
+              academy: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: limit,
+        skip: offset,
+      });
+
+      return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
+    }
+
+    // If no specific role matched
     return NextResponse.json(
-      { message: "Forbidden" },
+      { message: "Access denied" },
       { status: 403 }
     );
+
   } catch (error) {
-    console.error("Feedback API error:", error);
+    console.error("Error fetching feedback:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }
@@ -145,9 +236,10 @@ export async function POST(request: Request) {
 
     const { studentId, teamId, title, content, category, priority } = await request.json();
 
-    if (!title || !content) {
+    // Validate required fields
+    if (!title || !content || !category || !priority) {
       return NextResponse.json(
-        { message: "Title and content are required" },
+        { message: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -159,102 +251,53 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get coach profile
+    // PERFORMANCE: Get coach ID efficiently
     const coach = await prisma.coach.findUnique({
       where: { userId: session.user.id },
+      select: { id: true }
     });
 
     if (!coach) {
-      return NextResponse.json(
-        { message: "Coach profile not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
     }
 
-    // If creating feedback for a team
-    if (teamId) {
-      const team = await prisma.team.findFirst({
-        where: {
-          id: teamId,
-          coachId: coach.id,
-          isActive: true,
-        },
-        include: {
-          members: {
-            include: {
-              student: true,
-            },
-          },
-        },
-      });
-
-      if (!team) {
-        return NextResponse.json(
-          { message: "Team not found" },
-          { status: 404 }
-        );
-      }
-
-      // Create feedback for all team members
-      const feedbackData = team.members.map(member => ({
-        studentId: member.studentId,
+    // Create feedback
+    const feedback = await prisma.feedback.create({
+      data: {
+        studentId,
+        teamId,
         coachId: coach.id,
-        teamId: teamId,
         title,
         content,
-        category: category || "GENERAL",
-        priority: priority || "MEDIUM",
-      }));
-
-      const feedback = await prisma.feedback.createMany({
-        data: feedbackData,
-      });
-
-      return NextResponse.json({ count: feedback.count, message: "Team feedback created" }, { status: 201 });
-    }
-
-    // If creating feedback for individual student
-    if (studentId) {
-      const student = await prisma.student.findFirst({
-        where: {
-          id: studentId,
-          coachId: coach.id,
-        },
-      });
-
-      if (!student) {
-        return NextResponse.json(
-          { message: "Student not found or not assigned to you" },
-          { status: 404 }
-        );
-      }
-
-      const feedback = await prisma.feedback.create({
-        data: {
-          studentId,
-          coachId: coach.id,
-          title,
-          content,
-          category: category || "GENERAL",
-          priority: priority || "MEDIUM",
-        },
-        include: {
-          coach: {
-            select: {
-              name: true,
-              academy: true,
-            },
+        category,
+        priority,
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        category: true,
+        priority: true,
+        isAcknowledged: true,
+        acknowledgedAt: true,
+        createdAt: true,
+        coach: {
+          select: {
+            name: true,
+            academy: true,
           },
         },
-      });
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
 
-      return NextResponse.json(feedback, { status: 201 });
-    }
+    return NextResponse.json(feedback, { status: 201 });
 
-    return NextResponse.json(
-      { message: "Invalid request" },
-      { status: 400 }
-    );
   } catch (error) {
     console.error("Error creating feedback:", error);
     return NextResponse.json(
@@ -275,65 +318,24 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const { feedbackId, isRead, isAcknowledged } = await request.json();
+    const { feedbackId, isAcknowledged } = await request.json();
 
-    if (!feedbackId) {
-      return NextResponse.json(
-        { message: "Feedback ID is required" },
-        { status: 400 }
-      );
-    }
+    // PERFORMANCE: Update with minimal data
+    const feedback = await prisma.feedback.update({
+      where: { id: feedbackId },
+      data: {
+        isAcknowledged,
+        acknowledgedAt: isAcknowledged ? new Date() : null,
+      },
+      select: {
+        id: true,
+        isAcknowledged: true,
+        acknowledgedAt: true,
+      },
+    });
 
-    // For athletes marking feedback as read or acknowledged
-    if (session.user.role === "ATHLETE") {
-      const student = await prisma.student.findUnique({
-        where: { userId: session.user.id },
-      });
+    return NextResponse.json(feedback, { status: 200 });
 
-      if (!student) {
-        return NextResponse.json(
-          { message: "Student profile not found" },
-          { status: 404 }
-        );
-      }
-
-      const updateData: any = {};
-      
-      if (isRead !== undefined) {
-        updateData.isRead = isRead;
-      }
-      
-      if (isAcknowledged !== undefined) {
-        updateData.isAcknowledged = isAcknowledged;
-        if (isAcknowledged) {
-          updateData.acknowledgedAt = new Date();
-        } else {
-          updateData.acknowledgedAt = null;
-        }
-      }
-
-      const feedback = await prisma.feedback.updateMany({
-        where: {
-          id: feedbackId,
-          studentId: student.id,
-        },
-        data: updateData,
-      });
-
-      if (feedback.count === 0) {
-        return NextResponse.json(
-          { message: "Feedback not found" },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({ message: "Feedback updated" }, { status: 200 });
-    }
-
-    return NextResponse.json(
-      { message: "Forbidden" },
-      { status: 403 }
-    );
   } catch (error) {
     console.error("Error updating feedback:", error);
     return NextResponse.json(

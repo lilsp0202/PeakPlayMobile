@@ -4,6 +4,12 @@ import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
 import type { Session } from "next-auth";
 
+// Add response caching headers for performance
+const setCacheHeaders = (response: NextResponse) => {
+  response.headers.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=120');
+  return response;
+};
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions) as Session | null;
@@ -19,8 +25,8 @@ export async function GET(request: Request) {
     const studentId = searchParams.get('studentId');
     const teamId = searchParams.get('teamId');
     
-    // PERFORMANCE OPTIMIZATION: Set reasonable limits for all queries
-    const limit = Math.min(parseInt(searchParams.get('limit') || '15'), 50); // Max 50 items
+    // PERFORMANCE OPTIMIZATION: Reduced limits and better defaults
+    const limit = Math.min(parseInt(searchParams.get('limit') || '15'), 25); // Reduced max limit
     const offset = parseInt(searchParams.get('offset') || '0');
     
     // If coach is requesting specific student actions
@@ -35,13 +41,32 @@ export async function GET(request: Request) {
         return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
       }
 
-      // PERFORMANCE: Single optimized query with specific includes
+      // PERFORMANCE: Single optimized query with specific select fields
       const actions = await prisma.action.findMany({
         where: { 
           studentId,
           coachId: coach.id // Ensure coach can only see their own assigned actions
         },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          category: true,
+          priority: true,
+          dueDate: true,
+          isCompleted: true,
+          completedAt: true,
+          isAcknowledged: true,
+          acknowledgedAt: true,
+          proofMediaUrl: true,
+          proofMediaType: true,
+          proofFileName: true,
+          proofUploadedAt: true,
+          demoMediaUrl: true,
+          demoMediaType: true,
+          demoFileName: true,
+          demoUploadedAt: true,
+          createdAt: true,
           coach: {
             select: {
               name: true,
@@ -62,7 +87,7 @@ export async function GET(request: Request) {
         skip: offset,
       });
       
-      return NextResponse.json(actions, { status: 200 });
+      return setCacheHeaders(NextResponse.json(actions, { status: 200 }));
     }
 
     // If team actions are requested
@@ -83,7 +108,26 @@ export async function GET(request: Request) {
           teamId,
           coachId: coach.id
         },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          category: true,
+          priority: true,
+          dueDate: true,
+          isCompleted: true,
+          completedAt: true,
+          isAcknowledged: true,
+          acknowledgedAt: true,
+          proofMediaUrl: true,
+          proofMediaType: true,
+          proofFileName: true,
+          proofUploadedAt: true,
+          demoMediaUrl: true,
+          demoMediaType: true,
+          demoFileName: true,
+          demoUploadedAt: true,
+          createdAt: true,
           coach: {
             select: {
               name: true,
@@ -104,7 +148,7 @@ export async function GET(request: Request) {
         skip: offset,
       });
       
-      return NextResponse.json(actions, { status: 200 });
+      return setCacheHeaders(NextResponse.json(actions, { status: 200 }));
     }
 
     // Handle different user roles efficiently
@@ -112,7 +156,8 @@ export async function GET(request: Request) {
       // PERFORMANCE: Single query to get coach and their actions
       const coach = await prisma.coach.findUnique({
         where: { userId: session.user.id },
-        include: {
+        select: {
+          id: true,
           students: {
             select: { id: true } // Only get IDs for performance
           }
@@ -133,7 +178,26 @@ export async function GET(request: Request) {
             { studentId: { in: studentIds } } // Actions for this coach's students
           ]
         },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          category: true,
+          priority: true,
+          dueDate: true,
+          isCompleted: true,
+          completedAt: true,
+          isAcknowledged: true,
+          acknowledgedAt: true,
+          proofMediaUrl: true,
+          proofMediaType: true,
+          proofFileName: true,
+          proofUploadedAt: true,
+          demoMediaUrl: true,
+          demoMediaType: true,
+          demoFileName: true,
+          demoUploadedAt: true,
+          createdAt: true,
           coach: {
             select: {
               name: true,
@@ -154,18 +218,37 @@ export async function GET(request: Request) {
         skip: offset,
       });
 
-      return NextResponse.json(actions, { status: 200 });
+      return setCacheHeaders(NextResponse.json(actions, { status: 200 }));
     } 
     
     if (session.user.role === "ATHLETE") {
-      // PERFORMANCE OPTIMIZATION: Single query with join instead of two separate queries
+      // PERFORMANCE OPTIMIZATION: Single optimized query with minimal includes
       const actions = await prisma.action.findMany({
         where: { 
           student: {
             userId: session.user.id
           }
         },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          category: true,
+          priority: true,
+          dueDate: true,
+          isCompleted: true,
+          completedAt: true,
+          isAcknowledged: true,
+          acknowledgedAt: true,
+          proofMediaUrl: true,
+          proofMediaType: true,
+          proofFileName: true,
+          proofUploadedAt: true,
+          demoMediaUrl: true,
+          demoMediaType: true,
+          demoFileName: true,
+          demoUploadedAt: true,
+          createdAt: true,
           coach: {
             select: {
               name: true,
@@ -186,7 +269,7 @@ export async function GET(request: Request) {
         skip: offset,
       });
 
-      return NextResponse.json(actions, { status: 200 });
+      return setCacheHeaders(NextResponse.json(actions, { status: 200 }));
     }
 
     // If no specific role matched
