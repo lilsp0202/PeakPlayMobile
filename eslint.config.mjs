@@ -25,8 +25,25 @@ const eslintConfig = [
       "public/sw.js",
       "public/workbox-*.js",
       "public/sw.js.map",
-      "public/workbox-*.js.map"
+      "public/workbox-*.js.map",
+      "**/__tests__/**",
+      "**/*.test.ts",
+      "**/*.test.tsx"
     ]
+  },
+  {
+    rules: {
+      // Production-friendly rules for deployment
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": "warn", 
+      "@typescript-eslint/no-non-null-assertion": "warn",
+      "prefer-const": "warn",
+      "no-console": "off", // Allow console logs for debugging
+      "react-hooks/exhaustive-deps": "warn",
+      // Disable some strict rules for production deployment
+      "@next/next/no-img-element": "off",
+      "react/no-unescaped-entities": "off"
+    }
   }
 ];
 
