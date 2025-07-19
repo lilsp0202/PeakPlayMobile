@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import type { Session } from "next-auth";
 
 export default async function HomePage() {
@@ -9,14 +10,37 @@ export default async function HomePage() {
 
   // Handle redirects on the server side
   if (session?.user) {
-      if (session.user.name === "temp") {
-        // Redirect to appropriate onboarding based on role
+    try {
+      // Check if user has completed profile/onboarding
+      let hasProfile = false;
+      
+      if (session.user.role === "COACH") {
+        const coachProfile = await prisma.coach.findUnique({
+          where: { userId: session.user.id },
+          select: { id: true, name: true, academy: true }
+        });
+        hasProfile = !!(coachProfile?.name && coachProfile?.academy);
+      } else if (session.user.role === "ATHLETE") {
+        const studentProfile = await prisma.student.findUnique({
+          where: { userId: session.user.id },
+          select: { id: true, studentName: true, sport: true, academy: true }
+        });
+        hasProfile = !!(studentProfile?.studentName && studentProfile?.sport && studentProfile?.academy);
+      }
+
+      if (hasProfile) {
+        // User has completed profile, go to dashboard
+        redirect("/dashboard");
+      } else {
+        // User needs to complete onboarding
         const onboardingPath = session.user.role === "COACH" 
           ? "/onboarding/coach" 
           : "/onboarding/athlete";
-      redirect(onboardingPath);
-    } else {
-      // Regular authenticated user goes to dashboard
+        redirect(onboardingPath);
+      }
+    } catch (error) {
+      console.error("Error checking user profile:", error);
+      // Fallback: redirect to dashboard (will handle profile check there)
       redirect("/dashboard");
     }
   }

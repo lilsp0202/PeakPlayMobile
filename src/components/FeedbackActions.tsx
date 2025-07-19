@@ -61,6 +61,8 @@ const FeedbackActions = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'feedback' | 'actions'>('feedback');
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [lastFetch, setLastFetch] = useState<number>(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Upload modal state
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -70,32 +72,50 @@ const FeedbackActions = () => {
     fetchFeedbackAndActions();
   }, []);
 
-  const fetchFeedbackAndActions = async () => {
+  // PERFORMANCE: Optimized parallel fetch with caching
+  const fetchFeedbackAndActions = async (forceRefresh = false) => {
+    // Avoid fetching too frequently (cache for 30 seconds)
+    const now = Date.now();
+    if (!forceRefresh && lastFetch && (now - lastFetch) < 30000) {
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
       
+      // PERFORMANCE: Parallel requests with optimized params
       const [feedbackResponse, actionsResponse] = await Promise.all([
-        fetch('/api/feedback'),
-        fetch('/api/actions')
+        fetch('/api/feedback?limit=15'),
+        fetch('/api/actions?limit=15')
       ]);
 
       if (!feedbackResponse.ok || !actionsResponse.ok) {
         throw new Error('Failed to fetch data');
       }
 
-      const feedbackData = await feedbackResponse.json();
-      const actionsData = await actionsResponse.json();
+      const [feedbackData, actionsData] = await Promise.all([
+        feedbackResponse.json(),
+        actionsResponse.json()
+      ]);
 
       // API returns arrays directly, not wrapped in objects
       setFeedback(Array.isArray(feedbackData) ? feedbackData : []);
       setActions(Array.isArray(actionsData) ? actionsData : []);
+      setLastFetch(now);
     } catch (error) {
       console.error('Error fetching feedback and actions:', error);
       setError('Failed to load feedback and actions');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Manual refresh function
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchFeedbackAndActions(true);
+    setIsRefreshing(false);
   };
 
   const handleAcknowledgeFeedback = async (feedbackId: string) => {

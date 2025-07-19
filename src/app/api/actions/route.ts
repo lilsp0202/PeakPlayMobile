@@ -158,21 +158,12 @@ export async function GET(request: Request) {
     } 
     
     if (session.user.role === "ATHLETE") {
-      // PERFORMANCE: Single query to get student and their actions
-      const student = await prisma.student.findUnique({
-        where: { userId: session.user.id },
-        select: { id: true, coachId: true }
-      });
-
-      if (!student) {
-        return NextResponse.json({ message: "Student profile not found" }, { status: 404 });
-      }
-
-      // PERFORMANCE: Optimized query for student's actions only
+      // PERFORMANCE OPTIMIZATION: Single query with join instead of two separate queries
       const actions = await prisma.action.findMany({
         where: { 
-          studentId: student.id,
-          ...(student.coachId && { coachId: student.coachId })
+          student: {
+            userId: session.user.id
+          }
         },
         include: {
           coach: {

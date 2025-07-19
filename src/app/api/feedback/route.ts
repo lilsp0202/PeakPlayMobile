@@ -19,6 +19,10 @@ export async function GET(request: Request) {
     const studentId = searchParams.get('studentId');
     const teamId = searchParams.get('teamId');
     
+    // PERFORMANCE: Add limit and pagination
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
+    const offset = parseInt(searchParams.get('offset') || '0');
+    
     // If coach is requesting specific student feedback
     if (studentId && session.user.role === "COACH") {
       const feedback = await prisma.feedback.findMany({
@@ -40,6 +44,8 @@ export async function GET(request: Request) {
         orderBy: {
           createdAt: "desc",
         },
+        take: limit,
+        skip: offset,
       });
       
       return NextResponse.json(feedback, { status: 200 });
@@ -73,26 +79,22 @@ export async function GET(request: Request) {
         orderBy: {
           createdAt: "desc",
         },
+        take: limit,
+        skip: offset,
       });
       
       return NextResponse.json(feedback, { status: 200 });
     }
     
-    // For athletes, get their own feedback
+    // PERFORMANCE OPTIMIZATION: For athletes, use single optimized query with join
     if (session.user.role === "ATHLETE") {
-      const student = await prisma.student.findUnique({
-        where: { userId: session.user.id },
-      });
-      
-      if (!student) {
-        return NextResponse.json(
-          { message: "Student profile not found" },
-          { status: 404 }
-        );
-      }
-      
+      // Single query with join instead of two separate queries
       const feedback = await prisma.feedback.findMany({
-        where: { studentId: student.id },
+        where: { 
+          student: {
+            userId: session.user.id
+          }
+        },
         include: {
           coach: {
             select: {
@@ -110,6 +112,8 @@ export async function GET(request: Request) {
         orderBy: {
           createdAt: "desc",
         },
+        take: limit,
+        skip: offset,
       });
       
       return NextResponse.json(feedback, { status: 200 });
@@ -120,7 +124,7 @@ export async function GET(request: Request) {
       { status: 403 }
     );
   } catch (error) {
-    console.error("Error fetching feedback:", error);
+    console.error("Feedback API error:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }
