@@ -78,10 +78,10 @@ model Student {
   skillHistory       SkillHistory[]
   skills             Skills?
   smartNotifications SmartNotification[]
-  teamMemberships    TeamMember[]
   coach              Coach?               @relation(fields: [coachId], references: [id])
   user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   badges             StudentBadge[]
+  teamMemberships    TeamMember[]
 }
 
 model Coach {
@@ -231,36 +231,46 @@ model Feedback {
   category       String    @default("GENERAL")
   priority       String    @default("MEDIUM")
   isRead         Boolean   @default(false)
-  isAcknowledged Boolean   @default(false)
-  acknowledgedAt DateTime?
-  teamId         String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+  acknowledgedAt DateTime?
+  isAcknowledged Boolean   @default(false)
+  teamId         String?
   coach          Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
   student        Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  team           Team?     @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  team           Team?     @relation(fields: [teamId], references: [id])
 }
 
 model Action {
-  id             String    @id @default(cuid())
-  studentId      String
-  coachId        String
-  title          String
-  description    String
-  category       String    @default("GENERAL")
-  priority       String    @default("MEDIUM")
-  dueDate        DateTime?
-  isCompleted    Boolean   @default(false)
-  completedAt    DateTime?
-  isAcknowledged Boolean   @default(false)
-  acknowledgedAt DateTime?
-  notes          String?
-  teamId         String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  coach          Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
-  student        Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  team           Team?     @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  id               String    @id @default(cuid())
+  studentId        String
+  coachId          String
+  title            String
+  description      String
+  category         String    @default("GENERAL")
+  priority         String    @default("MEDIUM")
+  dueDate          DateTime?
+  isCompleted      Boolean   @default(false)
+  completedAt      DateTime?
+  isAcknowledged   Boolean   @default(false)
+  acknowledgedAt   DateTime?
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  teamId           String?
+  // Student proof upload fields
+  proofFileName    String?
+  proofMediaType   String?
+  proofMediaUrl    String?
+  proofUploadedAt  DateTime?
+  // Coach demo media fields
+  demoMediaUrl     String?
+  demoMediaType    String?
+  demoFileName     String?
+  demoUploadedAt   DateTime?
+  coach            Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  student          Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  team             Team?     @relation(fields: [teamId], references: [id])
 }
 
 model BadgeCategory {
@@ -489,22 +499,33 @@ model Team {
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  actions     Action[]
+  feedback    Feedback[]
   coach       Coach        @relation(fields: [coachId], references: [id], onDelete: Cascade)
   members     TeamMember[]
-  feedback    Feedback[]
-  actions     Action[]
 }
 
 model TeamMember {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   teamId    String
   studentId String
-  role      String   @default("MEMBER")
-  joinedAt  DateTime @default(now())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime   @default(now())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  roles     TeamRole[] @default([])
+  student   Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  team      Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, studentId])
+}
+
+enum TeamRole {
+  CAPTAIN
+  VICE_CAPTAIN
+  BATSMAN
+  ALL_ROUNDER
+  BATTING_ALL_ROUNDER
+  BOWLING_ALL_ROUNDER
+  BOWLER
+  WICKET_KEEPER
 }

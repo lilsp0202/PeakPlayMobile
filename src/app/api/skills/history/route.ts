@@ -219,8 +219,8 @@ function calculateNutritionScore(skills: any): number {
 function calculateMentalScore(skills: any): number {
   const scores = [];
   
-  if (skills.moodScore !== null) scores.push(skills.moodScore);
-  if (skills.sleepScore !== null) scores.push(skills.sleepScore);
+  if (skills.moodScore !== null && skills.moodScore !== undefined) scores.push(skills.moodScore * 10); // Convert 1-10 to 0-100 scale
+  if (skills.sleepScore !== null && skills.sleepScore !== undefined) scores.push(skills.sleepScore * 10); // Convert 1-10 to 0-100 scale
   
   return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 0;
 }
@@ -231,21 +231,34 @@ function calculateWellnessScore(skills: any): number {
   const nutrition = calculateNutritionScore(skills);
   const mental = calculateMentalScore(skills);
   
-  return (physical + nutrition + mental) / 3;
+  const validScores = [physical, nutrition, mental].filter(score => score > 0);
+  return validScores.length > 0 ? validScores.reduce((a, b) => a + b) / validScores.length : 0;
 }
 
 function calculateTechniqueScore(skills: any): number {
-  const techniqueFields = [
-    'battingGrip', 'battingStance', 'backLift', 'backFootLanding',
-    'frontFootLanding', 'battingBalance', 'followThrough', 'bowlingGrip',
-    'runUp', 'nonBowlingArm', 'hipDrive', 'release', 'highElbow'
+  const technicalFields = [
+    // Batting skills (9)
+    'battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift',
+    'topHandDominance', 'highElbow', 'runningBetweenWickets', 'calling',
+    // Bowling skills (9)
+    'bowlingGrip', 'runUp', 'backFootLanding', 'frontFootLanding', 'hipDrive',
+    'backFootDrag', 'nonBowlingArm', 'release', 'followThrough',
+    // Fielding skills (8)
+    'positioningOfBall', 'pickUp', 'aim', 'throw', 'softHands', 'receiving', 'highCatch', 'flatCatch'
   ];
   
-  const scores = techniqueFields
-    .filter(field => skills[field] !== null)
-    .map(field => skills[field]);
+  let totalScore = 0;
+  let validFields = 0;
   
-  return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 0;
+  technicalFields.forEach(field => {
+    if (skills[field] !== null && skills[field] !== undefined && skills[field] > 0) {
+      const normalizedScore = (skills[field] / 10) * 100; // Convert 0-10 to 0-100 scale
+      totalScore += normalizedScore;
+      validFields++;
+    }
+  });
+  
+  return validFields > 0 ? Math.round(totalScore / validFields) : 0;
 }
 
 function calculateTacticalScore(skills: any): number {
@@ -256,8 +269,8 @@ function calculateTacticalScore(skills: any): number {
   ];
   
   const scores = tacticalFields
-    .filter(field => skills[field] !== null)
-    .map(field => skills[field]);
+    .filter(field => skills[field] !== null && skills[field] !== undefined)
+    .map(field => skills[field] * 10); // Convert 0-10 to 0-100 scale
   
   return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 0;
 }

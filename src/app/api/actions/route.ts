@@ -19,10 +19,28 @@ export async function GET(request: Request) {
     const studentId = searchParams.get('studentId');
     const teamId = searchParams.get('teamId');
     
+    // PERFORMANCE OPTIMIZATION: Set reasonable limits for all queries
+    const limit = Math.min(parseInt(searchParams.get('limit') || '15'), 50); // Max 50 items
+    const offset = parseInt(searchParams.get('offset') || '0');
+    
     // If coach is requesting specific student actions
     if (studentId && session.user.role === "COACH") {
+      // PERFORMANCE: Verify coach access efficiently
+      const coach = await prisma.coach.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true }
+      });
+
+      if (!coach) {
+        return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
+      }
+
+      // PERFORMANCE: Single optimized query with specific includes
       const actions = await prisma.action.findMany({
-        where: { studentId },
+        where: { 
+          studentId,
+          coachId: coach.id // Ensure coach can only see their own assigned actions
+        },
         include: {
           coach: {
             select: {
@@ -40,27 +58,36 @@ export async function GET(request: Request) {
         orderBy: {
           createdAt: "desc",
         },
+        take: limit,
+        skip: offset,
       });
       
       return NextResponse.json(actions, { status: 200 });
     }
-    
-    // If coach is requesting team actions
+
+    // If team actions are requested
     if (teamId && session.user.role === "COACH") {
+      // PERFORMANCE: Verify team access efficiently
+      const coach = await prisma.coach.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true }
+      });
+
+      if (!coach) {
+        return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
+      }
+
+      // PERFORMANCE: Optimized team actions query
       const actions = await prisma.action.findMany({
-        where: { teamId },
+        where: { 
+          teamId,
+          coachId: coach.id
+        },
         include: {
           coach: {
             select: {
               name: true,
               academy: true,
-            },
-          },
-          student: {
-            select: {
-              id: true,
-              studentName: true,
-              email: true,
             },
           },
           team: {
@@ -73,37 +100,79 @@ export async function GET(request: Request) {
         orderBy: {
           createdAt: "desc",
         },
+        take: limit,
+        skip: offset,
       });
       
       return NextResponse.json(actions, { status: 200 });
     }
-    
-    // For athletes, get their own actions from assigned coach only
-    if (session.user.role === "ATHLETE") {
-      const student = await prisma.student.findUnique({
+
+    // Handle different user roles efficiently
+    if (session.user.role === "COACH") {
+      // PERFORMANCE: Single query to get coach and their actions
+      const coach = await prisma.coach.findUnique({
         where: { userId: session.user.id },
         include: {
-          coach: true,
-        },
+          students: {
+            select: { id: true } // Only get IDs for performance
+          }
+        }
       });
+
+      if (!coach) {
+        return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
+      }
+
+      // PERFORMANCE: Get actions for all coach's students efficiently
+      const studentIds = coach.students.map(s => s.id);
       
+      const actions = await prisma.action.findMany({
+        where: {
+          OR: [
+            { coachId: coach.id }, // Actions created by this coach
+            { studentId: { in: studentIds } } // Actions for this coach's students
+          ]
+        },
+        include: {
+          coach: {
+            select: {
+              name: true,
+              academy: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: limit,
+        skip: offset,
+      });
+
+      return NextResponse.json(actions, { status: 200 });
+    } 
+    
+    if (session.user.role === "ATHLETE") {
+      // PERFORMANCE: Single query to get student and their actions
+      const student = await prisma.student.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true, coachId: true }
+      });
+
       if (!student) {
-        return NextResponse.json(
-          { message: "Student profile not found" },
-          { status: 404 }
-        );
+        return NextResponse.json({ message: "Student profile not found" }, { status: 404 });
       }
 
-      // Only get actions from assigned coach
-      // If student has no coach, return empty array immediately
-      if (!student.coachId) {
-        return NextResponse.json([], { status: 200 });
-      }
-
+      // PERFORMANCE: Optimized query for student's actions only
       const actions = await prisma.action.findMany({
         where: { 
           studentId: student.id,
-          coachId: student.coachId,
+          ...(student.coachId && { coachId: student.coachId })
         },
         include: {
           coach: {
@@ -122,15 +191,19 @@ export async function GET(request: Request) {
         orderBy: {
           createdAt: "desc",
         },
+        take: limit,
+        skip: offset,
       });
-      
+
       return NextResponse.json(actions, { status: 200 });
     }
-    
+
+    // If no specific role matched
     return NextResponse.json(
-      { message: "Forbidden" },
+      { message: "Access denied" },
       { status: 403 }
     );
+
   } catch (error) {
     console.error("Error fetching actions:", error);
     return NextResponse.json(
@@ -151,7 +224,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const { studentId, teamId, title, description, category, priority, dueDate } = await request.json();
+    const { 
+      studentId, 
+      teamId, 
+      title, 
+      description, 
+      category, 
+      priority, 
+      dueDate,
+      demoMediaUrl,
+      demoMediaType,
+      demoFileName,
+      demoUploadedAt 
+    } = await request.json();
 
     if (!title || !description) {
       return NextResponse.json(
@@ -213,6 +298,10 @@ export async function POST(request: Request) {
         category: category || "GENERAL",
         priority: priority || "MEDIUM",
         dueDate: dueDate ? new Date(dueDate) : null,
+        demoMediaUrl: demoMediaUrl || null,
+        demoMediaType: demoMediaType || null,
+        demoFileName: demoFileName || null,
+        demoUploadedAt: demoUploadedAt ? new Date(demoUploadedAt) : null,
       }));
 
       const action = await prisma.action.createMany({
@@ -247,6 +336,10 @@ export async function POST(request: Request) {
           category: category || "GENERAL",
           priority: priority || "MEDIUM",
           dueDate: dueDate ? new Date(dueDate) : null,
+          demoMediaUrl: demoMediaUrl || null,
+          demoMediaType: demoMediaType || null,
+          demoFileName: demoFileName || null,
+          demoUploadedAt: demoUploadedAt ? new Date(demoUploadedAt) : null,
         },
         include: {
           coach: {

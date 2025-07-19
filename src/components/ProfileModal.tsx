@@ -19,6 +19,10 @@ interface ProfileData {
   sport?: string;
   academy?: string;
   role: string;
+  age?: number;
+  height?: number;
+  weight?: number;
+  studentRole?: string;
 }
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
@@ -74,7 +78,16 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
       
       const data = await response.json();
       setProfileData(data);
-      setFormData(data);
+      
+      // Convert numeric values to strings for form inputs
+      const formattedData = {
+        ...data,
+        age: data.age ? String(data.age) : '',
+        height: data.height ? String(data.height) : '',
+        weight: data.weight ? String(data.weight) : '',
+      };
+      
+      setFormData(formattedData);
     } catch (err) {
       console.error('Error fetching profile:', err);
       setError('Failed to load profile data');
@@ -224,8 +237,40 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
                     <div className="flex items-center space-x-2">
                       <span className="text-gray-600">🏏</span>
                       <span className="text-gray-700">Sport:</span>
-                      <span className="font-medium text-blue-700">{profileData?.sport || 'Not specified'}</span>
+                      <span className="font-medium text-blue-700">{profileData?.sport || 'CRICKET'}</span>
                     </div>
+                    {profileData?.role === 'ATHLETE' && (
+                      <>
+                        {profileData?.studentRole && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-600">⚡</span>
+                            <span className="text-gray-700">Role:</span>
+                            <span className="font-medium text-emerald-700">{profileData.studentRole}</span>
+                          </div>
+                        )}
+                        {profileData?.age && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-600">🎂</span>
+                            <span className="text-gray-700">Age:</span>
+                            <span className="font-medium text-indigo-700">{profileData.age} years</span>
+                          </div>
+                        )}
+                        {profileData?.height && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-600">📏</span>
+                            <span className="text-gray-700">Height:</span>
+                            <span className="font-medium text-teal-700">{profileData.height} cm</span>
+                          </div>
+                        )}
+                        {profileData?.weight && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-600">⚖️</span>
+                            <span className="text-gray-700">Weight:</span>
+                            <span className="font-medium text-orange-700">{profileData.weight} kg</span>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -342,6 +387,106 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
                     Coaches can only view athletes from their academy
                   </p>
                 </div>
+
+                {/* Athletic Profile Fields - Only for Athletes */}
+                {profileData?.role === 'ATHLETE' && (
+                  <>
+                    {/* Age Field */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <span className="flex items-center">
+                          <span className="mr-1">🎂</span>
+                          Age
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.age || ''}
+                        onChange={(e) => handleInputChange('age', e.target.value)}
+                        disabled={!isEditing}
+                        min="10"
+                        max="50"
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base ${
+                          isEditing ? 'bg-white border-gray-300' : 'bg-gray-50 border-gray-200'
+                        }`}
+                        placeholder="Enter your age"
+                      />
+                    </div>
+
+                    {/* Physical Stats Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
+                      {/* Height Field */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <span className="flex items-center">
+                            <span className="mr-1">📏</span>
+                            Height (cm)
+                          </span>
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.height || ''}
+                          onChange={(e) => handleInputChange('height', e.target.value)}
+                          disabled={!isEditing}
+                          min="100"
+                          max="250"
+                          step="0.1"
+                          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base ${
+                            isEditing ? 'bg-white border-gray-300' : 'bg-gray-50 border-gray-200'
+                          }`}
+                          placeholder="Height in cm"
+                        />
+                      </div>
+
+                      {/* Weight Field */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <span className="flex items-center">
+                            <span className="mr-1">⚖️</span>
+                            Weight (kg)
+                          </span>
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.weight || ''}
+                          onChange={(e) => handleInputChange('weight', e.target.value)}
+                          disabled={!isEditing}
+                          min="30"
+                          max="200"
+                          step="0.1"
+                          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base ${
+                            isEditing ? 'bg-white border-gray-300' : 'bg-gray-50 border-gray-200'
+                          }`}
+                          placeholder="Weight in kg"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Cricket Role Field */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <span className="flex items-center">
+                          <span className="mr-1">⚡</span>
+                          Cricket Role
+                        </span>
+                      </label>
+                      <select
+                        value={formData.studentRole || ''}
+                        onChange={(e) => handleInputChange('studentRole', e.target.value)}
+                        disabled={!isEditing}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base ${
+                          isEditing ? 'bg-white border-gray-300' : 'bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <option value="">Select role</option>
+                        <option value="BATSMAN">Batsman</option>
+                        <option value="BOWLER">Bowler</option>
+                        <option value="ALL_ROUNDER">All-rounder</option>
+                        <option value="KEEPER">Wicket Keeper</option>
+                      </select>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Role Display */}

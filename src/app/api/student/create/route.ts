@@ -18,9 +18,18 @@ export async function POST(request: Request) {
 
     const { name, age, height, weight, academy, role } = await request.json();
 
-    // Validate input
-    if (!name || !age || !height || !weight || !academy || !role) {
-      console.error("Student creation - Missing required fields:", { name: !!name, age: !!age, height: !!height, weight: !!weight, academy: !!academy, role: !!role });
+
+
+    // Validate input - properly handle numeric fields that could be 0
+    if (!name || age === undefined || age === null || height === undefined || height === null || weight === undefined || weight === null || !academy || !role) {
+      console.error("Student creation - Missing required fields:", { 
+        name: !!name, 
+        age: age !== undefined && age !== null, 
+        height: height !== undefined && height !== null, 
+        weight: weight !== undefined && weight !== null, 
+        academy: !!academy, 
+        role: !!role 
+      });
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
@@ -46,9 +55,32 @@ export async function POST(request: Request) {
     });
 
     if (existingStudent) {
-      console.log("Student creation - Profile already exists, redirecting to dashboard");
+      console.log("Student creation - Profile already exists, updating with onboarding data");
+      
+      // Update existing student profile with onboarding data
+      const updatedStudent = await prisma.student.update({
+        where: { userId: session.user.id },
+        data: {
+          studentName: name,
+          age: parseInt(age.toString()),
+          height: parseFloat(height.toString()),
+          weight: parseFloat(weight.toString()),
+          academy,
+          role,
+        },
+      });
+
+      console.log("Student creation - Updated existing profile:", {
+        id: updatedStudent.id,
+        age: updatedStudent.age,
+        height: updatedStudent.height,
+        weight: updatedStudent.weight,
+        academy: updatedStudent.academy,
+        role: updatedStudent.role
+      });
+
       return NextResponse.json(
-        { message: "Profile already exists", student: existingStudent },
+        { message: "Profile updated successfully", student: updatedStudent },
         { status: 200 }
       );
     }
@@ -69,19 +101,21 @@ export async function POST(request: Request) {
     console.log("Student creation - Creating student profile for:", user.email);
 
     // Create student profile with user data
+    const studentData = {
+      userId: session.user.id,
+      studentName: name,
+      username: username,
+      email: user.email,
+      age: parseInt(age.toString()),
+      height: parseFloat(height.toString()),
+      weight: parseFloat(weight.toString()),
+      academy,
+      sport: "CRICKET", // Add default sport
+      role,
+    };
+
     const student = await prisma.student.create({
-      data: {
-        userId: session.user.id,
-        studentName: name,
-        username: username,
-        email: user.email,
-        age: parseInt(age.toString()),
-        height: parseFloat(height.toString()),
-        weight: parseFloat(weight.toString()),
-        academy,
-        sport: "CRICKET", // Add default sport
-        role,
-      },
+      data: studentData,
     });
 
     console.log("Student creation - Student profile created:", student.id);

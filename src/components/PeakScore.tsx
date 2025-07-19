@@ -218,84 +218,169 @@ const calculateMentalScore = (skillData: SkillData | null, wellnessData: any = n
     maxPossibleScore += 40;
   }
   
-  // Wellness component (20 points max) - placeholder for future wellness tracking
-  // This can be expanded later with additional wellness metrics
-  maxPossibleScore += 20;
+  // NOTE: Removed wellness placeholder to fix scoring accuracy
+  // Future wellness metrics can be added with proper scoring implementation
   
   return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 };
 
-const calculateNutritionScore = (skillData: SkillData | null): number => {
+// NEW: Goal-based nutrition scoring function (matching SkillSnap implementation)
+const calculateGoalBasedNutritionScore = (
+  skillData: SkillData | null, 
+  nutritionGoal: 'bulking' | 'maintaining' | 'cutting' = 'maintaining',
+  activityLevel: 'sedentary' | 'light' | 'moderate' | 'intense' | 'very_intense' = 'moderate',
+  sex: 'male' | 'female' = 'male'
+): number => {
   if (!skillData) return 0;
-  
+
   let totalScore = 0;
   let maxPossibleScore = 0;
-  
-  // Calculate personalized nutrition targets if we have student data
+
+  // Activity multipliers for TDEE calculation
+  const activityMultipliers = {
+    sedentary: 1.2,
+    light: 1.375,
+    moderate: 1.55,
+    intense: 1.725,
+    very_intense: 1.9
+  };
+
+  // Macro splits based on goals (per kg bodyweight and percentages)
+  const macroSplits = {
+    bulking: { protein: 2.0, carbs: 5.0, fatPercent: 20 },
+    maintaining: { protein: 1.6, carbs: 4.0, fatPercent: 25 },
+    cutting: { protein: 2.2, carbs: 3.0, fatPercent: 20 }
+  };
+
+  // Calculate BMR using Mifflin-St Jeor Equation
+  const calculateBMR = (weight: number, height: number, age: number, sex: 'male' | 'female'): number => {
+    const baseCalc = 10 * weight + 6.25 * height - 5 * age;
+    return sex === 'male' ? baseCalc + 5 : baseCalc - 161;
+  };
+
+  // Check if we have student data for personalized targets
   const student = skillData.student;
   if (student && student.weight && student.height) {
-    const nutrition = calculatePersonalizedNutrition(student.weight, student.height, student.age);
-  
-    // Calories (25 points max)
+    // Use goal-based personalized targets
+    const bmr = calculateBMR(student.weight, student.height, student.age, sex);
+    const tdee = bmr * activityMultipliers[activityLevel];
+
+    // Adjust calories based on goal
+    let targetCalories = tdee;
+    if (nutritionGoal === 'bulking') targetCalories *= 1.15;
+    else if (nutritionGoal === 'cutting') targetCalories *= 0.85;
+
+    const macros = macroSplits[nutritionGoal];
+    
+    // Calculate macronutrients
+    const protein = macros.protein * student.weight;
+    const carbs = macros.carbs * student.weight;
+    const fatCalories = targetCalories * (macros.fatPercent / 100);
+    const fats = fatCalories / 9;
+
+    // Water intake: base formula + extra for intense training
+    const baseWater = student.weight * 0.035;
+    const water = activityLevel === 'intense' || activityLevel === 'very_intense' 
+      ? baseWater + 0.5 
+      : baseWater;
+
+    const targets = {
+      calories: Math.round(targetCalories),
+      protein: Math.round(protein),
+      carbs: Math.round(carbs),
+      fats: Math.round(fats),
+      water: Math.round(water * 10) / 10
+    };
+    
+    // Calories (25 points max) - Score based on proximity to goal-specific target
     if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
-      const calorieScore = Math.max(0, 10 - Math.abs((skillData.totalCalories - nutrition.totalCalories) / nutrition.totalCalories) * 10);
-      totalScore += Math.min(10, calorieScore) * 2.5; // Scale to 25 points
-    maxPossibleScore += 25;
-  }
-  
-    // Protein (25 points max)
-    if (skillData.protein !== undefined && skillData.protein !== null) {
-      const proteinScore = Math.max(0, 10 - Math.abs((skillData.protein - nutrition.protein) / nutrition.protein) * 10);
-      totalScore += Math.min(10, proteinScore) * 2.5; // Scale to 25 points
-    maxPossibleScore += 25;
-  }
-  
-    // Carbohydrates (25 points max)
-    if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
-      const carbScore = Math.max(0, 10 - Math.abs((skillData.carbohydrates - nutrition.carbohydrates) / nutrition.carbohydrates) * 10);
-      totalScore += Math.min(10, carbScore) * 2.5; // Scale to 25 points
-    maxPossibleScore += 25;
-  }
-  
-    // Water intake (25 points max)
-    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
-      const recommendedWater = 2.5; // liters
-      const waterScore = Math.max(0, 10 - Math.abs((skillData.waterIntake - recommendedWater) / recommendedWater) * 10);
-      totalScore += Math.min(10, waterScore) * 2.5; // Scale to 25 points
+      const calorieDeviation = Math.abs((skillData.totalCalories - targets.calories) / targets.calories);
+      // Perfect score for within 5%, decreasing linearly to 0 at 50% deviation
+      const calorieScore = Math.max(0, Math.min(10, 10 * (1 - (calorieDeviation / 0.5))));
+      totalScore += calorieScore * 2.5; // Scale to 25 points
       maxPossibleScore += 25;
     }
+    
+    // Protein (25 points max) - More lenient scoring for protein (within 10-20% is good)
+    if (skillData.protein !== undefined && skillData.protein !== null) {
+      const proteinDeviation = Math.abs((skillData.protein - targets.protein) / targets.protein);
+      // Perfect score for within 10%, decreasing linearly to 0 at 40% deviation
+      const proteinScore = Math.max(0, Math.min(10, 10 * (1 - (proteinDeviation / 0.4))));
+      totalScore += proteinScore * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+    
+    // Carbohydrates (25 points max) - Goal-specific carb targets
+    if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
+      const carbDeviation = Math.abs((skillData.carbohydrates - targets.carbs) / targets.carbs);
+      // Perfect score for within 15%, decreasing linearly to 0 at 50% deviation
+      const carbScore = Math.max(0, Math.min(10, 10 * (1 - (carbDeviation / 0.5))));
+      totalScore += carbScore * 2.5; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+
+    // Fats (12.5 points max) - Less weight as it's often calculated from remaining calories
+    if (skillData.fats !== undefined && skillData.fats !== null) {
+      const fatDeviation = Math.abs((skillData.fats - targets.fats) / targets.fats);
+      // Perfect score for within 20%, decreasing linearly to 0 at 60% deviation
+      const fatScore = Math.max(0, Math.min(10, 10 * (1 - (fatDeviation / 0.6))));
+      totalScore += fatScore * 1.25; // Scale to 12.5 points
+      maxPossibleScore += 12.5;
+    }
+    
+    // Water intake (12.5 points max) - Activity-level adjusted
+    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
+      const waterDeviation = Math.abs((skillData.waterIntake - targets.water) / targets.water);
+      // Perfect score for within 10%, decreasing linearly to 0 at 40% deviation
+      const waterScore = Math.max(0, Math.min(10, 10 * (1 - (waterDeviation / 0.4))));
+      totalScore += waterScore * 1.25; // Scale to 12.5 points
+      maxPossibleScore += 12.5;
+    }
   } else {
-    // Generic scoring when no personalized data available
-    // Calories (25 points max)
+    // Fallback to generic scoring when no personalized data available
+    // Calories (25 points max) - Generic range
     if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
       const calorieScore = Math.min(10, Math.max(0, ((skillData.totalCalories - 1000) / (4000 - 1000)) * 10));
       totalScore += calorieScore * 2.5; // Scale to 25 points
-    maxPossibleScore += 25;
-  }
-  
-    // Protein (25 points max)
+      maxPossibleScore += 25;
+    }
+    
+    // Protein (25 points max) - Generic range
     if (skillData.protein !== undefined && skillData.protein !== null) {
       const proteinScore = Math.min(10, Math.max(0, ((skillData.protein - 20) / (200 - 20)) * 10));
       totalScore += proteinScore * 2.5; // Scale to 25 points
       maxPossibleScore += 25;
     }
     
-    // Carbohydrates (25 points max)
+    // Carbohydrates (25 points max) - Generic range
     if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
       const carbScore = Math.min(10, Math.max(0, ((skillData.carbohydrates - 50) / (500 - 50)) * 10));
       totalScore += carbScore * 2.5; // Scale to 25 points
       maxPossibleScore += 25;
     }
+
+    // Fats (12.5 points max) - Generic range
+    if (skillData.fats !== undefined && skillData.fats !== null) {
+      const fatScore = Math.min(10, Math.max(0, ((skillData.fats - 20) / (150 - 20)) * 10));
+      totalScore += fatScore * 1.25; // Scale to 12.5 points
+      maxPossibleScore += 12.5;
+    }
     
-    // Water intake (25 points max)
+    // Water intake (12.5 points max) - Generic range
     if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
       const waterScore = Math.min(10, Math.max(0, ((skillData.waterIntake - 1) / (5 - 1)) * 10));
-      totalScore += waterScore * 2.5; // Scale to 25 points
-      maxPossibleScore += 25;
+      totalScore += waterScore * 1.25; // Scale to 12.5 points
+      maxPossibleScore += 12.5;
     }
   }
-  
+
   return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
+};
+
+// DEPRECATED: Keep old function for backward compatibility
+const calculateNutritionScore = (skillData: SkillData | null): number => {
+  // Use the new goal-based scoring with default values for backward compatibility
+  return calculateGoalBasedNutritionScore(skillData, 'maintaining', 'moderate', 'male');
 };
 
 const calculateTechnicalScore = (skillData: SkillData | null): number => {

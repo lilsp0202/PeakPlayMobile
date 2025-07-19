@@ -47,6 +47,22 @@ export default function CreateFeedbackActionModal({
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
+  // Demo media state (for actions only)
+  const [demoMedia, setDemoMedia] = useState<{
+    file: File | null;
+    url: string | null;
+    type: string | null;
+    fileName: string | null;
+  }>({
+    file: null,
+    url: null,
+    type: null,
+    fileName: null
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Voice recording functions
   const startRecording = async () => {
     try {
@@ -206,7 +222,11 @@ export default function CreateFeedbackActionModal({
             description: formData.description,
             category: formData.category,
             priority: formData.priority,
-            dueDate: formData.dueDate || null
+            dueDate: formData.dueDate || null,
+            demoMediaUrl: demoMedia.url,
+            demoMediaType: demoMedia.type,
+            demoFileName: demoMedia.fileName,
+            demoUploadedAt: demoMedia.url ? new Date().toISOString() : null
           };
 
       const response = await fetch(endpoint, {
@@ -227,6 +247,12 @@ export default function CreateFeedbackActionModal({
           priority: 'MEDIUM',
           dueDate: ''
         });
+        setDemoMedia({
+          file: null,
+          url: null,
+          type: null,
+          fileName: null
+        });
         clearRecording();
         onCreated();
         onClose();
@@ -245,6 +271,98 @@ export default function CreateFeedbackActionModal({
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (error) setError('');
+  };
+
+  // Demo media handlers (for actions only)
+  const validateFile = (file: File): boolean => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime', 'video/webm'];
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    
+    if (!allowedTypes.includes(file.type)) {
+      setError('Only images (JPEG, PNG, GIF) and videos (MP4, MOV, WebM) are allowed');
+      return false;
+    }
+    
+    if (file.size > maxSize) {
+      setError('File size must be less than 50MB');
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!validateFile(file)) return;
+
+    setIsUploading(true);
+    setError('');
+
+    try {
+      // Upload to demo upload API
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/actions/demo-upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDemoMedia({
+          file,
+          url: data.mediaData.demoMediaUrl,
+          type: data.mediaData.demoMediaType,
+          fileName: data.mediaData.demoFileName
+        });
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to upload demo media');
+      }
+    } catch (error) {
+      setError('Failed to upload media. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const removeDemoMedia = () => {
+    setDemoMedia({
+      file: null,
+      url: null,
+      type: null,
+      fileName: null
+    });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const getCategoryDescription = (category: string) => {
@@ -487,6 +605,106 @@ export default function CreateFeedbackActionModal({
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Demo Media Upload for Actions */}
+            {mode === 'action' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Demo Media (Optional)
+                </label>
+                <p className="text-xs text-gray-600 mb-3">
+                  Upload an image or video to show how this action should be performed
+                </p>
+                
+                {!demoMedia.url ? (
+                  <div
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    className={`relative border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${
+                      isDragging 
+                        ? 'border-indigo-500 bg-indigo-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      onChange={handleFileSelect}
+                      accept="image/*,video/*"
+                      className="hidden"
+                      disabled={isSubmitting}
+                    />
+                    
+                    {isUploading ? (
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-sm text-gray-600">Uploading demo media...</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 sm:space-y-3">
+                        <div className="flex justify-center">
+                          <svg className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-sm sm:text-base text-gray-600">
+                            <span className="font-medium text-indigo-600 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                              Click to upload
+                            </span> or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Images: JPEG, PNG, GIF • Videos: MP4, MOV, WebM • Max 50MB
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="border border-gray-300 rounded-lg p-3 sm:p-4 bg-gray-50">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        {demoMedia.type === 'image' ? (
+                          <img
+                            src={demoMedia.url}
+                            alt="Demo preview"
+                            className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg"
+                          />
+                        ) : (
+                          <video
+                            src={demoMedia.url}
+                            className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg"
+                            controls
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {demoMedia.fileName}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {demoMedia.type === 'image' ? 'Image' : 'Video'} uploaded successfully
+                        </p>
+                        <p className="text-xs text-green-600 mt-1">
+                          ✓ Student will see this demo when viewing the action
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeDemoMedia}
+                        className="flex-shrink-0 p-1.5 text-gray-400 hover:text-red-500 transition-colors touch-manipulation"
+                        disabled={isSubmitting}
+                      >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

@@ -28,9 +28,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get academy data - only show "Not specified" for display, don't store it
+    // Get academy data - properly handle empty/null values
     const academy = user.student?.academy || user.coach?.academy;
-    const displayAcademy = academy && academy !== 'Not specified' ? academy : 'Not specified';
+    const displayAcademy = academy && academy.trim() !== '' && academy !== 'Not specified' ? academy : 'Not specified';
 
     // Get profile data based on user role
     const profileData = {
@@ -41,6 +41,11 @@ export async function GET(request: Request) {
       phone: user.student?.phone || user.coach?.phone || '',
       sport: user.student?.sport || 'CRICKET',
       academy: displayAcademy,
+      // Additional student data from onboarding - ensure proper data types
+      age: user.student?.age ? Number(user.student.age) : null,
+      height: user.student?.height ? Number(user.student.height) : null,
+      weight: user.student?.weight ? Number(user.student.weight) : null,
+      studentRole: user.student?.role || null, // Cricket role (BATSMAN, BOWLER, etc.)
     };
 
     return NextResponse.json(profileData);
@@ -61,7 +66,7 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { name, phone, sport, academy } = body;
+    const { name, phone, sport, academy, age, height, weight, studentRole } = body;
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -97,6 +102,10 @@ export async function PUT(request: Request) {
           phone: phone || null,
           sport: sport || 'CRICKET',
           academy: academy.trim(),
+          age: age ? parseInt(age) : undefined,
+          height: height ? parseFloat(height) : undefined,
+          weight: weight ? parseFloat(weight) : undefined,
+          role: studentRole || undefined,
         },
       });
     } else if (session.user.role === 'COACH') {
@@ -120,6 +129,10 @@ export async function PUT(request: Request) {
       phone: phone || '',
       sport: sport || 'CRICKET',
       academy: academy.trim(),
+      age: age ? parseInt(age) : null,
+      height: height ? parseFloat(height) : null,
+      weight: weight ? parseFloat(weight) : null,
+      studentRole: studentRole || null,
     };
 
     return NextResponse.json(updatedProfile);

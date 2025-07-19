@@ -1,11 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { Edit, Check, X, RefreshCw } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Edit, Check, X, RefreshCw, Edit2, Info, Target, Droplet, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiActivity, FiSave, FiX, FiEdit } from "react-icons/fi";
+import { FiActivity, FiSave, FiX, FiEdit, FiRefreshCw, FiEdit2, FiCheck, FiChevronDown, FiChevronUp, FiInfo, FiTarget, FiDroplet, FiZap } from "react-icons/fi";
 import type { Session } from "next-auth";
+
+// Nutrition Goal Types
+type NutritionGoal = 'bulking' | 'maintaining' | 'cutting';
+type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'intense' | 'very_intense';
+type Sex = 'male' | 'female';
+
+interface NutritionTargets {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  water: number;
+}
+
+interface MacroTooltip {
+  name: string;
+  purpose: string;
+  importance: string;
+}
 
 // Types for skills and analytics
 interface SkillData {
@@ -158,11 +178,7 @@ const skillCategories: SkillCategory[] = [
         description: "Maximum push-ups in 1 minute",
         colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 8h12M6 12h12m-6-8v12"/>
-            <circle cx="12" cy="4" r="2" strokeWidth="1"/>
-            <rect x="10" y="14" width="4" height="2" strokeWidth="1"/>
-          </svg>
+          <span className="text-xl">💪🏾</span>
         ),
       },
       {
@@ -173,11 +189,7 @@ const skillCategories: SkillCategory[] = [
         description: "Maximum pull-ups in 1 set",
         colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-            <rect x="6" y="10" width="2" height="8" rx="1"/>
-            <rect x="16" y="6" width="2" height="8" rx="1"/>
-          </svg>
+          <span className="text-xl">💪🏾</span>
         ),
       },
       {
@@ -188,10 +200,7 @@ const skillCategories: SkillCategory[] = [
         description: "Vertical jump height in centimeters",
         colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2l4 4h-3v6h-2V6H8l4-4z"/>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 18h8M10 20h4"/>
-          </svg>
+          <span className="text-xl">🔝</span>
         ),
       },
       {
@@ -202,10 +211,7 @@ const skillCategories: SkillCategory[] = [
         description: "Grip strength measured in kilograms",
         colorScheme: { primary: "red-600", secondary: "red-100", background: "red-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            <path d="M8 12c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4-4-1.79-4-4z" strokeWidth="1"/>
-          </svg>
+          <span className="text-xl">👊🏾</span>
         ),
       },
       // Speed & Agility Skills - Blue/Electric (Quick movements)
@@ -217,10 +223,7 @@ const skillCategories: SkillCategory[] = [
         description: "100 meter sprint time",
         colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-            <path d="M18 8l-2-2m0 0L14 8m2-2v6" strokeWidth="1"/>
-          </svg>
+          <span className="text-xl">⚡️</span>
         ),
       },
       {
@@ -231,10 +234,7 @@ const skillCategories: SkillCategory[] = [
         description: "50 meter sprint time",
         colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-            <path d="M16 6l-2-2m0 0L12 6m2-2v4" strokeWidth="1"/>
-          </svg>
+          <span className="text-xl">⚡️</span>
         ),
       },
       {
@@ -245,9 +245,7 @@ const skillCategories: SkillCategory[] = [
         description: "Shuttle run time",
         colorScheme: { primary: "blue-600", secondary: "blue-100", background: "blue-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16l-4-4m0 0l4-4m-4 4h18m-5 4l4-4m0 0l-4-4"/>
-          </svg>
+          <span className="text-xl">🪃</span>
         ),
       },
       // Endurance Skills - Emerald/Green (Stamina & Vitality)
@@ -259,11 +257,7 @@ const skillCategories: SkillCategory[] = [
         description: "5 kilometer run time",
         colorScheme: { primary: "emerald-600", secondary: "emerald-100", background: "emerald-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            <circle cx="12" cy="6" r="2" strokeWidth="1"/>
-            <path d="M10 14l2-2 2 2M8 18l4-4 4 4"/>
-          </svg>
+          <span className="text-xl">🏃</span>
         ),
       },
       {
@@ -274,11 +268,7 @@ const skillCategories: SkillCategory[] = [
         description: "Yo-Yo intermittent recovery test level",
         colorScheme: { primary: "emerald-600", secondary: "emerald-100", background: "emerald-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12l4-4 4 4M8 12l4 4 4-4"/>
-            <circle cx="12" cy="8" r="2" strokeWidth="1"/>
-            <circle cx="12" cy="16" r="2" strokeWidth="1"/>
-          </svg>
+          <span className="text-xl">😓</span>
         ),
       },
     ]
@@ -305,9 +295,7 @@ const skillCategories: SkillCategory[] = [
         description: "Daily mood and motivation rating",
         colorScheme: { primary: "purple-600", secondary: "purple-100", background: "purple-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-          </svg>
+          <span className="text-xl">🧠</span>
         ),
       },
       {
@@ -318,10 +306,7 @@ const skillCategories: SkillCategory[] = [
         description: "Sleep quality and recovery rating",
         colorScheme: { primary: "purple-600", secondary: "purple-100", background: "purple-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth="1"/>
-          </svg>
+          <span className="text-xl">😴</span>
         ),
       },
     ]
@@ -348,10 +333,7 @@ const skillCategories: SkillCategory[] = [
         description: "Daily caloric intake",
         colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
-            <circle cx="12" cy="12" r="2" strokeWidth="1"/>
-          </svg>
+          <span className="text-xl">🍽️</span>
         ),
       },
       {
@@ -362,9 +344,7 @@ const skillCategories: SkillCategory[] = [
         description: "Daily protein intake",
         colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M21.9 8.89l-1.05-4.37c-.22-.9-1-1.52-1.91-1.52H5.05C4.15 3 3.36 3.63 3.15 4.52L2.1 8.89c-.24 1.02-.02 2.06.62 2.88C2.8 11.88 2.91 11.96 3 12.06V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-6.94c.09-.09.2-.18.28-.28.64-.82.87-1.87.62-2.89zM7 15.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-          </svg>
+          <span className="text-xl">🥚</span>
         ),
       },
       {
@@ -375,11 +355,7 @@ const skillCategories: SkillCategory[] = [
         description: "Daily carbohydrate intake",
         colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            <circle cx="8" cy="8" r="1" strokeWidth="1"/>
-            <circle cx="16" cy="8" r="1" strokeWidth="1"/>
-          </svg>
+          <span className="text-xl">🍞</span>
         ),
       },
       {
@@ -390,9 +366,7 @@ const skillCategories: SkillCategory[] = [
         description: "Daily fat intake",
         colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-          </svg>
+          <span className="text-xl">🧀</span>
         ),
       },
       {
@@ -403,10 +377,7 @@ const skillCategories: SkillCategory[] = [
         description: "Daily water intake in liters",
         colorScheme: { primary: "green-600", secondary: "green-100", background: "green-50" },
         icon: (
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="0.5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8l6 6m0-6l-6 6m6-6v12"/>
-            <path d="M19 13l-7 7-7-7c-1.5-1.5-1.5-4 0-5.5s4-1.5 5.5 0l1.5 1.5 1.5-1.5c1.5-1.5 4-1.5 5.5 0s1.5 4 0 5.5z"/>
-          </svg>
+          <span className="text-xl">💧</span>
         ),
       },
     ]
@@ -573,84 +544,198 @@ const calculateMentalAggregateScore = (skillData: SkillData | null): number => {
     maxPossibleScore += 40;
   }
 
-  // Wellness component (20 points max) - placeholder for future wellness tracking
-  // This can be expanded later with additional wellness metrics
-  maxPossibleScore += 20;
+  // NOTE: Removed wellness placeholder to fix scoring accuracy
+  // Future wellness metrics can be added with proper scoring implementation
 
   return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 };
 
-const calculateNutritionAggregateScore = (skillData: SkillData | null): number => {
+// NEW: Enhanced nutrition goal-based calculation function
+const calculateGoalBasedNutritionTargets = (
+  weight: number, 
+  height: number, 
+  age: number, 
+  goal: NutritionGoal = 'maintaining',
+  activityLevel: ActivityLevel = 'moderate',
+  sex: Sex = 'male'
+): NutritionTargets => {
+  // Activity multipliers for TDEE calculation
+  const activityMultipliers = {
+    sedentary: 1.2,
+    light: 1.375,
+    moderate: 1.55,
+    intense: 1.725,
+    very_intense: 1.9
+  };
+
+  // Macro splits based on goals (per kg bodyweight and percentages)
+  const macroSplits = {
+    bulking: { protein: 2.0, carbs: 5.0, fatPercent: 20 },
+    maintaining: { protein: 1.6, carbs: 4.0, fatPercent: 25 },
+    cutting: { protein: 2.2, carbs: 3.0, fatPercent: 20 }
+  };
+
+  // Calculate BMR using Mifflin-St Jeor Equation
+  const calculateBMR = (weight: number, height: number, age: number, sex: Sex): number => {
+    const baseCalc = 10 * weight + 6.25 * height - 5 * age;
+    return sex === 'male' ? baseCalc + 5 : baseCalc - 161;
+  };
+
+  // Calculate TDEE
+  const bmr = calculateBMR(weight, height, age, sex);
+  const tdee = bmr * activityMultipliers[activityLevel];
+
+  // Adjust calories based on goal
+  let targetCalories = tdee;
+  if (goal === 'bulking') targetCalories *= 1.15;
+  else if (goal === 'cutting') targetCalories *= 0.85;
+
+  const macros = macroSplits[goal];
+  
+  // Calculate macronutrients
+  const protein = macros.protein * weight;
+  const carbs = macros.carbs * weight;
+  
+  // Calculate fats (remaining calories after protein and carbs)
+  const fatCalories = targetCalories * (macros.fatPercent / 100);
+  const fats = fatCalories / 9;
+
+  // Water intake: base formula + extra for intense training
+  const baseWater = weight * 0.035;
+  const water = activityLevel === 'intense' || activityLevel === 'very_intense' 
+    ? baseWater + 0.5 
+    : baseWater;
+
+  return {
+    calories: Math.round(targetCalories),
+    protein: Math.round(protein),
+    carbs: Math.round(carbs),
+    fats: Math.round(fats),
+    water: Math.round(water * 10) / 10 // Round to 1 decimal
+  };
+};
+
+// NEW: Realistic goal-based nutrition scoring with forgiving curve (out of 100)
+const calculateGoalBasedNutritionScore = (
+  skillData: SkillData | null, 
+  nutritionGoal: NutritionGoal = 'maintaining',
+  activityLevel: ActivityLevel = 'moderate',
+  sex: Sex = 'male'
+): number => {
   if (!skillData) return 0;
+
+  // Helper function for realistic scoring curve
+  // Examples: 12% deviation = 75-80%, 50% deviation = 50%
+  const calculateNutrientScore = (userInput: number, target: number): number => {
+    if (target === 0) return 0;
+    
+    const deviation = Math.abs(userInput - target) / target;
+    
+    // Exponential decay curve: score = 100 * e^(-1.5 * deviation)
+    // This gives: 12% deviation ≈ 83%, 50% deviation ≈ 47%
+    const score = 100 * Math.exp(-1.5 * deviation);
+    
+    return Math.max(0, Math.min(100, score));
+  };
 
   let totalScore = 0;
   let maxPossibleScore = 0;
 
-  // Calculate personalized nutrition targets if we have student data
+  // Check if we have student data for personalized targets
   const student = skillData.student;
   if (student && student.weight && student.height) {
-    const nutrition = calculatePersonalizedNutrition(student.weight, student.height, student.age);
+    // Use goal-based personalized targets
+    const targets = calculateGoalBasedNutritionTargets(
+      student.weight, 
+      student.height, 
+      student.age, 
+      nutritionGoal,
+      activityLevel,
+      sex
+    );
     
-    // Calories (25 points max)
-    if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
-      const calorieScore = Math.max(0, 10 - Math.abs((skillData.totalCalories - nutrition.totalCalories) / nutrition.totalCalories) * 10);
-      totalScore += Math.min(10, calorieScore) * 2.5; // Scale to 25 points
+    // Calories (25 points max) - Realistic scoring curve
+    if (skillData.totalCalories !== undefined && skillData.totalCalories !== null && targets.calories > 0) {
+      const calorieScore = calculateNutrientScore(skillData.totalCalories, targets.calories);
+      totalScore += (calorieScore / 100) * 25; // Scale to 25 points
       maxPossibleScore += 25;
     }
     
-    // Protein (25 points max)
-    if (skillData.protein !== undefined && skillData.protein !== null) {
-      const proteinScore = Math.max(0, 10 - Math.abs((skillData.protein - nutrition.protein) / nutrition.protein) * 10);
-      totalScore += Math.min(10, proteinScore) * 2.5; // Scale to 25 points
+    // Protein (25 points max) - Realistic scoring curve
+    if (skillData.protein !== undefined && skillData.protein !== null && targets.protein > 0) {
+      const proteinScore = calculateNutrientScore(skillData.protein, targets.protein);
+      totalScore += (proteinScore / 100) * 25; // Scale to 25 points
       maxPossibleScore += 25;
     }
     
-    // Carbohydrates (25 points max)
-    if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
-      const carbScore = Math.max(0, 10 - Math.abs((skillData.carbohydrates - nutrition.carbohydrates) / nutrition.carbohydrates) * 10);
-      totalScore += Math.min(10, carbScore) * 2.5; // Scale to 25 points
+    // Carbohydrates (25 points max) - Realistic scoring curve
+    if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null && targets.carbs > 0) {
+      const carbScore = calculateNutrientScore(skillData.carbohydrates, targets.carbs);
+      totalScore += (carbScore / 100) * 25; // Scale to 25 points
       maxPossibleScore += 25;
     }
+
+    // Fats (12.5 points max) - Realistic scoring curve
+    if (skillData.fats !== undefined && skillData.fats !== null && targets.fats > 0) {
+      const fatScore = calculateNutrientScore(skillData.fats, targets.fats);
+      totalScore += (fatScore / 100) * 12.5; // Scale to 12.5 points
+      maxPossibleScore += 12.5;
+    }
     
-    // Water intake (25 points max)
-    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
-      const recommendedWater = 2.5; // liters
-      const waterScore = Math.max(0, 10 - Math.abs((skillData.waterIntake - recommendedWater) / recommendedWater) * 10);
-      totalScore += Math.min(10, waterScore) * 2.5; // Scale to 25 points
-      maxPossibleScore += 25;
+    // Water intake (12.5 points max) - Realistic scoring curve
+    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null && targets.water > 0) {
+      const waterScore = calculateNutrientScore(skillData.waterIntake, targets.water);
+      totalScore += (waterScore / 100) * 12.5; // Scale to 12.5 points
+      maxPossibleScore += 12.5;
     }
   } else {
-    // Generic scoring when no personalized data available
-    // Calories (25 points max)
-  if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
-      const calorieScore = Math.min(10, Math.max(0, ((skillData.totalCalories - 1000) / (4000 - 1000)) * 10));
-      totalScore += calorieScore * 2.5; // Scale to 25 points
-      maxPossibleScore += 25;
-  }
-  
-    // Protein (25 points max)
-  if (skillData.protein !== undefined && skillData.protein !== null) {
-      const proteinScore = Math.min(10, Math.max(0, ((skillData.protein - 20) / (200 - 20)) * 10));
-      totalScore += proteinScore * 2.5; // Scale to 25 points
-      maxPossibleScore += 25;
-  }
-  
-    // Carbohydrates (25 points max)
-  if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
-      const carbScore = Math.min(10, Math.max(0, ((skillData.carbohydrates - 50) / (500 - 50)) * 10));
-      totalScore += carbScore * 2.5; // Scale to 25 points
+    // Fallback to generic scoring when no personalized data available
+    // Use basic ranges for scoring when targets can't be calculated
+    
+    // Calories (25 points max) - Generic range
+    if (skillData.totalCalories !== undefined && skillData.totalCalories !== null) {
+      const calorieScore = Math.min(100, Math.max(0, ((skillData.totalCalories - 1000) / (4000 - 1000)) * 100));
+      totalScore += (calorieScore / 100) * 25; // Scale to 25 points
       maxPossibleScore += 25;
     }
     
-    // Water intake (25 points max)
-    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
-      const waterScore = Math.min(10, Math.max(0, ((skillData.waterIntake - 1) / (5 - 1)) * 10));
-      totalScore += waterScore * 2.5; // Scale to 25 points
+    // Protein (25 points max) - Generic range
+    if (skillData.protein !== undefined && skillData.protein !== null) {
+      const proteinScore = Math.min(100, Math.max(0, ((skillData.protein - 20) / (200 - 20)) * 100));
+      totalScore += (proteinScore / 100) * 25; // Scale to 25 points
       maxPossibleScore += 25;
+    }
+    
+    // Carbohydrates (25 points max) - Generic range
+    if (skillData.carbohydrates !== undefined && skillData.carbohydrates !== null) {
+      const carbScore = Math.min(100, Math.max(0, ((skillData.carbohydrates - 50) / (500 - 50)) * 100));
+      totalScore += (carbScore / 100) * 25; // Scale to 25 points
+      maxPossibleScore += 25;
+    }
+
+    // Fats (12.5 points max) - Generic range
+    if (skillData.fats !== undefined && skillData.fats !== null) {
+      const fatScore = Math.min(100, Math.max(0, ((skillData.fats - 20) / (150 - 20)) * 100));
+      totalScore += (fatScore / 100) * 12.5; // Scale to 12.5 points
+      maxPossibleScore += 12.5;
+    }
+    
+    // Water intake (12.5 points max) - Generic range
+    if (skillData.waterIntake !== undefined && skillData.waterIntake !== null) {
+      const waterScore = Math.min(100, Math.max(0, ((skillData.waterIntake - 1) / (5 - 1)) * 100));
+      totalScore += (waterScore / 100) * 12.5; // Scale to 12.5 points
+      maxPossibleScore += 12.5;
     }
   }
 
   return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
+};
+
+// DEPRECATED: Keep old function for backward compatibility but mark as deprecated
+const calculateNutritionAggregateScore = (skillData: SkillData | null): number => {
+  // This function is deprecated - use calculateGoalBasedNutritionScore instead
+  console.warn('calculateNutritionAggregateScore is deprecated. Use calculateGoalBasedNutritionScore instead.');
+  return calculateGoalBasedNutritionScore(skillData, 'maintaining', 'moderate', 'male');
 };
 
 const calculateTacticalAggregateScore = (skillData: SkillData | null): number => {
@@ -659,14 +744,21 @@ const calculateTacticalAggregateScore = (skillData: SkillData | null): number =>
 };
 
 // Helper function to calculate aggregate score for a skillset
-const calculateAggregateScore = (category: SkillCategory, skillData: SkillData | null): number => {
+const calculateAggregateScore = (
+  category: SkillCategory, 
+  skillData: SkillData | null,
+  nutritionGoal: NutritionGoal = 'maintaining',
+  activityLevel: ActivityLevel = 'moderate',
+  sex: Sex = 'male'
+): number => {
   switch (category.id) {
     case "PHYSICAL":
       return calculatePhysicalAggregateScore(skillData);
     case "MENTAL":
       return calculateMentalAggregateScore(skillData);
     case "NUTRITION":
-      return calculateNutritionAggregateScore(skillData);
+      // Use the new goal-based nutrition scoring with current settings
+      return calculateGoalBasedNutritionScore(skillData, nutritionGoal, activityLevel, sex);
     case "TECHNIQUE":
       return calculateTechnicalAggregateScore(skillData);
     case "TACTICAL":
@@ -676,24 +768,35 @@ const calculateAggregateScore = (category: SkillCategory, skillData: SkillData |
   }
 };
 
-// Helper function to calculate overall progress percentage (exported)
-export const calculateOverallProgress = (skillData: SkillData | null): number => {
+// Helper function to calculate overall progress percentage (exported) - UPDATED for goal-based nutrition
+export const calculateOverallProgress = (
+  skillData: SkillData | null, 
+  nutritionGoal: NutritionGoal = 'maintaining',
+  activityLevel: ActivityLevel = 'moderate',
+  sex: Sex = 'male'
+): number => {
   if (!skillData) return 0;
 
   const scores = [
     calculatePhysicalAggregateScore(skillData),
     calculateMentalAggregateScore(skillData),
-    calculateNutritionAggregateScore(skillData),
+    calculateGoalBasedNutritionScore(skillData, nutritionGoal, activityLevel, sex), // Updated
     calculateTechnicalAggregateScore(skillData),
     calculateTacticalAggregateScore(skillData)
   ];
   
-  const validScores = scores.filter(score => score > 0);
-  if (validScores.length === 0) return 0;
+  // Include all categories in average calculation (0 is a valid score)
+  const nonNullScores = scores.filter(score => score !== null && score !== undefined);
+  if (nonNullScores.length === 0) return 0;
 
-  const average = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+  const average = nonNullScores.reduce((a, b) => a + b, 0) / nonNullScores.length;
   // Scores are already 0-100, just ensure they're properly capped
   return Math.min(100, Math.max(0, Math.round(average)));
+};
+
+// DEPRECATED: Keep old function for backward compatibility
+const calculateOverallProgressLegacy = (skillData: SkillData | null): number => {
+  return calculateOverallProgress(skillData, 'maintaining', 'moderate', 'male');
 };
 
 // Progress Ring Component
@@ -961,6 +1064,17 @@ const SkillBar: React.FC<{
   const getPercentage = () => {
       if (score === 0) return 0;
     
+    // For nutrition skills with personalized targets, use realistic scoring
+    if (personalizedTarget && personalizedTarget > 0 && 
+        (skill.id === "totalCalories" || skill.id === "protein" || skill.id === "carbohydrates" || 
+         skill.id === "fats" || skill.id === "waterIntake")) {
+      
+      // Use the realistic scoring curve: score = 100 * e^(-1.5 * deviation)
+      const deviation = Math.abs(score - personalizedTarget) / personalizedTarget;
+      const realisticScore = 100 * Math.exp(-1.5 * deviation);
+      return Math.max(0, Math.min(100, realisticScore));
+    }
+    
     // Time-based skills: lower is better
     if (skill.type === "time" || skill.id === "sprintTime" || skill.id === "sprint50m" || skill.id === "shuttleRun" || skill.id === "run5kTime") {
       // For time skills, lower values are better - invert the percentage
@@ -1175,7 +1289,7 @@ const SkillBar: React.FC<{
 
   return (
     <div 
-      className={`bg-white rounded-xl p-4 sm:p-6 border-2 shadow-sm transition-all duration-200 ${
+      className={`bg-${skill.colorScheme.background} rounded-xl p-4 sm:p-6 border-2 shadow-sm transition-all duration-200 ${
         isEditing 
           ? 'border-blue-300 ring-2 ring-blue-100 bg-blue-50' 
           : 'border-gray-200'
@@ -1318,8 +1432,11 @@ const CategoryCard: React.FC<{
   category: SkillCategory;
   onOpen: () => void;
   skillData: SkillData | null;
-}> = ({ category, onOpen, skillData }) => {
-  const aggregateScore = calculateAggregateScore(category, skillData);
+  nutritionGoal?: NutritionGoal;
+  activityLevel?: ActivityLevel;
+  sex?: Sex;
+}> = ({ category, onOpen, skillData, nutritionGoal = 'maintaining', activityLevel = 'moderate', sex = 'male' }) => {
+  const aggregateScore = calculateAggregateScore(category, skillData, nutritionGoal, activityLevel, sex);
   // Aggregate scores now return 0-100 directly, no need to multiply by 10
   const progress = Math.min(100, Math.max(0, Math.round(aggregateScore)));
 
@@ -1879,6 +1996,429 @@ export const calculateTechnicalAggregateScore = (skillData: SkillData | null): n
   return maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
 };
 
+// Nutrition Tracker Component
+const NutritionTracker: React.FC<{
+  studentData: any;
+  onGoalChange?: (goal: NutritionGoal) => void;
+  onActivityLevelChange?: (level: ActivityLevel) => void;
+  onSexChange?: (sex: Sex) => void;
+  selectedGoal?: NutritionGoal;
+  selectedActivityLevel?: ActivityLevel;
+  selectedSex?: Sex;
+}> = ({ 
+  studentData, 
+  onGoalChange, 
+  onActivityLevelChange, 
+  onSexChange,
+  selectedGoal = 'maintaining',
+  selectedActivityLevel = 'moderate',
+  selectedSex = 'male'
+}) => {
+  const [showMissingData, setShowMissingData] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+
+  // Check if we have required data
+  const hasRequiredData = studentData?.weight && studentData?.height && studentData?.age;
+  
+  // Activity multipliers for TDEE calculation
+  const activityMultipliers = {
+    sedentary: 1.2,
+    light: 1.375,
+    moderate: 1.55,
+    intense: 1.725,
+    very_intense: 1.9
+  };
+
+  // Macro splits based on goals (per kg bodyweight and percentages)
+  const macroSplits = {
+    bulking: { protein: 2.0, carbs: 5.0, fatPercent: 20 },
+    maintaining: { protein: 1.6, carbs: 4.0, fatPercent: 25 },
+    cutting: { protein: 2.2, carbs: 3.0, fatPercent: 20 }
+  };
+
+  // Calculate BMR using Mifflin-St Jeor Equation
+  const calculateBMR = (weight: number, height: number, age: number, sex: Sex): number => {
+    const baseCalc = 10 * weight + 6.25 * height - 5 * age;
+    return sex === 'male' ? baseCalc + 5 : baseCalc - 161;
+  };
+
+  // Calculate TDEE
+  const calculateTDEE = (bmr: number, activityLevel: ActivityLevel): number => {
+    return bmr * activityMultipliers[activityLevel];
+  };
+
+  // Calculate nutrition targets
+  const calculateNutritionTargets = (): NutritionTargets | null => {
+    if (!hasRequiredData) return null;
+
+    const weight = studentData.weight;
+    const height = studentData.height;
+    const age = studentData.age;
+
+    const bmr = calculateBMR(weight, height, age, selectedSex);
+    const tdee = calculateTDEE(bmr, selectedActivityLevel);
+
+    // Adjust calories based on goal
+    let targetCalories = tdee;
+    if (selectedGoal === 'bulking') targetCalories *= 1.15;
+    else if (selectedGoal === 'cutting') targetCalories *= 0.85;
+
+    const macros = macroSplits[selectedGoal];
+    
+    // Calculate macronutrients
+    const protein = macros.protein * weight;
+    const carbs = macros.carbs * weight;
+    
+    // Calculate fats (remaining calories after protein and carbs)
+    const proteinCalories = protein * 4;
+    const carbCalories = carbs * 4;
+    const fatCalories = targetCalories * (macros.fatPercent / 100);
+    const fats = fatCalories / 9;
+
+    // Water intake: base formula + extra for intense training
+    const baseWater = weight * 0.035;
+    const water = selectedActivityLevel === 'intense' || selectedActivityLevel === 'very_intense' 
+      ? baseWater + 0.5 
+      : baseWater;
+
+    return {
+      calories: Math.round(targetCalories),
+      protein: Math.round(protein),
+      carbs: Math.round(carbs),
+      fats: Math.round(fats),
+      water: Math.round(water * 10) / 10 // Round to 1 decimal
+    };
+  };
+
+  const targets = calculateNutritionTargets();
+
+  // Macro tooltips
+  const macroTooltips: Record<string, MacroTooltip> = {
+    calories: {
+      name: "Calories",
+      purpose: "Total energy for daily activities and training",
+      importance: "Proper calorie intake fuels performance and supports your body composition goals"
+    },
+    protein: {
+      name: "Protein",
+      purpose: "Muscle building, repair, and recovery",
+      importance: "Essential for strength gains, injury prevention, and optimal body composition"
+    },
+    carbs: {
+      name: "Carbohydrates", 
+      purpose: "Primary fuel for high-intensity training",
+      importance: "Powers explosive movements, batting, bowling, and sustained energy during matches"
+    },
+    fats: {
+      name: "Fats",
+      purpose: "Hormone production and sustained energy",
+      importance: "Supports testosterone, growth hormone, and long-term endurance capacity"
+    },
+    water: {
+      name: "Water",
+      purpose: "Hydration and optimal body function",
+      importance: "Critical for performance, temperature regulation, and preventing fatigue"
+    }
+  };
+
+  const goalOptions = [
+    { 
+      id: 'bulking' as NutritionGoal, 
+      label: 'Bulking', 
+      icon: '🏋️', 
+      description: 'Build muscle mass',
+      color: 'from-blue-500 to-blue-600'
+    },
+    { 
+      id: 'maintaining' as NutritionGoal, 
+      label: 'Maintaining', 
+      icon: '⚖️', 
+      description: 'Maintain current weight',
+      color: 'from-green-500 to-green-600'
+    },
+    { 
+      id: 'cutting' as NutritionGoal, 
+      label: 'Cutting', 
+      icon: '🏃', 
+      description: 'Reduce body fat',
+      color: 'from-orange-500 to-orange-600'
+    }
+  ];
+
+  const handleGoalChange = (goal: NutritionGoal) => {
+    onGoalChange?.(goal);
+  };
+
+  const handleActivityLevelChange = (level: ActivityLevel) => {
+    onActivityLevelChange?.(level);
+  };
+
+  const handleSexChange = (sex: Sex) => {
+    onSexChange?.(sex);
+  };
+
+  // Missing data component
+  if (!hasRequiredData) {
+    return (
+      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4 mb-6">
+        <div className="flex items-start space-x-3">
+          <FiInfo className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <h3 className="text-sm font-semibold text-yellow-800 mb-1">Complete Your Profile</h3>
+            <p className="text-xs text-yellow-700 mb-3">
+              To get personalized nutrition targets, please update your profile with:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {!studentData?.age && (
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-md">Age</span>
+              )}
+              {!studentData?.weight && (
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-md">Weight</span>
+              )}
+              {!studentData?.height && (
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-md">Height</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-2">
+          <FiTarget className="w-5 h-5 text-green-600" />
+          <h3 className="text-sm font-bold text-green-800">Nutrition Targets</h3>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowMissingData(!showMissingData)}
+          className="text-xs text-green-600 hover:text-green-700"
+        >
+          Settings
+        </motion.button>
+      </div>
+
+      {/* Settings Panel */}
+      <AnimatePresence>
+        {showMissingData && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-white rounded-lg p-3 mb-4 border border-green-200"
+          >
+            {/* Activity Level */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Activity Level</label>
+              <select
+                value={selectedActivityLevel}
+                onChange={(e) => handleActivityLevelChange(e.target.value as ActivityLevel)}
+                className="w-full text-xs p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="sedentary">Sedentary (desk job, no exercise)</option>
+                <option value="light">Light (light exercise 1-3 days/week)</option>
+                <option value="moderate">Moderate (moderate exercise 3-5 days/week)</option>
+                <option value="intense">Intense (hard exercise 6-7 days/week)</option>
+                <option value="very_intense">Very Intense (2x/day or intense training)</option>
+              </select>
+            </div>
+
+            {/* Sex */}
+            <div>
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Sex</label>
+              <div className="flex space-x-2">
+                {['male', 'female'].map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => handleSexChange(option as Sex)}
+                    className={`flex-1 py-2 px-3 text-xs rounded-md transition-colors ${
+                      selectedSex === option
+                        ? 'bg-green-100 text-green-800 border border-green-300'
+                        : 'bg-gray-100 text-gray-600 border border-gray-300'
+                    }`}
+                  >
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Goal Selection */}
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        {goalOptions.map((option) => (
+          <motion.button
+            key={option.id}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => handleGoalChange(option.id)}
+            className={`p-2 rounded-lg border-2 transition-all ${
+              selectedGoal === option.id
+                ? 'border-green-400 bg-white shadow-md'
+                : 'border-green-200 bg-green-50'
+            }`}
+          >
+            <div className="text-lg mb-1">{option.icon}</div>
+            <div className="text-xs font-medium text-green-800">{option.label}</div>
+            <div className="text-xs text-green-600">{option.description}</div>
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Targets Display */}
+      {targets && (
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+          {/* Calories */}
+          <motion.div
+            onHoverStart={() => setActiveTooltip('calories')}
+            onHoverEnd={() => setActiveTooltip(null)}
+            className="relative bg-white rounded-lg p-3 border border-green-200 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <FiZap className="w-4 h-4 text-orange-500" />
+              <span className="text-xs text-gray-500">kcal</span>
+            </div>
+            <div className="text-lg font-bold text-gray-900">{targets.calories}</div>
+            <div className="text-xs text-gray-600">Calories</div>
+            
+            {activeTooltip === 'calories' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute bottom-full left-0 mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-10"
+              >
+                <div className="font-medium mb-1">{macroTooltips.calories.name}</div>
+                <div>{macroTooltips.calories.importance}</div>
+                <div className="absolute top-full left-4 w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent border-t-gray-900"></div>
+              </motion.div>
+            )}
+          </motion.div>
+
+          {/* Protein */}
+          <motion.div
+            onHoverStart={() => setActiveTooltip('protein')}
+            onHoverEnd={() => setActiveTooltip(null)}
+            className="relative bg-white rounded-lg p-3 border border-green-200 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <div className="w-4 h-4 bg-red-500 rounded"></div>
+              <span className="text-xs text-gray-500">g</span>
+            </div>
+            <div className="text-lg font-bold text-gray-900">{targets.protein}</div>
+            <div className="text-xs text-gray-600">Protein</div>
+            
+            {activeTooltip === 'protein' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute bottom-full left-0 mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-10"
+              >
+                <div className="font-medium mb-1">{macroTooltips.protein.name}</div>
+                <div>{macroTooltips.protein.importance}</div>
+                <div className="absolute top-full left-4 w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent border-t-gray-900"></div>
+              </motion.div>
+            )}
+          </motion.div>
+
+          {/* Carbs */}
+          <motion.div
+            onHoverStart={() => setActiveTooltip('carbs')}
+            onHoverEnd={() => setActiveTooltip(null)}
+            className="relative bg-white rounded-lg p-3 border border-green-200 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+              <span className="text-xs text-gray-500">g</span>
+            </div>
+            <div className="text-lg font-bold text-gray-900">{targets.carbs}</div>
+            <div className="text-xs text-gray-600">Carbs</div>
+            
+            {activeTooltip === 'carbs' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute bottom-full left-0 mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-10"
+              >
+                <div className="font-medium mb-1">{macroTooltips.carbs.name}</div>
+                <div>{macroTooltips.carbs.importance}</div>
+                <div className="absolute top-full left-4 w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent border-t-gray-900"></div>
+              </motion.div>
+            )}
+          </motion.div>
+
+          {/* Fats */}
+          <motion.div
+            onHoverStart={() => setActiveTooltip('fats')}
+            onHoverEnd={() => setActiveTooltip(null)}
+            className="relative bg-white rounded-lg p-3 border border-green-200 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+              <span className="text-xs text-gray-500">g</span>
+            </div>
+            <div className="text-lg font-bold text-gray-900">{targets.fats}</div>
+            <div className="text-xs text-gray-600">Fats</div>
+            
+            {activeTooltip === 'fats' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute bottom-full left-0 mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-10"
+              >
+                <div className="font-medium mb-1">{macroTooltips.fats.name}</div>
+                <div>{macroTooltips.fats.importance}</div>
+                <div className="absolute top-full left-4 w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent border-t-gray-900"></div>
+              </motion.div>
+            )}
+          </motion.div>
+
+          {/* Water */}
+          <motion.div
+            onHoverStart={() => setActiveTooltip('water')}
+            onHoverEnd={() => setActiveTooltip(null)}
+            className="relative bg-white rounded-lg p-3 border border-green-200 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <FiDroplet className="w-4 h-4 text-blue-500" />
+              <span className="text-xs text-gray-500">L</span>
+            </div>
+            <div className="text-lg font-bold text-gray-900">{targets.water}</div>
+            <div className="text-xs text-gray-600">Water</div>
+            
+            {activeTooltip === 'water' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute bottom-full left-0 mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-10"
+              >
+                <div className="font-medium mb-1">{macroTooltips.water.name}</div>
+                <div>{macroTooltips.water.importance}</div>
+                <div className="absolute top-full left-4 w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent border-t-gray-900"></div>
+              </motion.div>
+            )}
+          </motion.div>
+        </div>
+      )}
+
+      {/* Quick Tips */}
+      <div className="mt-4 p-3 bg-white rounded-lg border border-green-200">
+        <div className="text-xs text-green-800 font-medium mb-1">🏏 Cricket Nutrition Tip</div>
+        <div className="text-xs text-green-700">
+          {selectedGoal === 'bulking' && "Focus on post-training meals with protein + carbs for muscle growth and recovery."}
+          {selectedGoal === 'maintaining' && "Balance your plate: lean protein, complex carbs, and healthy fats for sustained performance."}
+          {selectedGoal === 'cutting' && "Prioritize protein to maintain muscle while creating a calorie deficit for fat loss."}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function SkillSnap({
   studentId,
   isCoachView = false,
@@ -1897,7 +2437,12 @@ export default function SkillSnap({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPhysicalLearnMore, setShowPhysicalLearnMore] = useState(false);
 
-  const canEdit = !isCoachView || (isCoachView && (session as Session | null)?.user?.role === 'COACH');
+  // NEW: Nutrition goal state for enhanced scoring
+  const [nutritionGoal, setNutritionGoal] = useState<NutritionGoal>('maintaining');
+  const [activityLevel, setActivityLevel] = useState<ActivityLevel>('moderate');
+  const [sex, setSex] = useState<Sex>('male');
+
+  const canEdit = !isCoachView || (isCoachView && (session as any)?.user?.role === 'COACH');
 
   // Refresh function to reload skill data
   const handleRefresh = async () => {
@@ -2394,7 +2939,7 @@ export default function SkillSnap({
                 averageScore={averages?.averages?.[skill.id] || 0}
                 isEditing={isEditing === category.id}
                 onScoreChange={handleScoreChange}
-                showComparison={category.id !== "MENTAL"}
+                showComparison={category.id !== "MENTAL" && category.id !== "NUTRITION"}
               />
             ))}
           </div>
@@ -2436,6 +2981,19 @@ export default function SkillSnap({
 
     return (
       <div className="space-y-4 pb-16">
+        {/* Add Nutrition Tracker for NUTRITION category */}
+        {category.id === "NUTRITION" && (
+          <NutritionTracker 
+            studentData={skillData?.student} 
+            onGoalChange={handleNutritionGoalChange}
+            onActivityLevelChange={handleActivityLevelChange}
+            onSexChange={handleSexChange}
+            selectedGoal={nutritionGoal}
+            selectedActivityLevel={activityLevel}
+            selectedSex={sex}
+          />
+        )}
+        
         {category.skills.map((skill) => (
           <SkillBar
             key={skill.id}
@@ -2448,17 +3006,33 @@ export default function SkillSnap({
             averageScore={averages?.averages?.[skill.id] || 0}
             isEditing={isEditing === category.id}
             onScoreChange={handleScoreChange}
-            showComparison={category.id !== "MENTAL"}
+            showComparison={category.id !== "MENTAL" && category.id !== "NUTRITION"}
             personalizedTarget={
               category.id === "NUTRITION" && skillData?.student?.height && skillData?.student?.weight
                 ? (() => {
-                    const nutrition = calculatePersonalizedNutrition(
+                    const targets = calculateGoalBasedNutritionTargets(
                       skillData.student.weight,
                       skillData.student.height,
-                      skillData.student.age
+                      skillData.student.age,
+                      nutritionGoal,
+                      activityLevel,
+                      sex
                     );
-                    const nutritionKey = skill.id as keyof NutritionData;
-                    return nutritionKey in nutrition ? nutrition[nutritionKey] : undefined;
+                    // Map skill IDs to target values
+                    switch (skill.id) {
+                      case "totalCalories":
+                        return targets.calories;
+                      case "protein":
+                        return targets.protein;
+                      case "carbohydrates":
+                        return targets.carbs;
+                      case "fats":
+                        return targets.fats;
+                      case "waterIntake":
+                        return targets.water;
+                      default:
+                        return undefined;
+                    }
                   })()
                 : undefined
             }
@@ -2469,7 +3043,39 @@ export default function SkillSnap({
     );
   };
 
-  // Overall progress and insights sections removed
+  // UPDATED: Helper function to calculate overall progress percentage with goal-based nutrition
+  const calculateOverallProgressWithGoals = (skillData: SkillData | null): number => {
+    if (!skillData) return 0;
+
+    const scores = [
+      calculatePhysicalAggregateScore(skillData),
+      calculateMentalAggregateScore(skillData),
+      calculateGoalBasedNutritionScore(skillData, nutritionGoal, activityLevel, sex), // Updated
+      calculateTechnicalAggregateScore(skillData),
+      calculateTacticalAggregateScore(skillData)
+    ];
+    
+    // Include all categories in average calculation (0 is a valid score)
+    const nonNullScores = scores.filter(score => score !== null && score !== undefined);
+    if (nonNullScores.length === 0) return 0;
+
+    const average = nonNullScores.reduce((a, b) => a + b, 0) / nonNullScores.length;
+    // Scores are already 0-100, just ensure they're properly capped
+    return Math.min(100, Math.max(0, Math.round(average)));
+  };
+
+  // Handlers for nutrition goal updates
+  const handleNutritionGoalChange = (goal: NutritionGoal) => {
+    setNutritionGoal(goal);
+  };
+
+  const handleActivityLevelChange = (level: ActivityLevel) => {
+    setActivityLevel(level);
+  };
+
+  const handleSexChange = (newSex: Sex) => {
+    setSex(newSex);
+  };
 
   if (loading) {
     return (
@@ -2547,6 +3153,9 @@ export default function SkillSnap({
               category={category}
             onOpen={() => openCategoryModal(category)}
               skillData={skillData}
+              nutritionGoal={nutritionGoal}
+              activityLevel={activityLevel}
+              sex={sex}
             />
         ))}
       </div>

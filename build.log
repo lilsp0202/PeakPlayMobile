@@ -1,0 +1,97 @@
+
+> peakplay@1.0.0 build
+> next build
+
+   ▲ Next.js 15.3.2
+   - Environments: .env.production, .env
+   - Experiments (use with caution):
+     · clientTraceMetadata
+
+   Creating an optimized production build ...
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /Users/lilsp/peakplay-prototype/node_modules/next-pwa/register.js
+> [PWA] Service worker: /Users/lilsp/peakplay-prototype/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+[@sentry/nextjs] The Sentry SDK has enabled source map generation for your Next.js app. If you don't want to serve Source Maps to your users, either set the `sourcemaps.deleteSourcemapsAfterUpload` option to true, or manually delete the source maps after the build. In future Sentry SDK versions `sourcemaps.deleteSourcemapsAfterUpload` will default to `true`. If you do not want to generate and upload sourcemaps, set the `sourcemaps.disable` option in `withSentryConfig()`.
+ ✓ Compiled successfully in 9.0s
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/54) ...
+   Generating static pages (13/54) 
+   Generating static pages (26/54) 
+   Generating static pages (40/54) 
+ ✓ Generating static pages (54/54)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                      347 B         107 kB
+├ ○ /_not-found                            437 B         103 kB
+├ ƒ /api/actions                           436 B         103 kB
+├ ƒ /api/analyze-scorecard                 435 B         103 kB
+├ ƒ /api/auth/[...nextauth]                437 B         103 kB
+├ ƒ /api/auth/register                     437 B         103 kB
+├ ƒ /api/auth/signout                      436 B         103 kB
+├ ƒ /api/badges                            438 B         103 kB
+├ ƒ /api/badges/[id]                       438 B         103 kB
+├ ƒ /api/badges/admin                      436 B         103 kB
+├ ƒ /api/badges/coach-custom               436 B         103 kB
+├ ƒ /api/badges/evaluate                   437 B         103 kB
+├ ƒ /api/badges/student-progress           437 B         103 kB
+├ ƒ /api/coach/assign-students             437 B         103 kB
+├ ƒ /api/coach/create                      436 B         103 kB
+├ ƒ /api/coach/profile                     437 B         103 kB
+├ ƒ /api/feedback                          436 B         103 kB
+├ ƒ /api/generate-summary                  437 B         103 kB
+├ ƒ /api/hooper-index                      436 B         103 kB
+├ ƒ /api/marketplace/bookings              437 B         103 kB
+├ ƒ /api/marketplace/coaches               438 B         103 kB
+├ ƒ /api/marketplace/coaches/[id]          436 B         103 kB
+├ ƒ /api/marketplace/reviews               435 B         103 kB
+├ ƒ /api/matches                           437 B         103 kB
+├ ƒ /api/matches/[id]                      437 B         103 kB
+├ ƒ /api/matches/stats                     437 B         103 kB
+├ ƒ /api/notifications                     437 B         103 kB
+├ ƒ /api/notifications/generate            437 B         103 kB
+├ ƒ /api/notifications/preferences         437 B         103 kB
+├ ƒ /api/profile                           436 B         103 kB
+├ ƒ /api/profile/delete                    436 B         103 kB
+├ ƒ /api/session-todo                      436 B         103 kB
+├ ƒ /api/skills                            437 B         103 kB
+├ ƒ /api/skills/analytics                  437 B         103 kB
+├ ƒ /api/skills/history                    436 B         103 kB
+├ ƒ /api/skills/notes                      437 B         103 kB
+├ ƒ /api/student/create                    435 B         103 kB
+├ ƒ /api/student/profile                   437 B         103 kB
+├ ƒ /api/students                          436 B         103 kB
+├ ƒ /api/students/by-academy               437 B         103 kB
+├ ƒ /api/teams                             438 B         103 kB
+├ ƒ /api/teams/[id]                        436 B         103 kB
+├ ƒ /api/test-db                           437 B         103 kB
+├ ƒ /api/transcribe-voice                  436 B         103 kB
+├ ○ /auth/signin                         6.05 kB         121 kB
+├ ○ /auth/signup                         6.91 kB         122 kB
+├ ○ /badge-centre                        8.98 kB         162 kB
+├ ○ /bookings                            5.47 kB         121 kB
+├ ○ /dashboard                           18.1 kB         175 kB
+├ ƒ /dashboard-v0                        3.81 kB         127 kB
+├ ○ /landing                             9.65 kB         127 kB
+├ ○ /marketplace                         5.09 kB         121 kB
+├ ƒ /marketplace/coach/[id]              5.61 kB         121 kB
+├ ○ /offline                               695 B         103 kB
+├ ○ /onboarding/athlete                  3.75 kB         119 kB
+├ ○ /onboarding/coach                    3.41 kB         119 kB
+└ ○ /privacy                               436 B         103 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/4bd1b696-4e1955eae5628380.js  53.3 kB
+  ├ chunks/9303-5a4d2c4f2a986187.js      46.5 kB
+  └ other shared chunks (total)          2.92 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -31,15 +31,23 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
   const fetchTeamData = async () => {
     setIsLoading(true);
     try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
       // Fetch teams that the student is a member of
-      const teamsResponse = await fetch('/api/teams?includeMembers=true&includeStats=true');
+      const teamsResponse = await fetch('/api/teams?includeMembers=true&includeStats=true', {
+        signal: controller.signal,
+      });
       if (teamsResponse.ok) {
         const teamsData = await teamsResponse.json();
         setTeams(teamsData.teams || []);
       }
 
       // Fetch feedback with team information
-      const feedbackResponse = await fetch('/api/feedback');
+      const feedbackResponse = await fetch('/api/feedback', {
+        signal: controller.signal,
+      });
       if (feedbackResponse.ok) {
         const feedback = await feedbackResponse.json();
         const teamRelatedFeedback = feedback.filter((item: any) => item.team);
@@ -47,14 +55,21 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
       }
 
       // Fetch actions with team information
-      const actionsResponse = await fetch('/api/actions');
+      const actionsResponse = await fetch('/api/actions', {
+        signal: controller.signal,
+      });
       if (actionsResponse.ok) {
         const actions = await actionsResponse.json();
         const teamRelatedActions = actions.filter((item: any) => item.team);
         setTeamActions(teamRelatedActions);
       }
+
+      clearTimeout(timeoutId);
     } catch (error) {
       console.error('Error fetching team data:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Team data fetch timeout - continuing with cached data');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -62,6 +77,10 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
 
   const handleAcknowledge = async (itemId: string, type: 'feedback' | 'actions') => {
     try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
       const endpoint = type === 'feedback' ? '/api/feedback' : '/api/actions';
       const response = await fetch(endpoint, {
         method: 'PATCH',
@@ -70,18 +89,33 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
           [type === 'feedback' ? 'feedbackId' : 'actionId']: itemId, 
           isAcknowledged: true 
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         fetchTeamData(); // Refresh data
+      } else {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        throw new Error(`Failed to acknowledge ${type}: ${response.status} - ${errorText}`);
       }
     } catch (error) {
       console.error('Error acknowledging item:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        alert('Request timeout. Please check your connection and try again.');
+      } else {
+        alert(`Failed to acknowledge ${type}. Please try again.`);
+      }
     }
   };
 
   const handleComplete = async (actionId: string) => {
     try {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
       const response = await fetch('/api/actions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -89,13 +123,24 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
           actionId, 
           isCompleted: true 
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         fetchTeamData(); // Refresh data
+      } else {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        throw new Error(`Failed to complete action: ${response.status} - ${errorText}`);
       }
     } catch (error) {
       console.error('Error completing action:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        alert('Request timeout. Please check your connection and try again.');
+      } else {
+        alert('Failed to complete action. Please try again.');
+      }
     }
   };
 
@@ -176,7 +221,7 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
                       <div className="flex items-center space-x-2 mt-0.5">
                         <FiUser className="w-3 h-3 text-gray-400 flex-shrink-0" />
                         <p className="text-xs text-gray-500 truncate">
-                          {team.coach?.name} • {team._count?.members || 0} members
+                          {team.coach?.name} • {(team as any)._count?.members || 0} members
                         </p>
                       </div>
                     </div>

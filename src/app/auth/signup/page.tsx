@@ -58,7 +58,6 @@ export default function SignUp() {
       if (!formData.email.trim()) newErrors.email = "Email is required";
       else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email is invalid";
       if (!formData.username.trim()) newErrors.username = "Username is required";
-      else if (formData.username.length < 3) newErrors.username = "Username must be at least 3 characters";
     }
 
     if (step === 2) {

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const validation = validateRequest(body, signUpSchema);
     if (!validation.success) {
       return NextResponse.json(
-        { error: validation.error },
+        { error: (validation as any).error },
         { status: 400 }
       );
     }

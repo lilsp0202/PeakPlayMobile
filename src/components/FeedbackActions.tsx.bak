@@ -34,16 +34,11 @@ interface ActionItem {
   completedAt?: string;
   isAcknowledged: boolean;
   acknowledgedAt?: string;
-  // Student proof upload fields
+  // New media proof fields
   proofMediaUrl?: string;
   proofMediaType?: string;
   proofFileName?: string;
   proofUploadedAt?: string;
-  // Coach demo media fields
-  demoMediaUrl?: string;
-  demoMediaType?: string;
-  demoFileName?: string;
-  demoUploadedAt?: string;
   createdAt: string;
   coach: {
     name: string;
@@ -132,50 +127,31 @@ const FeedbackActions = () => {
     }
   };
 
-  // Handler functions
-  const handleUploadProof = (actionId: string) => {
-    setUploadingActionId(actionId);
-    setShowUploadModal(true);
-  };
-
-  const handleUploadSuccess = (proofData: any) => {
-    setShowUploadModal(false);
-    setUploadingActionId(null);
-    // Refresh the actions list
-    fetchFeedbackAndActions();
-  };
-
   const handleCompleteAction = async (actionId: string) => {
-    // Add confirmation dialog
-    const confirmed = window.confirm("Are you sure you want to mark this action as completed?");
-    if (!confirmed) {
-      return;
-    }
-
-    setProcessingIds(prev => new Set([...prev, actionId]));
-    
+    setProcessingIds(prev => new Set(prev).add(actionId));
     try {
       const response = await fetch('/api/actions', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          actionId,
-          isCompleted: true,
-          completedAt: new Date().toISOString()
+        body: JSON.stringify({ 
+          actionId, 
+          isCompleted: true 
         }),
       });
 
-      if (response.ok) {
-        // Refresh the actions list
-        await fetchFeedbackAndActions();
-      } else {
+      if (!response.ok) {
         throw new Error('Failed to complete action');
       }
+
+      setActions(prev => prev.map(item => 
+        item.id === actionId 
+          ? { ...item, isCompleted: true, completedAt: new Date().toISOString() }
+          : item
+      ));
     } catch (error) {
       console.error('Error completing action:', error);
-      alert('Failed to complete action. Please try again.');
     } finally {
       setProcessingIds(prev => {
         const newSet = new Set(prev);
@@ -183,6 +159,30 @@ const FeedbackActions = () => {
         return newSet;
       });
     }
+  };
+
+  // Upload functionality
+  const handleUploadProof = (actionId: string) => {
+    setUploadingActionId(actionId);
+    setShowUploadModal(true);
+  };
+
+  const handleUploadSuccess = (proofData: any) => {
+    // Update the action with proof data
+    setActions(prev => prev.map(item => 
+      item.id === uploadingActionId 
+        ? { 
+            ...item, 
+            proofMediaUrl: proofData.proofMediaUrl,
+            proofMediaType: proofData.proofMediaType,
+            proofFileName: proofData.proofFileName,
+            proofUploadedAt: proofData.proofUploadedAt
+          }
+        : item
+    ));
+    
+    setShowUploadModal(false);
+    setUploadingActionId(null);
   };
 
   const viewProofMedia = (mediaUrl: string) => {
@@ -255,30 +255,30 @@ const FeedbackActions = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Tab Navigation - Mobile optimized */}
+    <div className="space-y-6">
+      {/* Tab Navigation */}
       <div className="flex bg-gray-100 rounded-lg p-1">
         <button
           onClick={() => setActiveTab('feedback')}
-          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-md transition-all text-sm sm:text-base ${
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md transition-all ${
             activeTab === 'feedback'
               ? 'bg-white text-blue-600 shadow-sm'
               : 'text-gray-600 hover:text-gray-900'
           }`}
         >
-          <FiMessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
-          <span className="hidden xs:inline">Feedback</span> ({feedback.length})
+          <FiMessageSquare className="w-4 h-4" />
+          Feedback ({feedback.length})
         </button>
         <button
           onClick={() => setActiveTab('actions')}
-          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-md transition-all text-sm sm:text-base ${
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md transition-all ${
             activeTab === 'actions'
               ? 'bg-white text-blue-600 shadow-sm'
               : 'text-gray-600 hover:text-gray-900'
           }`}
         >
-          <FiCheckSquare className="w-3 h-3 sm:w-4 sm:h-4" />
-          <span className="hidden xs:inline">Actions</span> ({actions.length})
+          <FiCheckSquare className="w-4 h-4" />
+          Actions ({actions.length})
         </button>
       </div>
 
@@ -290,12 +290,12 @@ const FeedbackActions = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="space-y-3 sm:space-y-4"
+            className="space-y-4"
           >
             {feedback.length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <FiMessageSquare className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
-                <p className="text-gray-500 text-base sm:text-lg">No feedback available</p>
+              <div className="text-center py-12">
+                <FiMessageSquare className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500 text-lg">No feedback available</p>
                 <p className="text-gray-400 text-sm">Check back later for feedback from your coach</p>
               </div>
             ) : (
@@ -304,11 +304,12 @@ const FeedbackActions = () => {
                   key={item.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-lg border-2 border-blue-200 p-3 sm:p-4 shadow-sm"
+                  className={`bg-white rounded-lg border-2 p-4 transition-all ${
+                    item.isAcknowledged ? 'border-green-200 bg-green-50/50' : 'border-blue-200 shadow-sm'
+                  }`}
                 >
-                  {/* Mobile-friendly header */}
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 space-y-2 sm:space-y-0">
-                    <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
                       <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(item.priority)}`}>
                         {item.priority}
                       </div>
@@ -316,20 +317,19 @@ const FeedbackActions = () => {
                         {item.category}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
-                      <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <FiUser className="w-4 h-4" />
                       <span>{item.coach.name}</span>
                     </div>
                   </div>
 
-                  <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{item.title}</h3>
-                  <p className="text-gray-700 mb-3 text-sm sm:text-base leading-relaxed">{item.content}</p>
+                  <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-gray-700 mb-3">{item.content}</p>
 
-                  {/* Mobile-friendly metadata */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
-                        <FiCalendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <FiCalendar className="w-4 h-4" />
                         <span>{formatDate(item.createdAt)}</span>
                       </div>
                       {item.team && (
@@ -345,16 +345,16 @@ const FeedbackActions = () => {
                         disabled={processingIds.has(item.id)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-xs sm:text-sm w-full sm:w-auto"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                       >
                         {processingIds.has(item.id) ? (
                           <>
-                            <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-t-2 border-b-2 border-white"></div>
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
                             Acknowledging...
                           </>
                         ) : (
                           <>
-                            <FiCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <FiCheck className="w-4 h-4" />
                             Acknowledge
                           </>
                         )}
@@ -362,8 +362,8 @@ const FeedbackActions = () => {
                     )}
 
                     {item.isAcknowledged && (
-                      <div className="flex items-center gap-2 text-green-600 text-xs sm:text-sm">
-                        <FiCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <div className="flex items-center gap-2 text-green-600 text-sm">
+                        <FiCheck className="w-4 h-4" />
                         <span>Acknowledged</span>
                       </div>
                     )}
@@ -378,12 +378,12 @@ const FeedbackActions = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="space-y-3 sm:space-y-4"
+            className="space-y-4"
           >
             {actions.length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <FiCheckSquare className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
-                <p className="text-gray-500 text-base sm:text-lg">No actions available</p>
+              <div className="text-center py-12">
+                <FiCheckSquare className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500 text-lg">No actions available</p>
                 <p className="text-gray-400 text-sm">Check back later for new tasks from your coach</p>
               </div>
             ) : (
@@ -392,7 +392,7 @@ const FeedbackActions = () => {
                   key={item.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`bg-white rounded-lg border-2 p-3 sm:p-4 transition-all ${
+                  className={`bg-white rounded-lg border-2 p-4 transition-all ${
                     item.isCompleted 
                       ? 'border-green-200 bg-green-50/50' 
                       : item.dueDate && isOverdue(item.dueDate)
@@ -400,9 +400,8 @@ const FeedbackActions = () => {
                       : 'border-orange-200 shadow-sm'
                   }`}
                 >
-                  {/* Mobile-friendly header */}
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 space-y-2 sm:space-y-0">
-                    <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
                       <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(item.priority)}`}>
                         {item.priority}
                       </div>
@@ -415,71 +414,29 @@ const FeedbackActions = () => {
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
-                      <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <FiUser className="w-4 h-4" />
                       <span>{item.coach.name}</span>
                     </div>
                   </div>
 
-                  <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{item.title}</h3>
-                  <p className="text-gray-700 mb-3 text-sm sm:text-base leading-relaxed">{item.description}</p>
+                  <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-gray-700 mb-3">{item.description}</p>
 
-                  {/* Demo Media Section - Mobile optimized */}
-                  {item.demoMediaUrl && (
-                    <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-200 mb-3">
-                      <h4 className="text-xs sm:text-sm font-medium text-indigo-900 mb-2 flex items-center gap-1">
-                        🎯 Demo: How to perform this action
-                      </h4>
-                      <div className="space-y-2">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-indigo-700">
-                            <span className="break-all font-medium">{item.demoFileName}</span>
-                            <span className="text-indigo-600">({item.demoMediaType === 'image' ? 'Image' : 'Video'})</span>
-                          </div>
-                        </div>
-                        
-                        {/* Demo Media Preview */}
-                        <div className="bg-white rounded-lg p-2 border border-indigo-200">
-                          {item.demoMediaType === 'image' ? (
-                            <img
-                              src={item.demoMediaUrl}
-                              alt={item.demoFileName || 'Demo image'}
-                              className="w-full max-h-32 sm:max-h-48 object-contain rounded-lg cursor-pointer"
-                              onClick={() => viewProofMedia(item.demoMediaUrl!)}
-                            />
-                          ) : (
-                            <video
-                              src={item.demoMediaUrl}
-                              controls
-                              className="w-full max-h-32 sm:max-h-48 rounded-lg"
-                              preload="metadata"
-                            >
-                              Your browser does not support the video tag.
-                            </video>
-                          )}
-                        </div>
-                        
-                        <p className="text-xs text-indigo-600 bg-indigo-100 rounded-md p-2">
-                          💡 Watch this demo from your coach to understand exactly how to perform this action
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Proof Media Section - Mobile optimized */}
+                  {/* Proof Media Section */}
                   {item.proofMediaUrl && (
                     <div className="bg-green-50 rounded-lg p-3 border border-green-200 mb-3">
-                      <h4 className="text-xs sm:text-sm font-medium text-green-900 mb-2">Completion Proof:</h4>
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-green-700">
-                          <span className="break-all">{item.proofFileName}</span>
+                      <h4 className="text-sm font-medium text-green-900 mb-2">Completion Proof:</h4>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-green-700">
+                          <span>{item.proofFileName}</span>
                           <span className="text-green-600">({item.proofMediaType?.includes('image') ? 'Image' : 'Video'})</span>
                         </div>
                         <button
                           onClick={() => viewProofMedia(item.proofMediaUrl!)}
-                          className="flex items-center justify-center gap-1 px-3 py-2 text-xs sm:text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors w-full sm:w-auto"
+                          className="flex items-center gap-1 px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                         >
-                          <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <FiEye className="w-4 h-4" />
                           View
                         </button>
                       </div>
@@ -491,17 +448,15 @@ const FeedbackActions = () => {
                     </div>
                   )}
 
-                  {/* Mobile-friendly metadata and action buttons */}
-                  <div className="space-y-3">
-                    {/* Metadata section */}
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
-                        <FiCalendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <FiCalendar className="w-4 h-4" />
                         <span>{formatDate(item.createdAt)}</span>
                       </div>
                       {item.dueDate && (
                         <div className="flex items-center gap-1">
-                          <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <FiClock className="w-4 h-4" />
                           <span>Due: {formatDate(item.dueDate)}</span>
                         </div>
                       )}
@@ -512,37 +467,26 @@ const FeedbackActions = () => {
                       )}
                     </div>
 
-                    {/* Action buttons - Stacked on mobile, inline on desktop */}
                     {!item.isCompleted && (
-                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                      <div className="flex gap-2">
                         {/* Upload Proof Button */}
                         <motion.button
                           onClick={() => handleUploadProof(item.id)}
-                          disabled={!!item.proofMediaUrl}
-                          whileHover={!item.proofMediaUrl ? { scale: 1.02 } : {}}
-                          whileTap={!item.proofMediaUrl ? { scale: 0.98 } : {}}
-                          className={`flex items-center justify-center gap-2 px-4 py-3 sm:py-2 rounded-lg transition-colors text-sm sm:text-base w-full sm:w-auto touch-manipulation ${
-                            item.proofMediaUrl 
-                              ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60' 
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
-                          }`}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                         >
                           <FiUpload className="w-4 h-4" />
-                          {item.proofMediaUrl ? 'Proof Uploaded' : 'Upload Proof'}
+                          Upload Proof
                         </motion.button>
                         
                         {/* Complete Button */}
                         <motion.button
-                          onClick={() => {
-                            const confirmed = window.confirm("Are you sure you want to mark this action as completed?");
-                            if (confirmed) {
-                              handleCompleteAction(item.id);
-                            }
-                          }}
+                          onClick={() => handleCompleteAction(item.id)}
                           disabled={processingIds.has(item.id)}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto touch-manipulation"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                         >
                           {processingIds.has(item.id) ? (
                             <>

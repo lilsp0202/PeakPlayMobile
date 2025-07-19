@@ -13,15 +13,14 @@ export const signUpSchema = z.object({
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  username: z.string().min(3, 'Username must be at least 3 characters')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+  username: z.string().min(1, 'Username is required'),
   role: z.enum(['ATHLETE', 'COACH']),
 });
 
 // Student validations
 export const createStudentSchema = z.object({
   studentName: z.string().min(2),
-  username: z.string().min(3),
+  username: z.string().min(1),
   email: z.string().email(),
   age: z.number().int().min(5).max(100),
   height: z.number().positive(),
@@ -37,7 +36,7 @@ export const updateStudentSchema = createStudentSchema.partial();
 // Coach validations
 export const createCoachSchema = z.object({
   name: z.string().min(2),
-  username: z.string().min(3),
+  username: z.string().min(1),
   email: z.string().email(),
   academy: z.string().min(2),
 });

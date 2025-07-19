@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import ActionProofUpload from "./ActionProofUpload";
+import { FiUpload, FiEye, FiDownload } from "react-icons/fi";
 
 interface Action {
   id: string;
@@ -15,6 +17,16 @@ interface Action {
   isAcknowledged: boolean;
   acknowledgedAt?: string;
   notes?: string;
+  // Student proof upload fields
+  proofMediaUrl?: string;
+  proofMediaType?: string;
+  proofFileName?: string;
+  proofUploadedAt?: string;
+  // Coach demo media fields
+  demoMediaUrl?: string;
+  demoMediaType?: string;
+  demoFileName?: string;
+  demoUploadedAt?: string;
   createdAt: string;
   coach: {
     name: string;
@@ -35,6 +47,8 @@ export default function CoachActions({ studentId, isCoachView = false }: CoachAc
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [completionNotes, setCompletionNotes] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadingActionId, setUploadingActionId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchActions();
@@ -73,7 +87,7 @@ export default function CoachActions({ studentId, isCoachView = false }: CoachAc
         console.error("Failed to fetch actions:", response.status);
         setActions([]);
       }
-    } catch (error: unknown) {
+    } catch (error: any) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log("Actions request timeout - showing empty state");
         // Don't show error for timeout, just show empty state
@@ -135,48 +149,105 @@ export default function CoachActions({ studentId, isCoachView = false }: CoachAc
     }
   };
 
+  const handleUploadProof = (actionId: string) => {
+    setUploadingActionId(actionId);
+    setShowUploadModal(true);
+  };
+
+  const handleUploadSuccess = (proofData: any) => {
+    // Update the action with the new proof data
+    setActions(prev => 
+      prev.map(action => 
+        action.id === uploadingActionId ? {
+          ...action,
+          proofMediaUrl: proofData.proofMediaUrl,
+          proofMediaType: proofData.proofMediaType,
+          proofFileName: proofData.proofFileName,
+          proofUploadedAt: proofData.proofUploadedAt,
+        } : action
+      )
+    );
+    setShowUploadModal(false);
+    setUploadingActionId(null);
+    // Refresh actions to get updated data
+    fetchActions();
+  };
+
+  const handleViewProof = (action: Action) => {
+    if (action.proofMediaUrl) {
+      // Create a modal or new window to view the media
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        if (action.proofMediaType === 'image') {
+          newWindow.document.write(`
+            <html>
+              <head><title>Action Proof - ${action.proofFileName}</title></head>
+              <body style="margin:0; padding:20px; background:#f5f5f5; display:flex; justify-content:center; align-items:center; min-height:100vh;">
+                <div style="text-align:center;">
+                  <h2 style="margin-bottom:20px; color:#333;">Action: ${action.title}</h2>
+                  <img src="${action.proofMediaUrl}" style="max-width:100%; max-height:80vh; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1);" />
+                  <p style="margin-top:20px; color:#666;">Uploaded: ${new Date(action.proofUploadedAt!).toLocaleString()}</p>
+                </div>
+              </body>
+            </html>
+          `);
+        } else {
+          newWindow.document.write(`
+            <html>
+              <head><title>Action Proof - ${action.proofFileName}</title></head>
+              <body style="margin:0; padding:20px; background:#f5f5f5; display:flex; justify-content:center; align-items:center; min-height:100vh;">
+                <div style="text-align:center;">
+                  <h2 style="margin-bottom:20px; color:#333;">Action: ${action.title}</h2>
+                  <video controls style="max-width:100%; max-height:80vh; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                    <source src="${action.proofMediaUrl}" type="${action.proofMediaType === 'video' ? 'video/mp4' : action.proofMediaType}">
+                    Your browser does not support the video tag.
+                  </video>
+                  <p style="margin-top:20px; color:#666;">Uploaded: ${new Date(action.proofUploadedAt!).toLocaleString()}</p>
+                </div>
+              </body>
+            </html>
+          `);
+        }
+      }
+    }
+  };
+
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'TECHNICAL': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'MENTAL': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'NUTRITIONAL': return 'bg-green-100 text-green-800 border-green-200';
-      case 'TACTICAL': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'TECHNICAL': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'MENTAL': return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'NUTRITIONAL': return 'bg-green-100 text-green-700 border-green-200';
+      case 'TACTICAL': return 'bg-orange-100 text-orange-700 border-orange-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'HIGH': return 'bg-red-100 text-red-800 border-red-200';
-      case 'MEDIUM': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'LOW': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'HIGH': return 'bg-red-100 text-red-700 border-red-200';
+      case 'MEDIUM': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'LOW': return 'bg-green-100 text-green-700 border-green-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
   const getStatusColor = (action: Action) => {
-    if (action.isCompleted) return 'bg-green-100 text-green-800 border-green-200';
-    return 'bg-orange-100 text-orange-800 border-orange-200';
+    if (action.isCompleted) return 'bg-green-100 text-green-700 border-green-200';
+    if (action.isAcknowledged) return 'bg-blue-100 text-blue-700 border-blue-200';
+    return 'bg-orange-100 text-orange-700 border-orange-200';
   };
 
   const getStatusText = (action: Action) => {
-    if (action.isCompleted) return 'COMPLETED';
-    return 'PENDING';
+    if (action.isCompleted) return 'Completed';
+    if (action.isAcknowledged) return 'Acknowledged';
+    return 'Pending';
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays} days ago`;
-    
-    return date.toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
       month: 'short',
-      day: 'numeric',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+      day: 'numeric'
     });
   };
 
@@ -403,12 +474,93 @@ export default function CoachActions({ studentId, isCoachView = false }: CoachAc
                     </p>
                   </div>
 
+                  {/* Demo Media Section */}
+                  {selectedAction.demoMediaUrl && (
+                    <div className="bg-indigo-50 rounded-lg p-4 sm:p-6 border border-indigo-200">
+                      <h4 className="text-sm font-medium text-indigo-900 mb-3">
+                        🎯 Demo: How to perform this action
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {selectedAction.demoMediaType === 'image' ? (
+                              <FiEye className="w-5 h-5 text-indigo-600" />
+                            ) : (
+                              <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                              </svg>
+                            )}
+                            <div>
+                              <p className="text-sm font-medium text-indigo-900">{selectedAction.demoFileName}</p>
+                              <p className="text-xs text-indigo-700">
+                                Demo from your coach
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Media Preview */}
+                        <div className="bg-white rounded-lg p-3 border border-indigo-200">
+                          {selectedAction.demoMediaType === 'image' ? (
+                            <img
+                              src={selectedAction.demoMediaUrl}
+                              alt={selectedAction.demoFileName || 'Demo image'}
+                              className="w-full max-h-64 sm:max-h-80 object-contain rounded-lg"
+                            />
+                          ) : (
+                            <video
+                              src={selectedAction.demoMediaUrl}
+                              controls
+                              className="w-full max-h-64 sm:max-h-80 rounded-lg"
+                              preload="metadata"
+                            >
+                              Your browser does not support the video tag.
+                            </video>
+                          )}
+                        </div>
+                        
+                        <p className="text-xs text-indigo-600 bg-indigo-100 rounded-md p-2">
+                          💡 Watch this demo to understand exactly how your coach wants you to perform this action
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {selectedAction.notes && (
                     <div className="bg-blue-50 rounded-lg p-4 sm:p-6 border border-blue-200">
                       <h4 className="text-sm font-medium text-blue-900 mb-2">Your Notes:</h4>
                       <p className="text-blue-800 leading-relaxed whitespace-pre-line text-sm sm:text-base">
                         {selectedAction.notes}
                       </p>
+                    </div>
+                  )}
+
+                  {/* Proof Media Section */}
+                  {selectedAction.proofMediaUrl && (
+                    <div className="bg-green-50 rounded-lg p-4 sm:p-6 border border-green-200">
+                      <h4 className="text-sm font-medium text-green-900 mb-3">Completion Proof:</h4>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {selectedAction.proofMediaType === 'image' ? (
+                            <FiEye className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <FiEye className="w-5 h-5 text-purple-600" />
+                          )}
+                          <div>
+                            <p className="text-sm font-medium text-green-900">{selectedAction.proofFileName}</p>
+                            <p className="text-xs text-green-700">
+                              Uploaded: {new Date(selectedAction.proofUploadedAt!).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleViewProof(selectedAction)}
+                          className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2"
+                        >
+                          <FiEye className="w-4 h-4" />
+                          View
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -423,6 +575,15 @@ export default function CoachActions({ studentId, isCoachView = false }: CoachAc
                         rows={3}
                       />
                       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-4">
+                        {!selectedAction.proofMediaUrl && (
+                          <button
+                            onClick={() => handleUploadProof(selectedAction.id)}
+                            className="flex-1 bg-blue-600 text-white px-4 py-3 sm:py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base touch-manipulation flex items-center justify-center gap-2"
+                          >
+                            <FiUpload className="w-4 h-4" />
+                            Upload Proof
+                          </button>
+                        )}
                         <button
                           onClick={handleComplete}
                           className="flex-1 bg-green-600 text-white px-4 py-3 sm:py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm sm:text-base touch-manipulation"
@@ -512,6 +673,19 @@ export default function CoachActions({ studentId, isCoachView = false }: CoachAc
             </div>
           </div>
         </div>
+      )}
+
+      {/* Upload Modal */}
+      {showUploadModal && uploadingActionId && (
+        <ActionProofUpload
+          actionId={uploadingActionId}
+          onUploadSuccess={handleUploadSuccess}
+          onClose={() => {
+            setShowUploadModal(false);
+            setUploadingActionId(null);
+          }}
+          isOpen={showUploadModal}
+        />
       )}
     </>
   );

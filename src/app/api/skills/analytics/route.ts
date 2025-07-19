@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../../lib/auth";
-import { prisma } from "../../../../lib/prisma";
-import type { Session } from "next-auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import type { Session } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { Skills } from '@prisma/client';
 
 // Age group mappings
 const getAgeGroup = (age: number): string => {
@@ -109,6 +110,14 @@ export async function GET(request: Request) {
           carbohydrates: 0,
           fats: 0,
           waterIntake: 0,
+          // Technical Skills - Batting
+          battingGrip: 0,
+          battingStance: 0,
+          battingBalance: 0,
+          // Technical Skills - Fielding
+          flatCatch: 0,
+          throw: 0,
+          aim: 0,
         },
         sampleSize: 0,
       });
@@ -153,10 +162,24 @@ export async function GET(request: Request) {
       carbohydratesCount: number;
       fatsCount: number;
       waterIntakeCount: number;
+      // Technical Skills - Batting
+      battingGrip: number;
+      battingStance: number;
+      battingBalance: number;
+      battingGripCount: number;
+      battingStanceCount: number;
+      battingBalanceCount: number;
+      // Technical Skills - Fielding
+      flatCatch: number;
+      throw: number;
+      aim: number;
+      flatCatchCount: number;
+      throwCount: number;
+      aimCount: number;
     }
 
     const totals = skillsInAgeGroup.reduce<TotalsAccumulator>(
-      (acc, skills) => ({
+      (acc, skills: any) => ({
         // Physical skills - Strength
         pushupScore: acc.pushupScore + (skills.pushupScore || 0),
         pullupScore: acc.pullupScore + (skills.pullupScore || 0),
@@ -198,6 +221,22 @@ export async function GET(request: Request) {
         carbohydratesCount: acc.carbohydratesCount + (skills.carbohydrates ? 1 : 0),
         fatsCount: acc.fatsCount + (skills.fats ? 1 : 0),
         waterIntakeCount: acc.waterIntakeCount + (skills.waterIntake ? 1 : 0),
+        
+        // Technical skills - Batting
+        battingGrip: acc.battingGrip + (skills.battingGrip || 0),
+        battingStance: acc.battingStance + (skills.battingStance || 0),
+        battingBalance: acc.battingBalance + (skills.battingBalance || 0),
+        battingGripCount: acc.battingGripCount + (skills.battingGrip ? 1 : 0),
+        battingStanceCount: acc.battingStanceCount + (skills.battingStance ? 1 : 0),
+        battingBalanceCount: acc.battingBalanceCount + (skills.battingBalance ? 1 : 0),
+        
+        // Technical skills - Fielding
+        flatCatch: acc.flatCatch + (skills.flatCatch || 0),
+        throw: acc.throw + (skills.throw || 0),
+        aim: acc.aim + (skills.aim || 0),
+        flatCatchCount: acc.flatCatchCount + (skills.flatCatch ? 1 : 0),
+        throwCount: acc.throwCount + (skills.throw ? 1 : 0),
+        aimCount: acc.aimCount + (skills.aim ? 1 : 0),
       }),
       {
         // Physical - Strength
@@ -241,6 +280,22 @@ export async function GET(request: Request) {
         carbohydratesCount: 0,
         fatsCount: 0,
         waterIntakeCount: 0,
+        
+        // Technical Skills - Batting
+        battingGrip: 0,
+        battingStance: 0,
+        battingBalance: 0,
+        battingGripCount: 0,
+        battingStanceCount: 0,
+        battingBalanceCount: 0,
+        
+        // Technical Skills - Fielding
+        flatCatch: 0,
+        throw: 0,
+        aim: 0,
+        flatCatchCount: 0,
+        throwCount: 0,
+        aimCount: 0,
       }
     );
     
@@ -270,6 +325,16 @@ export async function GET(request: Request) {
       carbohydrates: totals.carbohydratesCount > 0 ? Number((totals.carbohydrates / totals.carbohydratesCount).toFixed(1)) : 0,
       fats: totals.fatsCount > 0 ? Number((totals.fats / totals.fatsCount).toFixed(1)) : 0,
       waterIntake: totals.waterIntakeCount > 0 ? Number((totals.waterIntake / totals.waterIntakeCount).toFixed(1)) : 0,
+      
+      // Technical skills - Batting
+      battingGrip: totals.battingGripCount > 0 ? Number((totals.battingGrip / totals.battingGripCount).toFixed(1)) : 0,
+      battingStance: totals.battingStanceCount > 0 ? Number((totals.battingStance / totals.battingStanceCount).toFixed(1)) : 0,
+      battingBalance: totals.battingBalanceCount > 0 ? Number((totals.battingBalance / totals.battingBalanceCount).toFixed(1)) : 0,
+      
+      // Technical skills - Fielding
+      flatCatch: totals.flatCatchCount > 0 ? Number((totals.flatCatch / totals.flatCatchCount).toFixed(1)) : 0,
+      throw: totals.throwCount > 0 ? Number((totals.throw / totals.throwCount).toFixed(1)) : 0,
+      aim: totals.aimCount > 0 ? Number((totals.aim / totals.aimCount).toFixed(1)) : 0,
     };
     
     return NextResponse.json({

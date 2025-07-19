@@ -100,6 +100,7 @@ export default function TeamModal({
         });
       }, 2000);
     } catch (error) {
+      console.error('Error completing action:', error);
       setProcessingItems(prev => {
         const newSet = new Set(prev);
         newSet.delete(actionId);
@@ -191,7 +192,7 @@ export default function TeamModal({
                     <div className="flex items-center space-x-2 mt-0.5">
                       <FiUser className="w-3 h-3 text-white/80" />
                       <span className="text-white/90 text-xs">
-                        {team.coach?.name} • {team._count?.members || 0} members
+                        {team.coach?.name} • {(team as any)._count?.members || 0} members
                       </span>
                     </div>
                   </div>
@@ -485,6 +486,45 @@ export default function TeamModal({
                                 <h4 className="font-semibold text-gray-900 text-sm leading-tight">{item.title}</h4>
                                 <p className="text-gray-600 mt-1 text-xs leading-relaxed">{item.description}</p>
                               </div>
+
+                              {/* Demo Media Section - Mobile optimized */}
+                              {item.demoMediaUrl && (
+                                <div className="bg-indigo-50 rounded-lg p-2 border border-indigo-200">
+                                  <h5 className="text-xs font-medium text-indigo-900 mb-2 flex items-center gap-1">
+                                    🎯 Demo: How to perform this action
+                                  </h5>
+                                  <div className="space-y-2">
+                                    <div className="flex flex-col gap-1 text-xs text-indigo-700">
+                                      <span className="font-medium truncate">{item.demoFileName}</span>
+                                      <span className="text-indigo-600">({item.demoMediaType === 'image' ? 'Image' : 'Video'})</span>
+                                    </div>
+                                    
+                                    {/* Demo Media Preview */}
+                                    <div className="bg-white rounded-lg p-1 border border-indigo-200">
+                                      {item.demoMediaType === 'image' ? (
+                                        <img
+                                          src={item.demoMediaUrl}
+                                          alt={item.demoFileName || 'Demo image'}
+                                          className="w-full max-h-24 object-contain rounded cursor-pointer"
+                                        />
+                                      ) : (
+                                        <video
+                                          src={item.demoMediaUrl}
+                                          controls
+                                          className="w-full max-h-24 rounded"
+                                          preload="metadata"
+                                        >
+                                          Your browser does not support the video tag.
+                                        </video>
+                                      )}
+                                    </div>
+                                    
+                                    <p className="text-xs text-indigo-600 bg-indigo-100 rounded p-1">
+                                      💡 Watch this demo from your coach
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
                               
                               <div className="flex items-center justify-between gap-2">
                                 <div className="flex items-center space-x-2 flex-wrap gap-1">

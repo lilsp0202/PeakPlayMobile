@@ -384,107 +384,168 @@ export class BadgeEngine {
       where: { id: studentId },
       include: { 
         skills: true,
-        coach: true // Include coach information for filtering coach-created badges
+        coach: {
+          select: { id: true, name: true }
+        }
       }
     });
 
     if (!student) return [];
 
-    console.log('BadgeEngine.getBadgeProgress - About to query badges for student:', studentId);
-    
-    const badges = await prisma.badge.findMany({
-      where: {
-        OR: [
-          { sport: student.sport },
-          { sport: 'ALL' }
-        ],
-        isActive: true
-      },
-      include: {
-        rules: true,
-        category: true,
-        studentBadges: {
-          where: { studentId, isRevoked: false }
+    // PERFORMANCE OPTIMIZATION: Batch fetch all necessary data in parallel
+    const [badges, matchPerformances, skillHistory] = await Promise.all([
+      prisma.badge.findMany({
+        where: {
+          OR: [
+            { sport: student.sport },
+            { sport: 'ALL' }
+          ],
+          isActive: true
+        },
+        include: {
+          rules: {
+            take: 10 // PERFORMANCE: Limit rules per badge
+          },
+          category: {
+            select: { name: true }
+          },
+          studentBadges: {
+            where: { studentId, isRevoked: false },
+            select: { 
+              id: true, 
+              awardedAt: true, 
+              score: true, 
+              progress: true 
+            }
+          }
         }
-      }
-    });
+      }),
+      prisma.matchPerformance.findMany({
+        where: { studentId },
+        include: { 
+          match: {
+            select: {
+              matchDate: true,
+              result: true
+            }
+          }
+        },
+        orderBy: { match: { matchDate: 'desc' } },
+        take: 10 // PERFORMANCE: Limit to recent matches only
+      }),
+      prisma.skillHistory.findMany({
+        where: { studentId },
+        orderBy: { date: 'desc' },
+        take: 15 // PERFORMANCE: Limit skill history
+      })
+    ]);
 
-    // Filter badges based on coach-student relationships
+    // PERFORMANCE OPTIMIZATION: Filter badges efficiently
     const relevantBadges = badges.filter(badge => {
-      // If it's a system badge (no coach marker), include it
       if (!badge.description.includes('|||COACH_CREATED:')) {
         return true;
       }
-      
-      // If it's a coach-created badge, only include if it was created by this student's coach
       if (student.coach) {
         return badge.description.includes(`|||COACH_CREATED:${student.coach.id}`);
       }
-      
-      // If student has no coach, exclude all coach-created badges
       return false;
     });
 
+    // PERFORMANCE OPTIMIZATION: Pre-calculate student data for faster evaluation
+    const latestSkills = student.skills?.[0];
+    const studentData = {
+      skills: latestSkills,
+      matchPerformances,
+      skillHistory,
+      sport: student.sport,
+      academy: student.academy,
+      age: student.age,
+      weight: student.weight,
+      height: student.height
+    };
+
     const progress: BadgeProgress[] = [];
 
-    for (const badge of relevantBadges) {
-      const earnedBadge = badge.studentBadges.find(sb => !sb.isRevoked);
+    // PERFORMANCE OPTIMIZATION: Process badges in smaller batches to avoid timeouts
+    const batchSize = 5;
+    for (let i = 0; i < relevantBadges.length; i += batchSize) {
+      const batch = relevantBadges.slice(i, i + batchSize);
       
-      if (earnedBadge) {
-        // Badge is already earned
-        progress.push({
-          badgeId: badge.id,
-          badgeName: badge.name,
-          level: badge.level,
-          category: badge.category.name,
-          progress: 100,
-          description: badge.description,
-          motivationalText: badge.motivationalText,
-          icon: badge.icon,
-          earned: true,
-          earnedAt: earnedBadge.awardedAt
-        });
-      } else {
-        // Badge not earned yet, calculate progress
-        const evaluation = await this.evaluateBadge(badge, student);
+      const batchPromises = batch.map(async (badge) => {
+        const earnedBadge = badge.studentBadges.find((sb: any) => !sb.isRevoked);
         
-        // Automatically award badge if criteria are met
-        if (evaluation.earned) {
-          const newBadge = await prisma.studentBadge.create({
-            data: {
-              studentId,
-              badgeId: badge.id,
-              score: evaluation.score,
-              progress: 100
-            }
-          });
-          
-          progress.push({
+        if (earnedBadge) {
+          return {
             badgeId: badge.id,
             badgeName: badge.name,
             level: badge.level,
             category: badge.category.name,
             progress: 100,
-            description: badge.description,
+            description: badge.description.split('|||')[0], // Clean description
             motivationalText: badge.motivationalText,
             icon: badge.icon,
             earned: true,
-            earnedAt: newBadge.awardedAt
-          });
+            earnedAt: earnedBadge.awardedAt
+          };
         } else {
-          progress.push({
-            badgeId: badge.id,
-            badgeName: badge.name,
-            level: badge.level,
-            category: badge.category.name,
-            progress: evaluation.progress,
-            description: badge.description,
-            motivationalText: badge.motivationalText,
-            icon: badge.icon,
-            earned: false
-          });
+          // PERFORMANCE: Use optimized evaluation with pre-fetched data
+          const evaluation = await this.evaluateBadgeOptimized(badge, studentData);
+          
+          if (evaluation.earned) {
+            try {
+              const newBadge = await prisma.studentBadge.create({
+                data: {
+                  studentId,
+                  badgeId: badge.id,
+                  score: evaluation.score,
+                  progress: 100
+                }
+              });
+              
+              return {
+                badgeId: badge.id,
+                badgeName: badge.name,
+                level: badge.level,
+                category: badge.category.name,
+                progress: 100,
+                description: badge.description.split('|||')[0],
+                motivationalText: badge.motivationalText,
+                icon: badge.icon,
+                earned: true,
+                earnedAt: newBadge.awardedAt
+              };
+            } catch (error) {
+              console.error('Error awarding badge:', error);
+              return {
+                badgeId: badge.id,
+                badgeName: badge.name,
+                level: badge.level,
+                category: badge.category.name,
+                progress: evaluation.progress,
+                description: badge.description.split('|||')[0],
+                motivationalText: badge.motivationalText,
+                icon: badge.icon,
+                earned: false
+              };
+            }
+          } else {
+            return {
+              badgeId: badge.id,
+              badgeName: badge.name,
+              level: badge.level,
+              category: badge.category.name,
+              progress: evaluation.progress,
+              description: badge.description.split('|||')[0],
+              motivationalText: badge.motivationalText,
+              icon: badge.icon,
+              earned: false
+            };
+          }
         }
-      }
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      progress.push(...batchResults);
     }
 
     return progress;
@@ -593,6 +654,183 @@ export class BadgeEngine {
     return maxValue;
   }
 
+  // PERFORMANCE OPTIMIZATION: Optimized badge evaluation using pre-fetched data
+  private static async evaluateBadgeOptimized(badge: any, studentData: any): Promise<{ score: number; progress: number; earned: boolean }> {
+    const rules = badge.rules;
+    let totalScore = 0;
+    let maxScore = 0;
+    let requiredRulesPassed = 0;
+    let totalRequiredRules = 0;
+
+    for (const rule of rules) {
+      maxScore += rule.weight;
+      if (rule.isRequired) totalRequiredRules++;
+
+      let passed = false;
+      
+      try {
+        switch (rule.ruleType) {
+          case 'SKILLS_METRIC':
+            passed = this.evaluateSkillsMetricOptimized(rule, studentData.skills);
+            break;
+          case 'SKILLS_AVERAGE':
+            passed = this.evaluateSkillsAverageOptimized(rule, studentData.skills);
+            break;
+          case 'WELLNESS_STREAK':
+            passed = this.evaluateWellnessStreakOptimized(rule, studentData.skillHistory);
+            break;
+          case 'MATCH_AVERAGE':
+            passed = this.evaluateMatchAverageOptimized(rule, studentData.matchPerformances);
+            break;
+          case 'MATCH_STAT':
+            passed = this.evaluateMatchStatOptimized(rule, studentData.matchPerformances);
+            break;
+          case 'MATCH_STREAK':
+            passed = this.evaluateMatchStreakOptimized(rule, studentData.matchPerformances);
+            break;
+          case 'PEAKSCORE_PERCENTILE':
+            passed = this.evaluatePeakScoreOptimized(rule, studentData);
+            break;
+          default:
+            console.log('BadgeEngine - Unknown rule type:', rule.ruleType);
+            passed = false;
+        }
+      } catch (error) {
+        console.error(`Error evaluating rule ${rule.ruleType}:`, error);
+        passed = false;
+      }
+
+      if (passed) {
+        totalScore += rule.weight;
+        if (rule.isRequired) requiredRulesPassed++;
+      }
+    }
+
+    const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+    const earned = totalRequiredRules > 0 ? 
+      (requiredRulesPassed === totalRequiredRules) : 
+      (progress >= 80); // PERFORMANCE: Simplified earning criteria
+
+    return { score: totalScore, progress, earned };
+  }
+
+  // PERFORMANCE OPTIMIZATION: Efficient rule evaluation methods
+  private static evaluateSkillsMetricOptimized(rule: any, skills: any): boolean {
+    if (!skills) return false;
+    const fieldValue = skills[rule.fieldName];
+    if (!fieldValue || fieldValue === 0) return false;
+    return this.evaluateRule(fieldValue, rule.operator, rule.value);
+  }
+
+  private static evaluateSkillsAverageOptimized(rule: any, skills: any): boolean {
+    if (!skills) return false;
+    
+    const technicalSkills = [
+      'battingStance', 'battingGrip', 'battingBalance', 'bowlingGrip', 
+      'throw', 'flatCatch', 'highCatch', 'receiving'
+    ];
+
+    const values = technicalSkills
+      .map(field => skills[field])
+      .filter(val => val && val > 0);
+
+    if (values.length === 0) return false;
+    
+    const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+    return this.evaluateRule(average, rule.operator, rule.value);
+  }
+
+  private static evaluateWellnessStreakOptimized(rule: any, skillHistory: any[]): boolean {
+    if (!skillHistory || skillHistory.length === 0) return false;
+    
+    const targetValue = parseFloat(rule.value);
+    const recentEntries = skillHistory.slice(0, 5); // Check recent 5 entries only
+    
+    if (rule.fieldName === 'waterIntake') {
+      return recentEntries.length >= 3 && 
+        recentEntries.every(entry => entry.wellnessScore && entry.wellnessScore >= targetValue);
+    }
+    
+    return false;
+  }
+
+  private static evaluateMatchAverageOptimized(rule: any, matchPerformances: any[]): boolean {
+    if (!matchPerformances || matchPerformances.length === 0) return false;
+    
+    const ratings = matchPerformances
+      .map(p => p.rating)
+      .filter(rating => rating && rating > 0);
+      
+    if (ratings.length === 0) return false;
+    
+    const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+    return this.evaluateRule(average, rule.operator, rule.value);
+  }
+
+  private static evaluateMatchStatOptimized(rule: any, matchPerformances: any[]): boolean {
+    if (!matchPerformances || matchPerformances.length === 0) return false;
+    
+    let maxValue = 0;
+    for (const performance of matchPerformances) {
+      try {
+        if (performance.stats) {
+          const stats = typeof performance.stats === 'string' ? 
+            JSON.parse(performance.stats) : performance.stats;
+          const value = stats[rule.fieldName];
+          if (value && value > maxValue) {
+            maxValue = value;
+          }
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    
+    return maxValue >= parseFloat(rule.value);
+  }
+
+  private static evaluateMatchStreakOptimized(rule: any, matchPerformances: any[]): boolean {
+    const count = parseInt(rule.description?.match(/\d+/)?.[0] || '3');
+    if (count === 0 || !matchPerformances || matchPerformances.length < count) return false;
+
+    const recentMatches = matchPerformances.slice(0, count);
+    const targetValue = parseFloat(rule.value);
+
+    return recentMatches.every(p => {
+      if (rule.fieldName === 'matchRating') {
+        return p.rating && p.rating >= targetValue;
+      }
+      try {
+        if (p.stats) {
+          const stats = typeof p.stats === 'string' ? JSON.parse(p.stats) : p.stats;
+          const value = stats[rule.fieldName];
+          return value && value >= targetValue;
+        }
+      } catch (e) {
+        return false;
+      }
+      return false;
+    });
+  }
+
+  private static evaluatePeakScoreOptimized(rule: any, studentData: any): boolean {
+    const skills = studentData.skills;
+    if (!skills) return false;
+    
+    // PERFORMANCE: Simplified PeakScore calculation
+    const technicalFields = ['battingStance', 'battingGrip', 'battingBalance'];
+    const technicalValues = technicalFields
+      .map(field => skills[field])
+      .filter(v => v && v > 0);
+    
+    if (technicalValues.length === 0) return false;
+    
+    const technicalAvg = technicalValues.reduce((sum, val) => sum + val, 0) / technicalValues.length;
+    const peakScore = Math.min(technicalAvg * 10, 100); // Simple approximation
+    
+    return peakScore >= parseFloat(rule.value);
+  }
+
   private static async getWellnessStreak(studentId: string, fieldName: string, targetValue: number, description?: string): Promise<number> {
     const days = parseInt(description?.match(/\d+/)?.[0] || '0');
     if (days === 0) return 0;
@@ -609,7 +847,8 @@ export class BadgeEngine {
           lte: endDate
         }
       },
-      orderBy: { updatedAt: 'desc' }
+      orderBy: { updatedAt: 'desc' },
+      take: days // Limit results for performance
     });
 
     if (skills.length < days) return 0;

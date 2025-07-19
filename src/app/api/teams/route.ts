@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
         members: {
           create: memberIds.map((studentId: string) => ({
             studentId,
-            role: 'MEMBER'
+            roles: [] // Start with no roles - coaches must assign manually
           }))
         }
       },

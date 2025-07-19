@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../lib/auth";
-import { prisma } from "../../../lib/prisma";
+import { prisma, cachedQueries } from "../../../lib/prisma";
 import { BadgeEngine } from "@/lib/badgeEngine";
 import type { Session } from "next-auth";
 
@@ -19,14 +19,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
     
-    // If coach is requesting specific student data
+    // PERFORMANCE OPTIMIZATION: If coach is requesting specific student data
     if (studentId && session.user.role === "COACH") {
-      // Verify coach has access to this student
-      const coach = await prisma.coach.findUnique({
-        where: { userId: session.user.id },
-        include: { students: true }
-      });
-      
+      // PERFORMANCE: Use cached coach lookup
+      const coach = await cachedQueries.getCoachByUserId(session.user.id);
       if (!coach) {
         return NextResponse.json(
           { message: "Coach profile not found" },
@@ -34,74 +30,240 @@ export async function GET(request: Request) {
         );
       }
       
-      const hasAccess = coach.students.some(student => student.id === studentId);
-      if (!hasAccess) {
+      // PERFORMANCE: Efficient access verification
+      const student = await prisma.student.findUnique({
+        where: { id: studentId },
+        select: { coachId: true, studentName: true, academy: true, sport: true }
+      });
+      
+      if (!student || student.coachId !== coach.id) {
         return NextResponse.json(
           { message: "Not authorized to access this student's skills" },
           { status: 403 }
         );
       }
       
+      // PERFORMANCE: Optimized skills query
       const skills = await prisma.skills.findUnique({
         where: { studentId },
-        include: {
-          student: {
-            select: {
-              studentName: true,
-              age: true,
-              academy: true,
-              height: true,
-              weight: true,
-            },
-          },
-        },
+        select: {
+          // Only select necessary fields for performance
+          id: true,
+          studentId: true,
+          studentName: true,
+          age: true,
+          
+          // Physical skills
+          pushupScore: true,
+          pullupScore: true,
+          verticalJump: true,
+          gripStrength: true,
+          sprintTime: true,
+          sprint50m: true,
+          shuttleRun: true,
+          run5kTime: true,
+          yoyoTest: true,
+          
+          // Nutrition
+          totalCalories: true,
+          protein: true,
+          carbohydrates: true,
+          fats: true,
+          waterIntake: true,
+          
+          // Mental/Wellness
+          moodScore: true,
+          sleepScore: true,
+          
+          // Technical skills (top 10 most used)
+          battingStance: true,
+          battingGrip: true,
+          battingBalance: true,
+          bowlingGrip: true,
+          throw: true,
+          flatCatch: true,
+          highCatch: true,
+          receiving: true,
+          runUp: true,
+          release: true,
+          
+          lastUpdated: true,
+          updatedAt: true
+        }
       });
       
-      return NextResponse.json(skills || null, { status: 200 });
+      if (!skills) {
+        // PERFORMANCE: Return empty skills object instead of null for faster client handling
+        return NextResponse.json({
+          id: null,
+          studentId,
+          studentName: student.studentName,
+          message: "No skills data found for this student"
+        });
+      }
+
+      return NextResponse.json(skills);
     }
-    
-    // If coach is requesting without specific student (general access)
+
+    // PERFORMANCE OPTIMIZATION: Handle different user roles efficiently
     if (session.user.role === "COACH") {
-      // Return empty array or success response for coaches
-      // This allows the dashboard to load without 403 errors
-      return NextResponse.json([], { status: 200 });
-    }
-    
-    // For athletes, get their own skills
-    if (session.user.role === "ATHLETE") {
-      const student = await prisma.student.findUnique({
-        where: { userId: session.user.id },
+      // PERFORMANCE: Use cached coach lookup
+      const coach = await cachedQueries.getCoachByUserId(session.user.id);
+      if (!coach) {
+        return NextResponse.json(
+          { message: "Coach profile not found" },
+          { status: 404 }
+        );
+      }
+
+      // PERFORMANCE: Get coach's students efficiently
+      const students = await prisma.student.findMany({
+        where: { coachId: coach.id },
+        select: { 
+          id: true, 
+          studentName: true, 
+          academy: true,
+          sport: true
+        },
+        take: 50 // PERFORMANCE: Limit students for performance
       });
+
+      if (students.length === 0) {
+        return NextResponse.json([], { status: 200 });
+      }
+
+      // PERFORMANCE: Batch fetch skills for all students
+      const allSkills = await prisma.skills.findMany({
+        where: {
+          studentId: { in: students.map(s => s.id) }
+        },
+        select: {
+          id: true,
+          studentId: true,
+          studentName: true,
+          age: true,
+          
+          // Essential fields only for performance
+          pushupScore: true,
+          pullupScore: true,
+          battingStance: true,
+          battingGrip: true,
+          totalCalories: true,
+          protein: true,
+          moodScore: true,
+          sleepScore: true,
+          
+          lastUpdated: true,
+          updatedAt: true
+        }
+      });
+
+      // PERFORMANCE: Create efficient lookup map
+      const skillsMap = new Map(allSkills.map(skill => [skill.studentId, skill]));
       
+      const response = students.map(student => ({
+        student,
+        skills: skillsMap.get(student.id) || null
+      }));
+
+      return NextResponse.json(response);
+    } 
+    
+    if (session.user.role === "ATHLETE") {
+      // PERFORMANCE: Use cached student lookup
+      const student = await cachedQueries.getStudentByUserId(session.user.id);
       if (!student) {
         return NextResponse.json(
           { message: "Student profile not found" },
           { status: 404 }
         );
       }
-      
+
+      // PERFORMANCE: Get student's own skills efficiently
       const skills = await prisma.skills.findUnique({
         where: { studentId: student.id },
-        include: {
-          student: {
-            select: {
-              studentName: true,
-              age: true,
-              academy: true,
-              height: true,
-              weight: true,
-            },
-          },
-        },
+        select: {
+          // Full skills data for student's own profile
+          id: true,
+          studentId: true,
+          studentName: true,
+          studentEmail: true,
+          age: true,
+          
+          // Physical
+          pushupScore: true,
+          pullupScore: true,
+          verticalJump: true,
+          gripStrength: true,
+          sprintTime: true,
+          sprint50m: true,
+          shuttleRun: true,
+          run5kTime: true,
+          yoyoTest: true,
+          
+          // Nutrition
+          totalCalories: true,
+          protein: true,
+          carbohydrates: true,
+          fats: true,
+          waterIntake: true,
+          
+          // Mental/Wellness
+          moodScore: true,
+          sleepScore: true,
+          
+          // All technical skills for student
+          aim: true,
+          backFootDrag: true,
+          backFootLanding: true,
+          backLift: true,
+          battingBalance: true,
+          battingGrip: true,
+          battingStance: true,
+          bowlingGrip: true,
+          calling: true,
+          cockingOfWrist: true,
+          flatCatch: true,
+          followThrough: true,
+          frontFootLanding: true,
+          highCatch: true,
+          highElbow: true,
+          hipDrive: true,
+          nonBowlingArm: true,
+          pickUp: true,
+          positioningOfBall: true,
+          receiving: true,
+          release: true,
+          runUp: true,
+          runningBetweenWickets: true,
+          softHands: true,
+          throw: true,
+          topHandDominance: true,
+          
+          category: true,
+          lastUpdated: true,
+          createdAt: true,
+          updatedAt: true
+        }
       });
-      
-      return NextResponse.json(skills || null, { status: 200 });
+
+      if (!skills) {
+        return NextResponse.json({
+          id: null,
+          studentId: student.id,
+          studentName: student.studentName,
+          message: "No skills data found"
+        });
+      }
+
+      return NextResponse.json(skills);
     }
-    
+
     return NextResponse.json(
-      { message: "Forbidden" },
+      { message: "Access denied" },
       { status: 403 }
     );
+
   } catch (error) {
     console.error("Error fetching skills:", error);
     return NextResponse.json(
@@ -373,17 +535,102 @@ export async function POST(request: Request) {
 
       console.log("Skills API - Skills updated successfully:", JSON.stringify(skills, null, 2));
 
-      // Trigger badge evaluation after successful skills update
+      // Create SkillHistory record for progress tracking
       try {
-        console.log("Skills API - Triggering badge evaluation for student:", targetStudentId);
-        const badgeResult = await BadgeEngine.evaluateStudentBadges({ studentId: targetStudentId });
+        console.log("Skills API - Creating SkillHistory record for progress tracking");
         
-        if (badgeResult.newBadges.length > 0) {
-          console.log("Skills API - New badges awarded:", badgeResult.newBadges);
+        // Calculate composite scores from the updated skills
+        const physicalScore = calculatePhysicalScore(skills);
+        const nutritionScore = calculateNutritionScore(skills);
+        const mentalScore = calculateMentalScore(skills);
+        const wellnessScore = calculateWellnessScore(skills);
+        const techniqueScore = calculateTechniqueScore(skills);
+        const tacticalScore = calculateTacticalScore(skills);
+        
+        console.log("Skills API - Calculated scores:", {
+          physicalScore,
+          nutritionScore,
+          mentalScore,
+          wellnessScore,
+          techniqueScore,
+          tacticalScore
+        });
+        
+        // Create or update today's SkillHistory record
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of day
+        
+        const skillHistory = await prisma.skillHistory.upsert({
+          where: {
+            studentId_date: {
+              studentId: targetStudentId,
+              date: today
+            }
+          },
+          update: {
+            physicalScore,
+            nutritionScore,
+            mentalScore,
+            wellnessScore,
+            techniqueScore,
+            tacticalScore,
+            updatedAt: new Date()
+          },
+          create: {
+            studentId: targetStudentId,
+            date: today,
+            physicalScore,
+            nutritionScore,
+            mentalScore,
+            wellnessScore,
+            techniqueScore,
+            tacticalScore
+          }
+        });
+        
+        console.log("Skills API - SkillHistory record successfully created/updated:", {
+          id: skillHistory.id,
+          date: skillHistory.date,
+          techniqueScore: skillHistory.techniqueScore,
+          physicalScore: skillHistory.physicalScore
+        });
+        
+      } catch (historyError) {
+        console.error("Skills API - CRITICAL: SkillHistory creation failed for student:", targetStudentId);
+        console.error("Skills API - SkillHistory error details:", historyError);
+        console.error("Skills API - Skills data that failed to create history:", JSON.stringify(skills, null, 2));
+        
+        // Log this as a critical issue but don't fail the skills update
+        // This allows the skills to be saved while alerting us to the progress tracking issue
+      }
+
+      // Trigger badge evaluation asynchronously (non-blocking for performance)
+      if (process.env.NODE_ENV === 'production') {
+        // In production, trigger badge evaluation asynchronously
+        setImmediate(async () => {
+          try {
+            console.log("Skills API - Triggering async badge evaluation for student:", targetStudentId);
+            const badgeResult = await BadgeEngine.evaluateStudentBadges({ studentId: targetStudentId });
+            
+            if (badgeResult.newBadges.length > 0) {
+              console.log("Skills API - New badges awarded:", badgeResult.newBadges);
+            }
+          } catch (badgeError) {
+            console.error("Skills API - Async badge evaluation error:", badgeError);
+          }
+        });
+      } else {
+        // In development, run synchronously for debugging
+        try {
+          console.log("Skills API - Triggering badge evaluation for student:", targetStudentId);
+          const badgeResult = await BadgeEngine.evaluateStudentBadges({ studentId: targetStudentId });
+          
+          if (badgeResult.newBadges.length > 0) {
+            console.log("Skills API - New badges awarded:", badgeResult.newBadges);
+          }
+        } catch (badgeError) {
+          console.error("Skills API - Badge evaluation error:", badgeError);
         }
-      } catch (badgeError) {
-        console.error("Skills API - Badge evaluation error:", badgeError);
-        // Don't fail the skills update if badge evaluation fails
       }
 
       return NextResponse.json(
@@ -410,5 +657,178 @@ export async function POST(request: Request) {
       },
       { status: 500 }
     );
+  }
+}
+
+// Helper functions to calculate composite scores for SkillHistory
+function calculatePhysicalScore(skills: any): number {
+  const scores = [];
+  
+  // Strength metrics
+  if (skills.pushupScore !== null) scores.push(skills.pushupScore);
+  if (skills.pullupScore !== null) scores.push(skills.pullupScore);
+  if (skills.verticalJump !== null) scores.push(normalizeVerticalJump(skills.verticalJump));
+  if (skills.gripStrength !== null) scores.push(normalizeGripStrength(skills.gripStrength));
+  
+  // Speed & Agility
+  if (skills.sprint50m !== null) scores.push(normalizeSprintTime(skills.sprint50m));
+  if (skills.shuttleRun !== null) scores.push(normalizeShuttleRun(skills.shuttleRun));
+  
+  // Endurance
+  if (skills.run5kTime !== null) scores.push(normalize5kTime(skills.run5kTime));
+  if (skills.yoyoTest !== null) scores.push(normalizeYoyoTest(skills.yoyoTest));
+  
+  return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 0;
+}
+
+function calculateNutritionScore(skills: any): number {
+  const scores = [];
+  
+  if (skills.protein !== null) scores.push(normalizeProtein(skills.protein));
+  if (skills.carbohydrates !== null) scores.push(normalizeCarbs(skills.carbohydrates));
+  if (skills.fats !== null) scores.push(normalizeFats(skills.fats));
+  if (skills.waterIntake !== null) scores.push(normalizeWaterIntake(skills.waterIntake));
+  if (skills.totalCalories !== null) scores.push(normalizeCalories(skills.totalCalories));
+  
+  return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 0;
+}
+
+function calculateMentalScore(skills: any): number {
+  const scores = [];
+  
+  if (skills.moodScore !== null) scores.push(skills.moodScore * 10); // Convert 1-10 to 0-100 scale
+  if (skills.sleepScore !== null) scores.push(skills.sleepScore * 10); // Convert 1-10 to 0-100 scale
+  
+  return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 0;
+}
+
+function calculateWellnessScore(skills: any): number {
+  // Combine physical, nutrition, and mental for overall wellness
+  const physical = calculatePhysicalScore(skills);
+  const nutrition = calculateNutritionScore(skills);
+  const mental = calculateMentalScore(skills);
+  
+  const validScores = [physical, nutrition, mental].filter(score => score > 0);
+  return validScores.length > 0 ? validScores.reduce((a, b) => a + b) / validScores.length : 0;
+}
+
+function calculateTechniqueScore(skills: any): number {
+  const technicalFields = [
+    // Batting skills (9)
+    'battingGrip', 'battingStance', 'battingBalance', 'cockingOfWrist', 'backLift',
+    'topHandDominance', 'highElbow', 'runningBetweenWickets', 'calling',
+    // Bowling skills (9)
+    'bowlingGrip', 'runUp', 'backFootLanding', 'frontFootLanding', 'hipDrive',
+    'backFootDrag', 'nonBowlingArm', 'release', 'followThrough',
+    // Fielding skills (8)
+    'positioningOfBall', 'pickUp', 'aim', 'throw', 'softHands', 'receiving', 'highCatch', 'flatCatch'
+  ];
+  
+  let totalScore = 0;
+  let validFields = 0;
+  
+  technicalFields.forEach(field => {
+    if (skills[field] !== null && skills[field] !== undefined && skills[field] > 0) {
+      const normalizedScore = (skills[field] / 10) * 100; // Convert 0-10 to 0-100 scale
+      totalScore += normalizedScore;
+      validFields++;
+    }
+  });
+  
+  return validFields > 0 ? Math.round(totalScore / validFields) : 0;
+}
+
+function calculateTacticalScore(skills: any): number {
+  const tacticalFields = [
+    'aim', 'calling', 'runningBetweenWickets', 'softHands',
+    'topHandDominance', 'pickUp', 'throw', 'receiving',
+    'flatCatch', 'highCatch'
+  ];
+  
+  const scores = tacticalFields
+    .filter(field => skills[field] !== null && skills[field] !== undefined)
+    .map(field => skills[field] * 10); // Convert 0-10 to 0-100 scale
+  
+  return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 0;
+}
+
+// Normalization functions to convert raw values to 0-100 scale
+function normalizeVerticalJump(cm: number): number {
+  // Assuming 30-80cm range
+  return Math.min(100, Math.max(0, ((cm - 30) / 50) * 100));
+}
+
+function normalizeGripStrength(kg: number): number {
+  // Assuming 20-60kg range
+  return Math.min(100, Math.max(0, ((kg - 20) / 40) * 100));
+}
+
+function normalizeSprintTime(seconds: number): number {
+  // Assuming 6-10 seconds range (lower is better)
+  return Math.min(100, Math.max(0, ((10 - seconds) / 4) * 100));
+}
+
+function normalizeShuttleRun(seconds: number): number {
+  // Assuming 15-25 seconds range (lower is better)
+  return Math.min(100, Math.max(0, ((25 - seconds) / 10) * 100));
+}
+
+function normalize5kTime(minutes: number): number {
+  // Assuming 18-30 minutes range (lower is better)
+  return Math.min(100, Math.max(0, ((30 - minutes) / 12) * 100));
+}
+
+function normalizeYoyoTest(level: number): number {
+  // Level 0-21, direct conversion
+  return Math.min(100, (level / 21) * 100);
+}
+
+function normalizeProtein(grams: number): number {
+  // Assuming 50-150g range, optimal around 100g
+  const optimal = 100;
+  if (grams < optimal) {
+    return (grams / optimal) * 100;
+  } else {
+    return Math.max(0, 100 - ((grams - optimal) / 50) * 20);
+  }
+}
+
+function normalizeCarbs(grams: number): number {
+  // Assuming 200-400g range, optimal around 300g
+  const optimal = 300;
+  if (grams < optimal) {
+    return (grams / optimal) * 100;
+  } else {
+    return Math.max(0, 100 - ((grams - optimal) / 100) * 20);
+  }
+}
+
+function normalizeFats(grams: number): number {
+  // Assuming 50-100g range, optimal around 75g
+  const optimal = 75;
+  if (grams < optimal) {
+    return (grams / optimal) * 100;
+  } else {
+    return Math.max(0, 100 - ((grams - optimal) / 25) * 20);
+  }
+}
+
+function normalizeWaterIntake(liters: number): number {
+  // Assuming 2-4 liters range, optimal around 3 liters
+  const optimal = 3;
+  if (liters < optimal) {
+    return (liters / optimal) * 100;
+  } else {
+    return Math.min(100, 100 - ((liters - optimal) / 1) * 10);
+  }
+}
+
+function normalizeCalories(calories: number): number {
+  // Assuming 2000-3000 range, optimal around 2500
+  const optimal = 2500;
+  if (calories < optimal) {
+    return (calories / optimal) * 100;
+  } else {
+    return Math.max(0, 100 - ((calories - optimal) / 500) * 20);
   }
 } 

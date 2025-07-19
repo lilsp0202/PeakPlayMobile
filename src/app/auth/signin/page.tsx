@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Zap, Star, Sparkles, Smartphone, Download, Home, Plus, Share } from "lucide-react";
 import { Logo } from "../../../components/auth/Logo";
 import { AnimatedBackground } from "../../../components/auth/AnimatedBackground";
@@ -18,6 +19,7 @@ export default function SignIn() {
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -44,10 +46,15 @@ export default function SignIn() {
         console.error("🔐 Sign-in error:", result.error);
         setError(result.error);
       } else if (result?.ok) {
-        console.log("🔐 Sign-in successful, redirecting to dashboard...");
+        console.log("🔐 Sign-in successful, showing success animation...");
         
-        // Use replace instead of push to prevent back navigation issues
-        router.replace("/dashboard");
+        // Show success animation first
+        setIsSuccess(true);
+        
+        // Wait for animation, then redirect
+        setTimeout(() => {
+          router.replace("/dashboard");
+        }, 1500); // 1.5 second delay for smooth transition
       }
     } catch (error) {
       console.error("🔐 Sign-in exception:", error);
@@ -102,8 +109,15 @@ export default function SignIn() {
           </div>
 
           {/* Sign In Form */}
-          <div
-            className={`bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 relative overflow-hidden transition-all duration-1000 delay-500 ${isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-10 opacity-0 scale-95"}`}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ 
+              opacity: isSuccess ? 0.3 : 1, 
+              scale: isSuccess ? 0.95 : 1, 
+              y: isVisible ? 0 : 10 
+            }}
+            transition={{ duration: 0.5, delay: isVisible ? 0.5 : 0 }}
+            className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 relative overflow-hidden"
           >
             {/* Glassmorphism overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/20 rounded-3xl"></div>
@@ -229,7 +243,7 @@ export default function SignIn() {
                 </button>
               </form>
             </div>
-          </div>
+          </motion.div>
 
           {/* PWA Installation Instructions */}
           <div
@@ -283,6 +297,91 @@ export default function SignIn() {
           </div>
         </div>
       </main>
+
+      {/* Success Animation Overlay */}
+      {isSuccess && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-purple-900/95 to-blue-900/95 backdrop-blur-sm">
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 200, 
+              damping: 20,
+              duration: 0.6
+            }}
+            className="text-center"
+          >
+            {/* Success Icon */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ 
+                delay: 0.2,
+                type: "spring", 
+                stiffness: 150 
+              }}
+              className="mx-auto mb-6 w-24 h-24 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center shadow-2xl"
+            >
+              <motion.svg
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ 
+                  delay: 0.5, 
+                  duration: 0.8, 
+                  ease: "easeInOut" 
+                }}
+                className="w-12 h-12 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <motion.path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  d="M5 13l4 4L19 7"
+                />
+              </motion.svg>
+            </motion.div>
+
+            {/* Success Text */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+            >
+              <h2 className="text-3xl font-bold text-white mb-2">Welcome Back!</h2>
+              <p className="text-purple-200 text-lg">Redirecting to your dashboard...</p>
+            </motion.div>
+
+            {/* Loading Dots */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.0 }}
+              className="flex justify-center space-x-2 mt-6"
+            >
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  animate={{
+                    y: [-4, -12, -4],
+                    opacity: [0.5, 1, 0.5]
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                    ease: "easeInOut"
+                  }}
+                  className="w-2 h-2 bg-white rounded-full"
+                />
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 } 
