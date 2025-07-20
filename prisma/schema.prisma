@@ -239,6 +239,11 @@ model Feedback {
   coach          Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
   student        Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
   team           Team?     @relation(fields: [teamId], references: [id])
+
+  @@index([studentId, createdAt])
+  @@index([coachId, createdAt])
+  @@index([teamId, createdAt])
+  @@index([studentId, isAcknowledged])
 }
 
 model Action {
@@ -271,6 +276,12 @@ model Action {
   coach            Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
   student          Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
   team             Team?     @relation(fields: [teamId], references: [id])
+
+  @@index([studentId, createdAt])
+  @@index([coachId, createdAt])
+  @@index([teamId, createdAt])
+  @@index([studentId, isCompleted])
+  @@index([studentId, isAcknowledged])
 }
 
 model BadgeCategory {

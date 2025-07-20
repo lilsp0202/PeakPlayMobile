@@ -4,22 +4,91 @@ import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
 import type { Session } from "next-auth";
 
-// Add response caching headers for performance
+// Add response caching headers
 const setCacheHeaders = (response: NextResponse) => {
   response.headers.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=120');
   return response;
 };
 
+// PERFORMANCE: Aggressive caching to prevent database connection pool exhaustion
+const cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+const pendingRequests = new Map<string, Promise<any>>();
+
+// Cache with very short TTL to prevent connection pool exhaustion
+const getCached = (key: string): any | null => {
+  const item = cache.get(key);
+  if (!item) return null;
+  
+  if (Date.now() - item.timestamp > item.ttl) {
+    cache.delete(key);
+    return null;
+  }
+  
+  return item.data;
+};
+
+const setCache = (key: string, data: any, ttlMs: number = 30000) => {
+  cache.set(key, {
+    data,
+    timestamp: Date.now(),
+    ttl: ttlMs
+  });
+};
+
+// Request deduplication with caching
+const withCacheAndDeduplication = async <T>(key: string, fn: () => Promise<T>, ttlMs: number = 30000): Promise<T> => {
+  // Check cache first
+  const cached = getCached(key);
+  if (cached !== null) {
+    console.log(`⚡ Cache hit for key: ${key}`);
+    return cached;
+  }
+
+  // Check if request is already pending
+  if (pendingRequests.has(key)) {
+    console.log(`🔒 Reusing pending request for key: ${key}`);
+    return pendingRequests.get(key) as Promise<T>;
+  }
+
+  // Create new request
+  const promise = fn()
+    .then(result => {
+      setCache(key, result, ttlMs);
+      return result;
+    })
+    .finally(() => {
+      pendingRequests.delete(key);
+    });
+
+  pendingRequests.set(key, promise);
+  return promise;
+};
+
 export async function GET(request: Request) {
+  const startTime = Date.now();
+  
   try {
+    console.log('🔍 Actions API - Starting request');
+    
+    // PERFORMANCE: Faster session check without timeout for better performance
     const session = await getServerSession(authOptions) as Session | null;
+    const authTime = Date.now() - startTime;
+    
+    console.log(`⏱️ Actions API session check took: ${authTime}ms`);
     
     if (!session?.user?.id) {
+      console.log('❌ No session found in Actions API');
       return NextResponse.json(
-        { message: "Unauthorized" },
+        { 
+          message: "Authentication required", 
+          authTime,
+          debug: "No session found" 
+        },
         { status: 401 }
       );
     }
+
+    console.log('✅ Actions API session validated for user:', session.user.email);
 
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
@@ -38,14 +107,15 @@ export async function GET(request: Request) {
       });
 
       if (!coach) {
+        console.log('❌ Coach profile not found for user:', session.user.id);
         return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
       }
 
-      // PERFORMANCE: Single optimized query with specific select fields
+      // PERFORMANCE: Optimized student actions query with indexes
       const actions = await prisma.action.findMany({
         where: { 
           studentId,
-          coachId: coach.id // Ensure coach can only see their own assigned actions
+          coachId: coach.id
         },
         select: {
           id: true,
@@ -87,6 +157,8 @@ export async function GET(request: Request) {
         skip: offset,
       });
       
+      const totalTime = Date.now() - startTime;
+      console.log(`✅ Coach actions query completed in ${totalTime}ms`);
       return setCacheHeaders(NextResponse.json(actions, { status: 200 }));
     }
 
@@ -99,6 +171,7 @@ export async function GET(request: Request) {
       });
 
       if (!coach) {
+        console.log('❌ Coach profile not found for user:', session.user.id);
         return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
       }
 
@@ -148,34 +221,134 @@ export async function GET(request: Request) {
         skip: offset,
       });
       
+      const totalTime = Date.now() - startTime;
+      console.log(`✅ Team actions query completed in ${totalTime}ms`);
+      return setCacheHeaders(NextResponse.json(actions, { status: 200 }));
+    }
+    
+    // PERFORMANCE OPTIMIZATION: For athletes, use optimized two-step approach
+    if (session.user.role === "ATHLETE") {
+      console.log('🏃‍♂️ Processing athlete actions request');
+      
+      // Step 1: Get student ID efficiently with minimal select
+      const student = await prisma.student.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true }
+      });
+
+      if (!student) {
+        console.log('❌ Student profile not found for user:', session.user.id);
+        return NextResponse.json({ message: "Student profile not found" }, { status: 404 });
+      }
+
+      console.log('✅ Student found for actions:', student.id);
+
+      // Step 2: OPTIMIZED Query with request deduplication and timeout
+      const requestKey = `actions:${student.id}:${limit}:${offset}`;
+      console.log(`🔍 Querying actions for student: ${student.id} with limit: ${limit}`);
+      
+      // ULTRA-FAST: Use aggressive caching with 30 second TTL
+      const actions = await withCacheAndDeduplication(requestKey, async () => {
+        const queryStartTime = Date.now();
+        
+        // Simplified query for speed - remove expensive joins if not needed
+        const result = await prisma.action.findMany({
+          where: { 
+            studentId: student.id
+          },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            category: true,
+            priority: true,
+            dueDate: true,
+            isCompleted: true,
+            completedAt: true,
+            isAcknowledged: true,
+            acknowledgedAt: true,
+            proofMediaUrl: true,
+            proofMediaType: true,
+            proofFileName: true,
+            proofUploadedAt: true,
+            demoMediaUrl: true,
+            demoMediaType: true,
+            demoFileName: true,
+            demoUploadedAt: true,
+            createdAt: true,
+            coachId: true, // Get ID to fetch coach data separately if needed
+            teamId: true,  // Get ID to fetch team data separately if needed
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: limit,
+          skip: offset,
+        });
+        
+        // If we need coach/team data, fetch it separately and efficiently
+        const coachIds = [...new Set(result.map(r => r.coachId).filter(Boolean))];
+        const teamIds = [...new Set(result.map(r => r.teamId).filter(Boolean))];
+        
+        const [coaches, teams] = await Promise.all([
+          coachIds.length > 0 ? prisma.coach.findMany({
+            where: { id: { in: coachIds } },
+            select: { id: true, name: true, academy: true }
+          }) : [],
+          teamIds.length > 0 ? prisma.team.findMany({
+            where: { id: { in: teamIds } },
+            select: { id: true, name: true }
+          }) : []
+        ]);
+        
+        // Map the data efficiently
+        const coachMap = new Map(coaches.map(c => [c.id, c] as const));
+        const teamMap = new Map(teams.map(t => [t.id, t] as const));
+        
+        const mappedResult = result.map(action => ({
+          ...action,
+          coach: action.coachId ? coachMap.get(action.coachId) || null : null,
+          team: action.teamId ? teamMap.get(action.teamId) || null : null,
+        }));
+        
+        const queryTime = Date.now() - queryStartTime;
+        console.log(`⚡ Optimized query completed in ${queryTime}ms`);
+        return mappedResult;
+      }, 30000); // 30 second cache
+
+      const totalTime = Date.now() - startTime;
+      console.log(`✅ Athlete actions query completed in ${totalTime}ms - found ${actions.length} items`);
       return setCacheHeaders(NextResponse.json(actions, { status: 200 }));
     }
 
     // Handle different user roles efficiently
     if (session.user.role === "COACH") {
-      // PERFORMANCE: Single query to get coach and their actions
+      console.log('👨‍🏫 Processing coach actions request');
+      
+      // PERFORMANCE: Get coach profile with minimal data
       const coach = await prisma.coach.findUnique({
         where: { userId: session.user.id },
-        select: {
+        select: { 
           id: true,
           students: {
-            select: { id: true } // Only get IDs for performance
+            select: { id: true }
           }
         }
       });
 
       if (!coach) {
+        console.log('❌ Coach profile not found for user:', session.user.id);
         return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
       }
 
-      // PERFORMANCE: Get actions for all coach's students efficiently
+      // PERFORMANCE: Optimized query for coach's actions
       const studentIds = coach.students.map(s => s.id);
       
       const actions = await prisma.action.findMany({
         where: {
           OR: [
-            { coachId: coach.id }, // Actions created by this coach
-            { studentId: { in: studentIds } } // Actions for this coach's students
+            { coachId: coach.id },
+            { studentId: { in: studentIds } }
           ]
         },
         select: {
@@ -218,70 +391,34 @@ export async function GET(request: Request) {
         skip: offset,
       });
 
-      return setCacheHeaders(NextResponse.json(actions, { status: 200 }));
-    } 
-    
-    if (session.user.role === "ATHLETE") {
-      // PERFORMANCE OPTIMIZATION: Single optimized query with minimal includes
-      const actions = await prisma.action.findMany({
-        where: { 
-          student: {
-            userId: session.user.id
-          }
-        },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          category: true,
-          priority: true,
-          dueDate: true,
-          isCompleted: true,
-          completedAt: true,
-          isAcknowledged: true,
-          acknowledgedAt: true,
-          proofMediaUrl: true,
-          proofMediaType: true,
-          proofFileName: true,
-          proofUploadedAt: true,
-          demoMediaUrl: true,
-          demoMediaType: true,
-          demoFileName: true,
-          demoUploadedAt: true,
-          createdAt: true,
-          coach: {
-            select: {
-              name: true,
-              academy: true,
-            },
-          },
-          team: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: limit,
-        skip: offset,
-      });
-
+      const totalTime = Date.now() - startTime;
+      console.log(`✅ Coach general actions query completed in ${totalTime}ms`);
       return setCacheHeaders(NextResponse.json(actions, { status: 200 }));
     }
 
     // If no specific role matched
+    console.log('❌ Access denied for role in Actions API:', session.user.role);
     return NextResponse.json(
       { message: "Access denied" },
       { status: 403 }
     );
 
   } catch (error) {
-    console.error("Error fetching actions:", error);
+    const totalTime = Date.now() - startTime;
+    console.error(`❌ Actions API error after ${totalTime}ms:`, error);
+    
+    if (error instanceof Error && error.message === 'Session timeout') {
+      return NextResponse.json(
+        { message: "Authentication timeout - please refresh and try again" },
+        { status: 408 }
+      );
+    }
+    
     return NextResponse.json(
-      { message: "Internal server error" },
+      { 
+        message: "Internal server error",
+        debug: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : String(error) : undefined
+      },
       { status: 500 }
     );
   }

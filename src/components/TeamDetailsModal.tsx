@@ -11,7 +11,12 @@ import {
   FiChevronRight,
   FiCheck,
   FiClock,
-  FiUser
+  FiUser,
+  FiImage,
+  FiVideo,
+  FiUpload,
+  FiEye,
+  FiCalendar
 } from 'react-icons/fi';
 
 interface TeamDetailsModalProps {
@@ -37,6 +42,37 @@ export default function TeamDetailsModal({
   expandedItems,
   onToggleItemExpanded
 }: TeamDetailsModalProps) {
+  // Helper functions for better UX
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const viewMedia = (mediaUrl: string, fileName?: string) => {
+    const newWindow = window.open('', '_blank');
+    if (newWindow && mediaUrl) {
+      newWindow.document.write(`
+        <html>
+          <head><title>${fileName || 'Team Media'}</title></head>
+          <body style="margin:0; padding:20px; background:#f5f5f5; display:flex; justify-content:center; align-items:center; min-height:100vh;">
+            <div style="text-align:center; max-width:90vw;">
+              <h2 style="margin-bottom:20px; color:#333;">${fileName || 'Media'}</h2>
+              ${mediaUrl.includes('image') || mediaUrl.startsWith('data:image') 
+                ? `<img src="${mediaUrl}" style="max-width:100%; max-height:80vh; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1);" />` 
+                : `<video src="${mediaUrl}" controls style="max-width:100%; max-height:80vh; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">Your browser does not support video.</video>`
+              }
+            </div>
+          </body>
+        </html>
+      `);
+    }
+  };
+
   if (!isOpen) return null;
 
   // Group team feedback/actions by creation time and other common fields
@@ -320,42 +356,111 @@ export default function TeamDetailsModal({
                             transition={{ duration: 0.3 }}
                             className="border-t border-gray-200 bg-gray-50"
                           >
-                            <div className="p-4">
-                              <h5 className="font-semibold text-gray-900 mb-3">
-                                Team Member Status
-                              </h5>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {item.memberData.map((memberData: any) => (
-                                  <div
-                                    key={memberData.studentId}
-                                    className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                                        <FiUser className="w-4 h-4 text-purple-600" />
-                                      </div>
-                                      <span className="font-medium text-gray-900">
-                                        {memberData.student.studentName}
-                                      </span>
-                                    </div>
-                                    <div className={`flex items-center gap-2 ${
-                                      viewType === 'feedback' 
-                                        ? getStatusColor(memberData.isAcknowledged)
-                                        : getStatusColor(memberData.isCompleted, memberData.isCompleted)
-                                    }`}>
-                                      {viewType === 'feedback' 
-                                        ? getStatusIcon(memberData.isAcknowledged)
-                                        : getStatusIcon(memberData.isCompleted, memberData.isCompleted)
-                                      }
-                                      <span className="text-sm font-medium">
-                                        {viewType === 'feedback' 
-                                          ? getStatusText(memberData.isAcknowledged)
-                                          : getStatusText(memberData.isCompleted, memberData.isCompleted)
-                                        }
-                                      </span>
-                                    </div>
+                            <div className="p-4 space-y-6">
+                              {/* Full Content */}
+                              <div>
+                                <h5 className="font-semibold text-gray-900 mb-2">
+                                  {viewType === 'feedback' ? 'Feedback Details' : 'Action Details'}
+                                </h5>
+                                <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                                  {viewType === 'feedback' ? item.content : item.description}
+                                </p>
+                                
+                                <div className="flex items-center gap-4 text-xs text-gray-500">
+                                  <div className="flex items-center gap-1">
+                                    <FiCalendar className="w-3 h-3" />
+                                    <span>Created: {formatDate(item.createdAt)}</span>
                                   </div>
-                                ))}
+                                  {viewType === 'actions' && item.dueDate && (
+                                    <div className="flex items-center gap-1">
+                                      <FiClock className="w-3 h-3" />
+                                      <span>Due: {formatDate(item.dueDate)}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Demo Media (Coach provided) - Enhanced with in-page preview */}
+                              {viewType === 'actions' && item.demoMediaUrl && (
+                                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    {item.demoMediaType === 'image' ? <FiImage className="w-5 h-5 text-blue-600" /> : <FiVideo className="w-5 h-5 text-blue-600" />}
+                                    <h6 className="font-semibold text-blue-900">Coach Demo Media</h6>
+                                  </div>
+                                  
+                                  {item.demoMediaType === 'image' ? (
+                                    <div className="relative">
+                                      <img 
+                                        src={item.demoMediaUrl} 
+                                        alt="Coach demo"
+                                        className="w-full max-w-sm rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+                                        onClick={() => viewMedia(item.demoMediaUrl, item.demoFileName)}
+                                      />
+                                      <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                                        Click to enlarge
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <video 
+                                      src={item.demoMediaUrl}
+                                      controls
+                                      className="w-full max-w-sm rounded-lg shadow-md"
+                                      preload="metadata"
+                                    >
+                                      Your browser does not support video.
+                                    </video>
+                                  )}
+                                  
+                                  <p className="text-xs text-blue-700 mt-2">
+                                    <strong>File:</strong> {item.demoFileName} • 
+                                    <strong> Added:</strong> {item.demoUploadedAt ? formatDate(item.demoUploadedAt) : 'N/A'}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Team Member Status */}
+                              <div>
+                                <h5 className="font-semibold text-gray-900 mb-3">
+                                  Team Member Progress
+                                </h5>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {item.memberData.map((memberData: any) => (
+                                    <div
+                                      key={memberData.studentId}
+                                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                          <FiUser className="w-4 h-4 text-purple-600" />
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-gray-900 block">
+                                            {memberData.student.studentName}
+                                          </span>
+                                          <span className="text-xs text-gray-500">
+                                            {memberData.student.email}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className={`flex items-center gap-2 ${
+                                        viewType === 'feedback' 
+                                          ? getStatusColor(memberData.isAcknowledged)
+                                          : getStatusColor(memberData.isCompleted, memberData.isCompleted)
+                                      }`}>
+                                        {viewType === 'feedback' 
+                                          ? getStatusIcon(memberData.isAcknowledged)
+                                          : getStatusIcon(memberData.isCompleted, memberData.isCompleted)
+                                        }
+                                        <span className="text-sm font-medium">
+                                          {viewType === 'feedback' 
+                                            ? getStatusText(memberData.isAcknowledged)
+                                            : getStatusText(memberData.isCompleted, memberData.isCompleted)
+                                          }
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </motion.div>

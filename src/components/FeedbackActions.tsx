@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSession } from 'next-auth/react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSession, signOut, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMessageSquare, FiCheckSquare, FiClock, FiUser, FiCalendar, FiCheck, FiX, FiUpload, FiEye, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
+import { FiMessageSquare, FiCheckSquare, FiClock, FiUser, FiCalendar, FiCheck, FiX, FiUpload, FiEye, FiRefreshCw, FiAlertCircle, FiLogIn } from 'react-icons/fi';
 import ActionProofUpload from './ActionProofUpload';
 
 interface FeedbackItem {
@@ -56,7 +56,7 @@ interface ActionItem {
 }
 
 const FeedbackActions = () => {
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [actions, setActions] = useState<ActionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,10 +66,14 @@ const FeedbackActions = () => {
   const [lastFetch, setLastFetch] = useState<number>(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [authRetryCount, setAuthRetryCount] = useState(0);
   
   // Upload modal state
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadingActionId, setUploadingActionId] = useState<string | null>(null);
+
+  // Ref to track if fetch is in progress to prevent duplicate requests
+  const fetchInProgress = useRef(false);
 
   // PERFORMANCE: Memoized filtered data
   const unreadFeedback = useMemo(() => 
@@ -82,92 +86,161 @@ const FeedbackActions = () => {
     [actions]
   );
 
+  // Enhanced session refresh handler
+  const refreshSession = useCallback(async () => {
+    try {
+      console.log('🔄 Attempting session refresh...');
+      await updateSession();
+      setAuthRetryCount(0);
+      return true;
+    } catch (error) {
+      console.error('❌ Session refresh failed:', error);
+      setAuthRetryCount(prev => prev + 1);
+      return false;
+    }
+  }, [updateSession]);
+
+  // Handle authentication errors with automatic refresh
+  const handleAuthError = useCallback(async () => {
+    if (authRetryCount < 2) {
+      console.log(`🔄 Authentication error - attempting refresh (${authRetryCount + 1}/2)`);
+      const refreshSuccess = await refreshSession();
+      if (refreshSuccess) {
+        // Retry the original request after successful refresh
+        setTimeout(() => fetchFeedbackAndActions(true), 1000);
+        return;
+      }
+    }
+    
+    // If refresh failed or max retries reached, show sign-in prompt
+    setError('Your session has expired. Please sign in again to continue.');
+    setIsLoading(false);
+  }, [authRetryCount, refreshSession]);
+
   // Wait for session to be ready before attempting to fetch
   useEffect(() => {
-    if (status === 'authenticated' && session) {
+    if (status === 'authenticated' && session?.user?.email) {
+      console.log('✅ Session authenticated, fetching feedback and actions...');
       fetchFeedbackAndActions();
     } else if (status === 'unauthenticated') {
+      console.log('❌ User not authenticated');
       setError('Please sign in to view feedback and actions');
       setIsLoading(false);
+    } else if (status === 'loading') {
+      console.log('⏳ Session loading...');
+      setIsLoading(true);
     }
   }, [status, session]);
 
-  // PERFORMANCE: Enhanced parallel fetch with session handling and exponential backoff
+  // PERFORMANCE: Enhanced fetch with request deduplication to prevent database connection exhaustion
   const fetchFeedbackAndActions = useCallback(async (forceRefresh = false) => {
     if (status !== 'authenticated' || !session) {
-      setError('Authentication required');
+      if (status === 'unauthenticated') {
+        setError('Authentication required - please sign in');
+      }
       setIsLoading(false);
+      fetchInProgress.current = false;
       return;
     }
 
     // Avoid fetching too frequently (cache for 30 seconds on normal load, allow force refresh)
     const now = Date.now();
     if (!forceRefresh && lastFetch && (now - lastFetch) < 30000) {
+      fetchInProgress.current = false;
       return;
     }
+
+    // CRITICAL: Prevent multiple simultaneous requests to avoid database connection pool exhaustion
+    if (fetchInProgress.current && !forceRefresh) {
+      console.log('🔒 Request already in progress, skipping duplicate request');
+      return;
+    }
+
+    fetchInProgress.current = true;
 
     try {
       setIsLoading(true);
       setError(null);
       
-      // Create AbortController for timeout handling
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+      console.log('🚀 Fetching feedback and actions...');
 
-      // PERFORMANCE: Parallel requests with optimized params and auth headers
-      const [feedbackResponse, actionsResponse] = await Promise.all([
-        fetch('/api/feedback?limit=10', {
-          method: 'GET',
-          headers: {
-            'Cache-Control': 'max-age=30',
-            'Content-Type': 'application/json',
-          },
-          signal: controller.signal,
-        }),
-        fetch('/api/actions?limit=10', {
-          method: 'GET',
-          headers: {
-            'Cache-Control': 'max-age=30',
-            'Content-Type': 'application/json',
-          },
-          signal: controller.signal,
-        })
-      ]);
+      // SEQUENTIAL REQUESTS: Fetch feedback first, then actions to prevent connection pool exhaustion
+      // Create separate controllers for each request with longer timeouts
+      console.log('📝 Fetching feedback...');
+      const feedbackResponse = await fetch('/api/feedback?limit=10', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
 
-      clearTimeout(timeoutId);
-
-      if (!feedbackResponse.ok && feedbackResponse.status === 401) {
-        throw new Error('Session expired. Please sign in again.');
+      // Check for authentication errors early
+      if (feedbackResponse.status === 401) {
+        console.log('🔐 Authentication error detected in feedback - handling...');
+        fetchInProgress.current = false;
+        await handleAuthError();
+        return;
       }
 
-      if (!actionsResponse.ok && actionsResponse.status === 401) {
-        throw new Error('Session expired. Please sign in again.');
+      if (!feedbackResponse.ok) {
+        throw new Error(`Feedback API error: ${feedbackResponse.status}`);
       }
 
-      if (!feedbackResponse.ok || !actionsResponse.ok) {
-        throw new Error(`Server error (${feedbackResponse.status}/${actionsResponse.status})`);
+      const feedbackData = await feedbackResponse.json();
+      console.log(`✅ Feedback fetched: ${feedbackData.length || 0} items`);
+      
+      // Update feedback immediately for faster perceived performance
+      setFeedback(Array.isArray(feedbackData) ? feedbackData : []);
+
+      // Small delay before actions request to prevent database overload
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      console.log('⚡ Fetching actions...');
+      const actionsResponse = await fetch('/api/actions?limit=10', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (actionsResponse.status === 401) {
+        console.log('🔐 Authentication error detected in actions - handling...');
+        fetchInProgress.current = false;
+        await handleAuthError();
+        return;
       }
 
-      const [feedbackData, actionsData] = await Promise.all([
-        feedbackResponse.json(),
-        actionsResponse.json()
-      ]);
+      if (!actionsResponse.ok) {
+        console.error(`Actions API error: ${actionsResponse.status} ${actionsResponse.statusText}`);
+        throw new Error(`Actions API error: ${actionsResponse.status}`);
+      }
+
+      const actionsData = await actionsResponse.json();
+      console.log(`✅ Actions fetched: ${actionsData.length || 0} items`);
 
       // Reset retry count on success
       setRetryCount(0);
+      setAuthRetryCount(0);
       
-      // API returns arrays directly, not wrapped in objects
-      setFeedback(Array.isArray(feedbackData) ? feedbackData : []);
+      // Update actions
       setActions(Array.isArray(actionsData) ? actionsData : []);
       setLastFetch(now);
+
+      console.log('🎉 All data loaded successfully');
     } catch (error) {
-      console.error('Error fetching feedback and actions:', error);
+      console.error('❌ Error fetching feedback and actions:', error);
       
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          setError('Request timed out. Please check your connection and try again.');
-        } else if (error.message.includes('Session expired')) {
-          setError('Your session has expired. Please refresh the page and sign in again.');
+          setError('Request timed out. The server is taking longer than expected. Please try again.');
+        } else if (error.message.includes('Session expired') || error.message.includes('401')) {
+          fetchInProgress.current = false;
+          await handleAuthError();
+          return;
         } else {
           setError(`Failed to load data: ${error.message}`);
         }
@@ -179,12 +252,16 @@ const FeedbackActions = () => {
       setRetryCount(prev => prev + 1);
     } finally {
       setIsLoading(false);
+      fetchInProgress.current = false;
     }
-  }, [lastFetch, status, session]);
+  }, [lastFetch, status, session, handleAuthError]);
 
   // Manual refresh with exponential backoff
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    
+    // Reset auth retry count on manual refresh
+    setAuthRetryCount(0);
     
     // Exponential backoff delay based on retry count
     const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
@@ -195,6 +272,16 @@ const FeedbackActions = () => {
     await fetchFeedbackAndActions(true);
     setIsRefreshing(false);
   }, [fetchFeedbackAndActions, retryCount]);
+
+  // Handle sign in redirect
+  const handleSignIn = useCallback(() => {
+    signIn();
+  }, []);
+
+  // Handle sign out and refresh
+  const handleSignOut = useCallback(() => {
+    signOut({ callbackUrl: '/auth/signin' });
+  }, []);
 
   // PERFORMANCE: Optimized acknowledge function with optimistic updates
   const handleAcknowledgeFeedback = useCallback(async (feedbackId: string) => {
@@ -213,9 +300,6 @@ const FeedbackActions = () => {
     setProcessingIds(prev => new Set(prev).add(feedbackId));
     
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
       const response = await fetch('/api/feedback', {
         method: 'PATCH',
         headers: {
@@ -225,10 +309,7 @@ const FeedbackActions = () => {
           feedbackId, 
           isAcknowledged: true 
         }),
-        signal: controller.signal,
       });
-
-      clearTimeout(timeoutId);
 
       if (response.status === 401) {
         throw new Error('Session expired. Please sign in again.');
@@ -294,9 +375,6 @@ const FeedbackActions = () => {
     setProcessingIds(prev => new Set([...prev, actionId]));
     
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
       const response = await fetch('/api/actions', {
         method: 'PATCH',
         headers: {
@@ -307,10 +385,7 @@ const FeedbackActions = () => {
           isCompleted: true,
           completedAt
         }),
-        signal: controller.signal,
       });
-
-      clearTimeout(timeoutId);
 
       if (response.status === 401) {
         throw new Error('Session expired. Please sign in again.');
@@ -414,11 +489,20 @@ const FeedbackActions = () => {
             <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse"></div>
           ))}
         </div>
+        <div className="text-center text-sm text-gray-500 mt-4">
+          Loading your feedback and actions...
+          <br />
+          <span className="text-xs text-gray-400">
+            Initial load may take a few moments while we optimize your data
+          </span>
+        </div>
       </div>
     );
   }
 
   if (error) {
+    const isAuthError = error.includes('session') || error.includes('Authentication') || error.includes('sign in');
+    
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="text-center py-12">
@@ -426,30 +510,52 @@ const FeedbackActions = () => {
           <div className="text-red-600 text-lg mb-2">Unable to Load</div>
           <p className="text-gray-600 mb-6 max-w-md mx-auto">{error}</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-colors ${
-                isRefreshing 
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              <FiRefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Retrying...' : 'Try Again'}
-            </button>
-            {error.includes('Session expired') && (
+            {isAuthError ? (
+              <>
+                <button
+                  onClick={handleSignIn}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  <FiLogIn className="w-4 h-4" />
+                  Sign In
+                </button>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                >
+                  <FiRefreshCw className="w-4 h-4" />
+                  Sign Out & Refresh
+                </button>
+              </>
+            ) : (
               <button
-                onClick={() => window.location.reload()}
-                className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-colors ${
+                  isRefreshing 
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
               >
-                Refresh Page
+                <FiRefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Retrying...' : 'Try Again'}
               </button>
             )}
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            >
+              Refresh Page
+            </button>
           </div>
-          {retryCount > 0 && (
+          {retryCount > 0 && !isAuthError && (
             <p className="text-sm text-gray-500 mt-4">
               Retry attempt: {retryCount}/5
+            </p>
+          )}
+          {isAuthError && authRetryCount > 0 && (
+            <p className="text-sm text-gray-500 mt-4">
+              Session refresh attempts: {authRetryCount}/2
             </p>
           )}
         </div>
@@ -535,6 +641,14 @@ const FeedbackActions = () => {
                 <FiMessageSquare className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
                 <p className="text-gray-500 text-base sm:text-lg">No feedback available</p>
                 <p className="text-gray-400 text-sm">Check back later for feedback from your coach</p>
+                {status === 'authenticated' && session && (
+                  <button
+                    onClick={() => fetchFeedbackAndActions(true)}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    Refresh Feedback
+                  </button>
+                )}
               </div>
             ) : (
               feedback.map((item) => (
@@ -612,11 +726,28 @@ const FeedbackActions = () => {
             transition={{ duration: 0.2 }}
             className="space-y-3 sm:space-y-4"
           >
-            {actions.length === 0 ? (
+            {/* Show loading indicator if actions are still loading */}
+            {isLoading && actions.length === 0 && (
+              <div className="text-center py-6 border border-orange-200 bg-orange-50 rounded-lg">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-3"></div>
+                <p className="text-orange-700 text-sm">Loading actions...</p>
+                <p className="text-orange-600 text-xs mt-1">This may take a moment due to database optimization</p>
+              </div>
+            )}
+            
+            {!isLoading && actions.length === 0 ? (
               <div className="text-center py-8 sm:py-12">
                 <FiCheckSquare className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
                 <p className="text-gray-500 text-base sm:text-lg">No actions available</p>
                 <p className="text-gray-400 text-sm">Check back later for new tasks from your coach</p>
+                {status === 'authenticated' && session && (
+                  <button
+                    onClick={() => fetchFeedbackAndActions(true)}
+                    className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm"
+                  >
+                    Refresh Actions
+                  </button>
+                )}
               </div>
             ) : (
               actions.map((item) => (

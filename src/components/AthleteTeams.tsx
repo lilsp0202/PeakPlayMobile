@@ -31,22 +31,38 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
   const fetchTeamData = async () => {
     setIsLoading(true);
     try {
-      // Add timeout to prevent hanging requests
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      console.log('🏈 Fetching team data...');
       
-      // Fetch teams that the student is a member of
+      // OPTIMIZED: Remove timeout and use optimized request handling
+      // Fetch teams that the student is a member of (now cached server-side)
       const teamsResponse = await fetch('/api/teams?includeMembers=true&includeStats=true', {
-        signal: controller.signal,
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       });
+      
       if (teamsResponse.ok) {
         const teamsData = await teamsResponse.json();
+        console.log(`✅ Teams fetched: ${teamsData.teams?.length || 0} teams`);
         setTeams(teamsData.teams || []);
+      } else {
+        throw new Error(`Teams API error: ${teamsResponse.status}`);
       }
 
-      // Fetch feedback with team information
+      // Small delay before feedback request to prevent connection pool exhaustion
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Fetch feedback with team information (now cached server-side)
       const feedbackResponse = await fetch('/api/feedback', {
-        signal: controller.signal,
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       });
       if (feedbackResponse.ok) {
         const feedback = await feedbackResponse.json();
@@ -55,8 +71,9 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
       }
 
       // Fetch actions with team information
+      const actionsController = new AbortController();
       const actionsResponse = await fetch('/api/actions', {
-        signal: controller.signal,
+        signal: actionsController.signal,
       });
       if (actionsResponse.ok) {
         const actions = await actionsResponse.json();
@@ -64,7 +81,6 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
         setTeamActions(teamRelatedActions);
       }
 
-      clearTimeout(timeoutId);
     } catch (error) {
       console.error('Error fetching team data:', error);
       if (error instanceof Error && error.name === 'AbortError') {

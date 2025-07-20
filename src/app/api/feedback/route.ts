@@ -11,15 +11,35 @@ const setCacheHeaders = (response: NextResponse) => {
 };
 
 export async function GET(request: Request) {
+  const startTime = Date.now();
+  
   try {
-    const session = await getServerSession(authOptions) as Session | null;
+    console.log('🔍 Feedback API - Starting request');
+    
+    // Add timeout to session check
+    const sessionPromise = getServerSession(authOptions) as Promise<Session | null>;
+    const timeoutPromise = new Promise<null>((_, reject) => 
+      setTimeout(() => reject(new Error('Session timeout')), 5000)
+    );
+    
+    const session = await Promise.race([sessionPromise, timeoutPromise]);
+    const authTime = Date.now() - startTime;
+    
+    console.log(`⏱️ Session check took: ${authTime}ms`);
     
     if (!session?.user?.id) {
+      console.log('❌ No session found');
       return NextResponse.json(
-        { message: "Unauthorized" },
+        { 
+          message: "Authentication required", 
+          authTime,
+          debug: "No session found" 
+        },
         { status: 401 }
       );
     }
+
+    console.log('✅ Session validated for user:', session.user.email);
 
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
@@ -62,6 +82,8 @@ export async function GET(request: Request) {
         skip: offset,
       });
       
+      const totalTime = Date.now() - startTime;
+      console.log(`✅ Coach feedback query completed in ${totalTime}ms`);
       return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
     }
     
@@ -105,17 +127,32 @@ export async function GET(request: Request) {
         skip: offset,
       });
       
+      const totalTime = Date.now() - startTime;
+      console.log(`✅ Team feedback query completed in ${totalTime}ms`);
       return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
     }
     
-    // PERFORMANCE OPTIMIZATION: For athletes, use highly optimized single query
+    // PERFORMANCE OPTIMIZATION: For athletes, use optimized two-step approach
     if (session.user.role === "ATHLETE") {
-      // Single optimized query with minimal includes and select fields
+      console.log('🏃‍♂️ Processing athlete feedback request');
+      
+      // Step 1: Get student ID efficiently with minimal select
+      const student = await prisma.student.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true }
+      });
+
+      if (!student) {
+        console.log('❌ Student profile not found for user:', session.user.id);
+        return NextResponse.json({ message: "Student profile not found" }, { status: 404 });
+      }
+
+      console.log('✅ Student found:', student.id);
+
+      // Step 2: Query feedback directly using studentId (much faster)
       const feedback = await prisma.feedback.findMany({
         where: { 
-          student: {
-            userId: session.user.id
-          }
+          studentId: student.id
         },
         select: {
           id: true,
@@ -146,11 +183,15 @@ export async function GET(request: Request) {
         skip: offset,
       });
 
+      const totalTime = Date.now() - startTime;
+      console.log(`✅ Athlete feedback query completed in ${totalTime}ms - found ${feedback.length} items`);
       return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
     }
 
     // Handle different user roles efficiently
     if (session.user.role === "COACH") {
+      console.log('👨‍🏫 Processing coach feedback request');
+      
       // PERFORMANCE: Get coach profile with minimal data
       const coach = await prisma.coach.findUnique({
         where: { userId: session.user.id },
@@ -163,6 +204,7 @@ export async function GET(request: Request) {
       });
 
       if (!coach) {
+        console.log('❌ Coach profile not found for user:', session.user.id);
         return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
       }
 
@@ -205,19 +247,34 @@ export async function GET(request: Request) {
         skip: offset,
       });
 
+      const totalTime = Date.now() - startTime;
+      console.log(`✅ Coach general feedback query completed in ${totalTime}ms`);
       return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
     }
 
     // If no specific role matched
+    console.log('❌ Access denied for role:', session.user.role);
     return NextResponse.json(
       { message: "Access denied" },
       { status: 403 }
     );
 
   } catch (error) {
-    console.error("Error fetching feedback:", error);
+    const totalTime = Date.now() - startTime;
+    console.error(`❌ Feedback API error after ${totalTime}ms:`, error);
+    
+    if (error instanceof Error && error.message === 'Session timeout') {
+      return NextResponse.json(
+        { message: "Authentication timeout - please refresh and try again" },
+        { status: 408 }
+      );
+    }
+    
     return NextResponse.json(
-      { message: "Internal server error" },
+      { 
+        message: "Internal server error",
+        debug: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : String(error) : undefined
+      },
       { status: 500 }
     );
   }

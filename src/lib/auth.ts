@@ -95,39 +95,46 @@ export const authOptions = {
   session: {
     strategy: "jwt" as const,
     maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours - update session more frequently for better performance
   },
   jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
+    // Optimize JWT processing for production
+    secret: process.env.NEXTAUTH_SECRET,
   },
   callbacks: {
     async signIn({ user, account }: { user: any; account: any }) {
       if (account?.provider === "google") {
         try {
-          // Check if user exists
+          // Check if user already exists
           const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! }
+            where: { email: user.email },
           });
 
           if (!existingUser) {
-            // Create new user from Google OAuth
-            await prisma.user.create({
+            // Create new user with Google profile
+            const newUser = await prisma.user.create({
               data: {
-                email: user.email!,
-                name: user.name || undefined,
-                username: user.email!.split('@')[0],
-                role: "ATHLETE",
-                emailVerified: new Date(),
-                image: user.image || undefined,
-              }
+                email: user.email,
+                name: user.name,
+                image: user.image,
+                role: "ATHLETE", // Default role for Google sign-ups
+                username: user.email.split("@")[0] + "_" + Math.random().toString(36).substr(2, 9), // Generate unique username
+              },
             });
+
+            // Log successful registration
+            await logAuthEvent('GOOGLE_REGISTER', user.email);
+            console.log('✅ New Google user created:', newUser.email);
+          } else {
+            // Log successful login
+            await logAuthEvent('GOOGLE_LOGIN', user.email);
+            console.log('✅ Existing Google user signed in:', existingUser.email);
           }
-          
-          // Log OAuth login
-          await logAuthEvent('OAUTH_LOGIN_SUCCESS', user.email!, 'google');
+
           return true;
         } catch (error) {
-          console.error('OAuth sign in error:', error);
-          Sentry.captureException(error);
+          console.error('❌ Google sign-in error:', error);
           return false;
         }
       }
@@ -154,18 +161,20 @@ export const authOptions = {
     },
     async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       // Handle dynamic Vercel URLs
-      const deploymentUrl = process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}` 
-        : process.env.NEXTAUTH_URL 
-        ? process.env.NEXTAUTH_URL 
-        : baseUrl;
+      const isVercelUrl = baseUrl.includes('vercel.app');
+      const isDevelopment = process.env.NODE_ENV === 'development';
       
-      // Allow relative URLs
-      if (url.startsWith("/")) return `${deploymentUrl}${url}`;
-      // Allow URLs on the same origin
-      else if (new URL(url).origin === deploymentUrl) return url;
-      return deploymentUrl;
-    }
+      if (isVercelUrl || isDevelopment) {
+        if (url.startsWith("/")) return `${baseUrl}${url}`;
+        if (new URL(url).origin === baseUrl) return url;
+        return baseUrl;
+      }
+      
+      // Production logic
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
   },
   pages: {
     signIn: "/auth/signin",
@@ -174,13 +183,8 @@ export const authOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
-  events: {
-    async signOut({ token }: { token: any }) {
-      if (token?.email) {
-        await logAuthEvent('LOGOUT', token.email as string);
-      }
-    }
-  }
+  // PERFORMANCE: Add secure cookie settings for production
+  useSecureCookies: process.env.NODE_ENV === "production",
 };
 
 // Helper function to log auth events

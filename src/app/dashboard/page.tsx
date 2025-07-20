@@ -3,7 +3,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw, FiEye, FiPlus } from "react-icons/fi";
+import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw, FiEye, FiPlus, FiUpload, FiImage, FiVideo, FiCheck } from "react-icons/fi";
 import { Check } from "lucide-react";
 import dynamic from 'next/dynamic';
 import PeakPlayLogo from "@/components/PeakPlayLogo";
@@ -521,7 +521,7 @@ export default function Dashboard() {
     return expandedStudents.includes(studentId);
   };
 
-  // Track tab helper functions
+  // Track tab helper functions - OPTIMIZED bulk API call
   const fetchTrackData = async () => {
     if (!assignedStudents || assignedStudents.length === 0) {
       setTrackData([]);
@@ -530,95 +530,78 @@ export default function Dashboard() {
 
     setIsLoadingTrackData(true);
     try {
-      const trackResults = [];
+      console.log('📊 Fetching track data with optimized bulk API...');
       
-      for (const student of assignedStudents) {
-        const endpoint = trackViewType === 'feedback' 
-          ? `/api/feedback?studentId=${student.id}`
-          : `/api/actions?studentId=${student.id}`;
-        
-        const response = await fetch(endpoint);
-        if (response.ok) {
-          const data = await response.json();
-          const enrichedData = data.map((item: any) => ({
-            ...item,
-            studentName: student.studentName || student.name,
-            studentId: student.id
-          }));
-          trackResults.push(...enrichedData);
-        }
+      // Build query parameters for the bulk API
+      const params = new URLSearchParams({
+        type: trackViewType,
+        student: trackFilters.student,
+        category: trackFilters.category,
+        priority: trackFilters.priority,
+        status: trackFilters.status,
+        dateRange: trackFilters.dateRange
+      });
+
+      const response = await fetch(`/api/track?${params}`);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`✅ Track data loaded in ${result.totalTime}ms - ${result.count} items`);
+        setTrackData(result.data || []);
+      } else {
+        throw new Error(`Track API error: ${response.status}`);
       }
-      
-      // Apply filters
-      const filteredData = applyTrackFilters(trackResults);
-      setTrackData(filteredData);
     } catch (error) {
-      console.error('Error fetching track data:', error);
+      console.error('❌ Error fetching track data:', error);
       setTrackData([]);
     } finally {
       setIsLoadingTrackData(false);
     }
   };
 
-  const applyTrackFilters = (data: any[]) => {
-    let filtered = [...data];
-
-    // Filter by student
-    if (trackFilters.student !== 'all') {
-      filtered = filtered.filter(item => item.studentId === trackFilters.student);
-    }
-
-    // Filter by category
-    if (trackFilters.category !== 'all') {
-      filtered = filtered.filter(item => item.category === trackFilters.category);
-    }
-
-    // Filter by priority
-    if (trackFilters.priority !== 'all') {
-      filtered = filtered.filter(item => item.priority === trackFilters.priority);
-    }
-
-    // Filter by date range
-    const now = new Date();
-    const dateFilterMap = {
-      'today': 1,
-      'week': 7,
-      'month': 30,
-      'quarter': 90,
-      'all': null
-    };
-    
-    const daysBack = dateFilterMap[trackFilters.dateRange as keyof typeof dateFilterMap];
-    if (daysBack) {
-      const cutoffDate = new Date(now.getTime() - (daysBack * 24 * 60 * 60 * 1000));
-      filtered = filtered.filter(item => new Date(item.createdAt) >= cutoffDate);
-    }
-
-    // Filter by status (for actions)
-    if (trackViewType === 'actions' && trackFilters.status !== 'all') {
-      if (trackFilters.status === 'completed') {
-        filtered = filtered.filter(item => item.isCompleted);
-      } else if (trackFilters.status === 'pending') {
-        filtered = filtered.filter(item => !item.isCompleted);
-      } else if (trackFilters.status === 'acknowledged') {
-        filtered = filtered.filter(item => item.isAcknowledged);
-      }
-    }
-
-    // Filter by status (for feedback)
-    if (trackViewType === 'feedback' && trackFilters.status !== 'all') {
-      if (trackFilters.status === 'read') {
-        filtered = filtered.filter(item => item.isRead);
-      } else if (trackFilters.status === 'unread') {
-        filtered = filtered.filter(item => !item.isRead);
-      }
-    }
-
-    // Sort by creation date (newest first)
-    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    return filtered;
+  // Helper functions for track data display
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority?.toUpperCase()) {
+      case 'HIGH':
+        return 'bg-red-100 text-red-700 border-red-200';
+      case 'MEDIUM':
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'LOW':
+        return 'bg-green-100 text-green-700 border-green-200';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
+
+  const viewMedia = (mediaUrl: string, fileName?: string) => {
+    const newWindow = window.open('', '_blank');
+    if (newWindow && mediaUrl) {
+      newWindow.document.write(`
+        <html>
+          <head><title>${fileName || 'Media Viewer'}</title></head>
+          <body style="margin:0; padding:20px; background:#f5f5f5; display:flex; justify-content:center; align-items:center; min-height:100vh;">
+            <div style="text-align:center; max-width:90vw;">
+              <h2 style="margin-bottom:20px; color:#333;">${fileName || 'Media'}</h2>
+              ${mediaUrl.includes('image') || mediaUrl.startsWith('data:image') 
+                ? `<img src="${mediaUrl}" style="max-width:100%; max-height:80vh; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1);" />` 
+                : `<video src="${mediaUrl}" controls style="max-width:100%; max-height:80vh; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">Your browser does not support video.</video>`
+              }
+            </div>
+          </body>
+        </html>
+      `);
+    }
+  };;
 
   // Fetch track data when view type or filters change
   useEffect(() => {
@@ -691,23 +674,47 @@ export default function Dashboard() {
     // }));
   };
 
-  // Team details functionality
+  // Enhanced team details functionality with better error handling
   const handleViewTeamDetails = async (team: any) => {
+    console.log('🏈 Loading team details for:', team.name);
+    
     setSelectedTeamForDetails(team);
     setIsLoadingTeamDetails(true);
     setIsTeamDetailsModalOpen(true);
     
     try {
-      const response = await fetch(`/api/teams/${team.id}`);
+      const response = await fetch(`/api/teams/${team.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Team details loaded:', data.team);
+        
         setTeamDetailsData({
           feedback: data.team.feedback || [],
           actions: data.team.actions || []
         });
+      } else {
+        console.error('❌ Failed to fetch team details:', response.status, response.statusText);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
     } catch (error) {
-      console.error('Error fetching team details:', error);
+      console.error('❌ Error fetching team details:', error);
+      
+      // Show error to user and provide fallback
+      setTeamDetailsData({
+        feedback: [],
+        actions: []
+      });
+      
+      // You could also show a toast notification here
+      alert(`Failed to load team details: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoadingTeamDetails(false);
     }
@@ -2324,7 +2331,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Track Data Display */}
+                  {/* Enhanced Track Data Display with Media Previews */}
                   <>
                     {isLoadingTrackData ? (
                       <div className="flex items-center justify-center py-12">
@@ -2352,80 +2359,189 @@ export default function Dashboard() {
                         </p>
                       </div>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {trackData.map((item, index) => (
                           <motion.div
                             key={item.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
-                            className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200"
+                            className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
                           >
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3">
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-2">
-                                  <h4 className="font-semibold text-gray-900">
-                                    {item.title}
-                                  </h4>
-                                  <span className={`px-2 py-1 text-xs rounded-full ${
-                                    item.priority === 'HIGH' 
-                                      ? 'bg-red-100 text-red-700' 
-                                      : item.priority === 'MEDIUM'
-                                      ? 'bg-yellow-100 text-yellow-700'
-                                      : 'bg-green-100 text-green-700'
-                                  }`}>
-                                    {item.priority}
-                                  </span>
-                                  <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">
-                                    {item.category}
-                                  </span>
-                                </div>
-                                <p className="text-sm text-gray-600 mb-2">
-                                  <strong>For:</strong> {item.studentName}
-                                </p>
-                                <p className="text-sm text-gray-800 mb-2">
-                                  {trackViewType === 'feedback' ? item.content : item.description}
-                                </p>
-                              </div>
-                              <div className="flex flex-col sm:items-end space-y-1">
-                                <span className="text-xs text-gray-500">
-                                  {new Date(item.createdAt).toLocaleDateString()}
-                                </span>
-                                {trackViewType === 'feedback' ? (
-                                  <span className={`px-2 py-1 text-xs rounded-full ${
-                                    item.isRead 
-                                      ? 'bg-green-100 text-green-700' 
-                                      : 'bg-gray-100 text-gray-700'
-                                  }`}>
-                                    {item.isRead ? 'Read' : 'Unread'}
-                                  </span>
-                                ) : (
-                                  <div className="flex flex-col space-y-1">
-                                    <span className={`px-2 py-1 text-xs rounded-full ${
-                                      item.isCompleted 
-                                        ? 'bg-green-100 text-green-700' 
-                                        : 'bg-yellow-100 text-yellow-700'
-                                    }`}>
-                                      {item.isCompleted ? 'Completed' : 'Pending'}
+                            {/* Header */}
+                            <div className="p-4 sm:p-6">
+                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+                                <div className="flex-1">
+                                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                                    <h3 className="text-lg font-bold text-gray-900">{item.title}</h3>
+                                    <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getPriorityColor(item.priority)}`}>
+                                      {item.priority}
                                     </span>
-                                    {item.isAcknowledged && (
-                                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
-                                        Acknowledged
-                                      </span>
+                                    <span className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full border">
+                                      {item.category}
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                                    <div className="flex items-center gap-1">
+                                      <FiUser className="w-4 h-4" />
+                                      <span><strong>Student:</strong> {item.studentName}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <FiCalendar className="w-4 h-4" />
+                                      <span>{formatDate(item.createdAt)}</span>
+                                    </div>
+                                    {trackViewType === 'actions' && item.dueDate && (
+                                      <div className="flex items-center gap-1">
+                                        <FiClock className="w-4 h-4" />
+                                        <span><strong>Due:</strong> {formatDate(item.dueDate)}</span>
+                                      </div>
                                     )}
                                   </div>
-                                )}
+                                  
+                                  <p className="text-gray-800 leading-relaxed">
+                                    {trackViewType === 'feedback' ? item.content : item.description}
+                                  </p>
+                                </div>
+                                
+                                {/* Status Badges */}
+                                <div className="flex flex-col sm:items-end gap-2 mt-4 sm:mt-0 sm:ml-4">
+                                  {trackViewType === 'feedback' ? (
+                                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                                      item.isRead 
+                                        ? 'bg-green-100 text-green-700 border border-green-200' 
+                                        : 'bg-red-100 text-red-700 border border-red-200'
+                                    }`}>
+                                      {item.isRead ? '✅ Read' : '📖 Unread'}
+                                    </span>
+                                  ) : (
+                                    <div className="flex flex-col gap-2">
+                                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                                        item.isCompleted 
+                                          ? 'bg-green-100 text-green-700 border border-green-200' 
+                                          : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                                      }`}>
+                                        {item.isCompleted ? '✅ Completed' : '⏳ Pending'}
+                                      </span>
+                                      {item.isAcknowledged && (
+                                        <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full border border-blue-200">
+                                          👀 Acknowledged
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
+
+                              {/* Demo Media (Coach provided) - IN-PAGE PREVIEW */}
+                              {trackViewType === 'actions' && item.demoMediaUrl && (
+                                <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    {item.demoMediaType === 'image' ? <FiImage className="w-5 h-5 text-blue-600" /> : <FiVideo className="w-5 h-5 text-blue-600" />}
+                                    <h4 className="text-sm font-semibold text-blue-900">Coach Demo Media</h4>
+                                  </div>
+                                  
+                                  {item.demoMediaType === 'image' ? (
+                                    <div className="relative">
+                                      <img 
+                                        src={item.demoMediaUrl} 
+                                        alt="Coach demo"
+                                        className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+                                        style={{ maxHeight: '200px', objectFit: 'cover' }}
+                                        onClick={() => viewMedia(item.demoMediaUrl, item.demoFileName)}
+                                      />
+                                      <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                                        Click to enlarge
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <video 
+                                      src={item.demoMediaUrl}
+                                      controls
+                                      className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md"
+                                      preload="metadata"
+                                      style={{ maxHeight: '200px' }}
+                                    >
+                                      Your browser does not support video.
+                                    </video>
+                                  )}
+                                  
+                                  <p className="text-xs text-blue-700 mt-2">
+                                    <strong>File:</strong> {item.demoFileName} • 
+                                    <strong> Uploaded:</strong> {item.demoUploadedAt ? formatDate(item.demoUploadedAt) : 'N/A'}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Student Proof (Athlete uploaded) - COACH CAN VIEW */}
+                              {trackViewType === 'actions' && item.proofMediaUrl && (
+                                <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <FiUpload className="w-5 h-5 text-green-600" />
+                                    <h4 className="text-sm font-semibold text-green-900">Student Proof Submission</h4>
+                                    {item.isCompleted && <FiCheck className="w-4 h-4 text-green-600" />}
+                                  </div>
+                                  
+                                  {item.proofMediaType?.startsWith('image') ? (
+                                    <div className="relative">
+                                      <img 
+                                        src={item.proofMediaUrl} 
+                                        alt="Student proof"
+                                        className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+                                        style={{ maxHeight: '200px', objectFit: 'cover' }}
+                                        onClick={() => viewMedia(item.proofMediaUrl, item.proofFileName)}
+                                      />
+                                      <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                                        Click to enlarge
+                                      </div>
+                                    </div>
+                                  ) : item.proofMediaType?.startsWith('video') ? (
+                                    <video 
+                                      src={item.proofMediaUrl}
+                                      controls
+                                      className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md"
+                                      preload="metadata"
+                                      style={{ maxHeight: '200px' }}
+                                    >
+                                      Your browser does not support video.
+                                    </video>
+                                  ) : (
+                                    <button
+                                      onClick={() => viewMedia(item.proofMediaUrl, item.proofFileName)}
+                                      className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                    >
+                                      <FiEye className="w-4 h-4" />
+                                      View proof ({item.proofFileName})
+                                    </button>
+                                  )}
+                                  
+                                  <div className="flex justify-between items-center mt-3">
+                                    <p className="text-xs text-green-700">
+                                      <strong>File:</strong> {item.proofFileName}
+                                    </p>
+                                    <p className="text-xs text-green-700">
+                                      <strong>Submitted:</strong> {item.proofUploadedAt ? formatDate(item.proofUploadedAt) : 'N/A'}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Action Notes */}
+                              {trackViewType === 'actions' && item.notes && (
+                                <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
+                                  <h4 className="text-sm font-medium text-gray-900 mb-2">Student Notes:</h4>
+                                  <p className="text-sm text-gray-700">{item.notes}</p>
+                                </div>
+                              )}
+
+                              {/* Team Info */}
+                              {item.team && (
+                                <div className="mt-4 flex items-center gap-2 text-sm text-purple-600">
+                                  <FiUsers className="w-4 h-4" />
+                                  <span><strong>Team:</strong> {item.team.name}</span>
+                                </div>
+                              )}
                             </div>
-                            
-                            {/* Additional info for actions */}
-                            {trackViewType === 'actions' && item.dueDate && (
-                              <div className="mt-2 pt-2 border-t border-gray-100">
-                                <p className="text-xs text-gray-600">
-                                  <strong>Due:</strong> {new Date(item.dueDate).toLocaleDateString()}
-                                </p>
-                              </div>
-                            )}
                           </motion.div>
                         ))}
                       </div>

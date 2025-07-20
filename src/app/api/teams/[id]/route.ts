@@ -23,71 +23,114 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Coach not found' }, { status: 404 });
     }
 
-    // Fetch team details with members, feedback, and actions
-    const team = await prisma.team.findFirst({
+    // OPTIMIZED: Fetch team details with efficient queries to avoid 36s delays
+    console.log('🔍 Fetching team details for team:', teamId);
+    const startTime = Date.now();
+    
+    // First, fetch basic team info efficiently
+    const team = await prisma.team.findUnique({
       where: {
-        id: teamId,
-        coachId: coach.id,
-        isActive: true
+        id: teamId
       },
-      include: {
-        members: {
-          include: {
-            student: {
-              select: {
-                id: true,
-                studentName: true,
-                email: true,
-                academy: true,
-                sport: true,
-                role: true
-              }
-            }
-          }
-        },
-        feedback: {
-          include: {
-            student: {
-              select: {
-                id: true,
-                studentName: true,
-                email: true
-              }
-            }
-          },
-          orderBy: {
-            createdAt: 'desc'
-          }
-        },
-        actions: {
-          include: {
-            student: {
-              select: {
-                id: true,
-                studentName: true,
-                email: true
-              }
-            }
-          },
-          orderBy: {
-            createdAt: 'desc'
-          }
-        },
-        _count: {
-          select: {
-            members: true,
-            feedback: true,
-            actions: true
-          }
-        }
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        coachId: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true
       }
     });
 
-    if (!team) {
+    if (!team || team.coachId !== coach.id || !team.isActive) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ team });
+    // PERFORMANCE: Fetch related data in parallel to avoid sequential delays
+    const [members, feedback, actions, counts] = await Promise.all([
+      // Members
+      prisma.teamMember.findMany({
+        where: { teamId },
+        include: {
+          student: {
+            select: {
+              id: true,
+              studentName: true,
+              email: true,
+              academy: true,
+              sport: true,
+              role: true
+            }
+          }
+        }
+      }),
+      
+      // Feedback (limit to recent items for performance)
+      prisma.feedback.findMany({
+        where: { teamId },
+        include: {
+          student: {
+            select: {
+              id: true,
+              studentName: true,
+              email: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take: 50 // Limit for performance
+      }),
+      
+      // Actions (limit to recent items for performance)
+      prisma.action.findMany({
+        where: { teamId },
+        include: {
+          student: {
+            select: {
+              id: true,
+              studentName: true,
+              email: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take: 50 // Limit for performance
+      }),
+      
+      // Counts
+      Promise.all([
+        prisma.teamMember.count({ where: { teamId } }),
+        prisma.feedback.count({ where: { teamId } }),
+        prisma.action.count({ where: { teamId } })
+      ])
+    ]);
+
+    // Reconstruct team object with optimized data
+    const optimizedTeam = {
+      ...team,
+      members,
+      feedback,
+      actions,
+      _count: {
+        members: counts[0],
+        feedback: counts[1],
+        actions: counts[2]
+      }
+    };
+
+    const totalTime = Date.now() - startTime;
+    console.log(`✅ Team details fetched in ${totalTime}ms`);
+    
+    if (totalTime > 1000) {
+      console.log('⚠️ Slow team query detected:', totalTime + 'ms');
+    }
+
+    return NextResponse.json({ team: optimizedTeam });
   } catch (error) {
     console.error('Error fetching team details:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
