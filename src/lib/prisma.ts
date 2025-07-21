@@ -130,7 +130,11 @@ export const cachedQueries = {
         academy: true,
         sport: true,
         coachId: true,
-        userId: true
+        userId: true,
+        // Include height, weight, age for nutrition personalization
+        height: true,
+        weight: true,
+        age: true
       }
     })
 

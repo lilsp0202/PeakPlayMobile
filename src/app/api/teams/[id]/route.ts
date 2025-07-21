@@ -52,34 +52,34 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       // Members
       prisma.teamMember.findMany({
         where: { teamId },
-        include: {
-          student: {
-            select: {
-              id: true,
-              studentName: true,
-              email: true,
-              academy: true,
-              sport: true,
-              role: true
+          include: {
+            student: {
+              select: {
+                id: true,
+                studentName: true,
+                email: true,
+                academy: true,
+                sport: true,
+                role: true
+              }
             }
           }
-        }
       }),
       
       // Feedback (limit to recent items for performance)
       prisma.feedback.findMany({
         where: { teamId },
-        include: {
-          student: {
-            select: {
-              id: true,
-              studentName: true,
-              email: true
+          include: {
+            student: {
+              select: {
+                id: true,
+                studentName: true,
+                email: true
+              }
             }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
+          },
+          orderBy: {
+            createdAt: 'desc'
         },
         take: 50 // Limit for performance
       }),
@@ -87,17 +87,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       // Actions (limit to recent items for performance)
       prisma.action.findMany({
         where: { teamId },
-        include: {
-          student: {
-            select: {
-              id: true,
-              studentName: true,
-              email: true
+          include: {
+            student: {
+              select: {
+                id: true,
+                studentName: true,
+                email: true
+              }
             }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
+          },
+          orderBy: {
+            createdAt: 'desc'
         },
         take: 50 // Limit for performance
       }),
@@ -116,16 +116,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       members,
       feedback,
       actions,
-      _count: {
+        _count: {
         members: counts[0],
         feedback: counts[1],
         actions: counts[2]
-      }
+          }
     };
 
     const totalTime = Date.now() - startTime;
     console.log(`✅ Team details fetched in ${totalTime}ms`);
-    
+
     if (totalTime > 1000) {
       console.log('⚠️ Slow team query detected:', totalTime + 'ms');
     }

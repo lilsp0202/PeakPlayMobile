@@ -9,8 +9,11 @@ import {
   FiCheckSquare, 
   FiUser, 
   FiClock, 
-  FiCheck
+  FiCheck,
+  FiUpload,
+  FiEye
 } from 'react-icons/fi';
+import ActionProofUpload from './ActionProofUpload';
 
 interface TeamModalProps {
   team: any;
@@ -35,6 +38,10 @@ export default function TeamModal({
   const [processingItems, setProcessingItems] = useState<Set<string>>(new Set());
   const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
   const [statsUpdated, setStatsUpdated] = useState(false);
+  
+  // Proof upload modal states
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadingActionId, setUploadingActionId] = useState<string | null>(null);
 
   if (!team) return null;
 
@@ -106,6 +113,204 @@ export default function TeamModal({
         newSet.delete(actionId);
         return newSet;
       });
+    }
+  };
+
+  // Proof upload handlers
+  const handleUploadProof = (actionId: string) => {
+    setUploadingActionId(actionId);
+    setShowUploadModal(true);
+  };
+
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false);
+    setUploadingActionId(null);
+    // Trigger a refresh by calling the parent refresh function
+    // The parent component should refetch team data
+    window.location.reload(); // Simple refresh for now
+  };
+
+  const handleViewProof = (proofMediaUrl: string, proofMediaType?: string, proofFileName?: string) => {
+    // Create a proper viewer modal instead of just opening the URL
+    const newWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+    if (newWindow) {
+      const isVideo = proofMediaType?.startsWith('video/') || proofMediaUrl.startsWith('data:video/');
+      const isImage = proofMediaType?.startsWith('image/') || proofMediaUrl.startsWith('data:image/');
+      
+      const content = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Action Proof - ${proofFileName || 'Media'}</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+              body {
+                margin: 0;
+                padding: 20px;
+                background: #f5f5f5;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                box-sizing: border-box;
+              }
+              
+              .header {
+                background: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                margin-bottom: 20px;
+                text-align: center;
+                width: 100%;
+                max-width: 600px;
+              }
+              
+              .header h2 {
+                margin: 0 0 5px 0;
+                color: #333;
+                font-size: 18px;
+              }
+              
+              .header p {
+                margin: 0;
+                color: #666;
+                font-size: 14px;
+              }
+              
+              .media-container {
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                max-width: 90vw;
+                max-height: 70vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+              
+              img {
+                max-width: 100%;
+                max-height: 60vh;
+                height: auto;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              }
+              
+              video {
+                max-width: 100%;
+                max-height: 60vh;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              }
+              
+              .download-link {
+                margin-top: 15px;
+                text-align: center;
+              }
+              
+              .download-link a {
+                color: #3b82f6;
+                text-decoration: none;
+                font-weight: 500;
+                padding: 8px 16px;
+                border: 1px solid #3b82f6;
+                border-radius: 4px;
+                display: inline-block;
+                transition: all 0.2s;
+              }
+              
+              .download-link a:hover {
+                background: #3b82f6;
+                color: white;
+              }
+              
+              .error {
+                color: #dc2626;
+                text-align: center;
+                padding: 20px;
+                background: #fef2f2;
+                border: 1px solid #fecaca;
+                border-radius: 8px;
+              }
+              
+              @media (max-width: 768px) {
+                body {
+                  padding: 10px;
+                }
+                
+                .header {
+                  padding: 10px 15px;
+                }
+                
+                .media-container {
+                  padding: 15px;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h2>Your Action Proof</h2>
+              <p>${proofFileName || 'Uploaded Media'}</p>
+            </div>
+            
+            <div class="media-container">
+              ${isImage ? `
+                <img src="${proofMediaUrl}" alt="Action proof" onerror="showError()" />
+              ` : isVideo ? `
+                <video controls preload="metadata" onerror="showError()">
+                  <source src="${proofMediaUrl}" type="${proofMediaType || 'video/mp4'}">
+                  Your browser does not support the video tag.
+                </video>
+              ` : `
+                <div class="error">
+                  <p>Unable to display this media type.</p>
+                  <p>File: ${proofFileName || 'Unknown'}</p>
+                </div>
+              `}
+            </div>
+            
+            <div class="download-link">
+              <a href="${proofMediaUrl}" download="${proofFileName || 'proof-media'}">
+                Download File
+              </a>
+            </div>
+            
+            <script>
+              function showError() {
+                document.querySelector('.media-container').innerHTML = \`
+                  <div class="error">
+                    <p><strong>Error loading media</strong></p>
+                    <p>The file may be corrupted or in an unsupported format.</p>
+                    <p>File: ${proofFileName || 'Unknown'}</p>
+                    <p>Type: ${proofMediaType || 'Unknown'}</p>
+                  </div>
+                \`;
+              }
+              
+              // Auto-focus for better UX
+              window.focus();
+            </script>
+          </body>
+        </html>
+      `;
+      
+      newWindow.document.write(content);
+      newWindow.document.close();
+    } else {
+      // Fallback: try direct download if popup blocked
+      const link = document.createElement('a');
+      link.href = proofMediaUrl;
+      link.download = proofFileName || 'proof-media';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -554,31 +759,64 @@ export default function TeamModal({
                                     </motion.div>
                                   )}
                                   
-                                  {!item.isCompleted && (
-                                    <motion.button
-                                      whileHover={{ scale: 1.02 }}
-                                      whileTap={{ scale: 0.98 }}
-                                      animate={completedItems.has(item.id) ? { scale: [1, 1.1, 1] } : {}}
-                                      transition={{ duration: 0.3 }}
-                                      onClick={() => handleCompleteWithAnimation(item.id)}
-                                      className={`bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-1.5 font-medium shadow-sm min-h-[44px] text-xs ${
-                                        processingItems.has(item.id) || completedItems.has(item.id)
-                                          ? 'opacity-50 cursor-not-allowed'
-                                          : ''
-                                      }`}
-                                      disabled={processingItems.has(item.id) || completedItems.has(item.id)}
-                                    >
-                                      {processingItems.has(item.id) ? (
-                                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                      ) : (
-                                        <FiCheck className="w-3.5 h-3.5" />
-                                      )}
-                                      <span>Complete</span>
-                                    </motion.button>
+                                  {/* Proof Upload/View Section */}
+                                  {item.proofMediaUrl && (
+                                    <div className="mb-3 p-2 bg-green-50 rounded-lg border border-green-200">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          <FiCheck className="w-3 h-3 text-green-600" />
+                                          <span className="text-xs font-medium text-green-900">Proof Uploaded</span>
+                                        </div>
+                                                                                 <button
+                                           onClick={() => handleViewProof(item.proofMediaUrl!, item.proofMediaType, item.proofFileName)}
+                                           className="flex items-center gap-1 px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
+                                         >
+                                           <FiEye className="w-3 h-3" />
+                                           View
+                                         </button>
+                                      </div>
+                                    </div>
                                   )}
+                                  
+                                  <div className="flex flex-col gap-2">
+                                    {!item.isCompleted && !item.proofMediaUrl && (
+                                      <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => handleUploadProof(item.id)}
+                                        className="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-1.5 font-medium shadow-sm min-h-[44px] text-xs"
+                                      >
+                                        <FiUpload className="w-3.5 h-3.5" />
+                                        <span>Upload Proof</span>
+                                      </motion.button>
+                                    )}
+                                    
+                                    {!item.isCompleted && (
+                                      <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        animate={completedItems.has(item.id) ? { scale: [1, 1.1, 1] } : {}}
+                                        transition={{ duration: 0.3 }}
+                                        onClick={() => handleCompleteWithAnimation(item.id)}
+                                        className={`bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-1.5 font-medium shadow-sm min-h-[44px] text-xs ${
+                                          processingItems.has(item.id) || completedItems.has(item.id)
+                                            ? 'opacity-50 cursor-not-allowed'
+                                            : ''
+                                        }`}
+                                        disabled={processingItems.has(item.id) || completedItems.has(item.id)}
+                                      >
+                                        {processingItems.has(item.id) ? (
+                                          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                          </svg>
+                                        ) : (
+                                          <FiCheck className="w-3.5 h-3.5" />
+                                        )}
+                                        <span>Complete</span>
+                                      </motion.button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -592,6 +830,19 @@ export default function TeamModal({
             </div>
           </motion.div>
         </>
+      )}
+      
+      {/* Proof Upload Modal */}
+      {showUploadModal && uploadingActionId && (
+        <ActionProofUpload
+          isOpen={showUploadModal}
+          onClose={() => {
+            setShowUploadModal(false);
+            setUploadingActionId(null);
+          }}
+          actionId={uploadingActionId}
+          onUploadSuccess={handleUploadSuccess}
+        />
       )}
     </AnimatePresence>
   );

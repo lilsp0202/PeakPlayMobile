@@ -16,13 +16,8 @@ export async function GET(request: Request) {
   try {
     console.log('🔍 Feedback API - Starting request');
     
-    // Add timeout to session check
-    const sessionPromise = getServerSession(authOptions) as Promise<Session | null>;
-    const timeoutPromise = new Promise<null>((_, reject) => 
-      setTimeout(() => reject(new Error('Session timeout')), 5000)
-    );
-    
-    const session = await Promise.race([sessionPromise, timeoutPromise]);
+    // PERFORMANCE: Faster session check without timeout
+    const session = await getServerSession(authOptions) as Session | null;
     const authTime = Date.now() - startTime;
     
     console.log(`⏱️ Session check took: ${authTime}ms`);
@@ -185,7 +180,11 @@ export async function GET(request: Request) {
 
       const totalTime = Date.now() - startTime;
       console.log(`✅ Athlete feedback query completed in ${totalTime}ms - found ${feedback.length} items`);
-      return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
+      
+      // Add caching headers for better performance
+      const response = NextResponse.json(feedback, { status: 200 });
+      response.headers.set('Cache-Control', 'private, max-age=30'); // Cache for 30 seconds
+      return response;
     }
 
     // Handle different user roles efficiently
@@ -308,7 +307,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // PERFORMANCE: Get coach ID efficiently
+    // Get coach profile
     const coach = await prisma.coach.findUnique({
       where: { userId: session.user.id },
       select: { id: true }
@@ -318,7 +317,62 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
     }
 
-    // Create feedback
+    // If creating feedback for a team, create individual feedback for each team member
+    if (teamId) {
+      console.log('📝 Creating team feedback for team:', teamId);
+      
+      // Get team with members
+      const team = await prisma.team.findFirst({
+        where: {
+          id: teamId,
+          coachId: coach.id,
+          isActive: true,
+        },
+        include: {
+          members: {
+            include: {
+              student: {
+                select: { id: true, studentName: true }
+              }
+            }
+          }
+        }
+      });
+
+      if (!team) {
+        return NextResponse.json({ message: "Team not found" }, { status: 404 });
+      }
+
+      if (team.members.length === 0) {
+        return NextResponse.json({ message: "Team has no members" }, { status: 400 });
+      }
+
+      // Create feedback for each team member
+      const feedbackData = team.members.map(member => ({
+        studentId: member.student.id,
+        teamId: teamId,
+        coachId: coach.id,
+        title,
+        content,
+        category: category || "GENERAL",
+        priority: priority || "MEDIUM",
+      }));
+
+      const createdFeedback = await prisma.feedback.createMany({
+        data: feedbackData,
+      });
+
+      console.log(`✅ Created ${createdFeedback.count} team feedback items for team: ${team.name}`);
+
+      // Return a summary response
+      return NextResponse.json({
+        count: createdFeedback.count,
+        teamName: team.name,
+        message: `Team feedback created for ${createdFeedback.count} members`
+      }, { status: 201 });
+    }
+
+    // Create individual feedback for single student
     const feedback = await prisma.feedback.create({
       data: {
         studentId,

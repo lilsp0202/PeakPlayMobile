@@ -70,7 +70,7 @@ export async function GET(request: Request) {
   try {
     console.log('🔍 Actions API - Starting request');
     
-    // PERFORMANCE: Faster session check without timeout for better performance
+    // PERFORMANCE: Optimized session check
     const session = await getServerSession(authOptions) as Session | null;
     const authTime = Date.now() - startTime;
     
@@ -253,38 +253,38 @@ export async function GET(request: Request) {
         
         // Simplified query for speed - remove expensive joins if not needed
         const result = await prisma.action.findMany({
-          where: { 
-            studentId: student.id
-          },
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            category: true,
-            priority: true,
-            dueDate: true,
-            isCompleted: true,
-            completedAt: true,
-            isAcknowledged: true,
-            acknowledgedAt: true,
-            proofMediaUrl: true,
-            proofMediaType: true,
-            proofFileName: true,
-            proofUploadedAt: true,
-            demoMediaUrl: true,
-            demoMediaType: true,
-            demoFileName: true,
-            demoUploadedAt: true,
-            createdAt: true,
+        where: { 
+          studentId: student.id
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          category: true,
+          priority: true,
+          dueDate: true,
+          isCompleted: true,
+          completedAt: true,
+          isAcknowledged: true,
+          acknowledgedAt: true,
+          proofMediaUrl: true,
+          proofMediaType: true,
+          proofFileName: true,
+          proofUploadedAt: true,
+          demoMediaUrl: true,
+          demoMediaType: true,
+          demoFileName: true,
+          demoUploadedAt: true,
+          createdAt: true,
             coachId: true, // Get ID to fetch coach data separately if needed
             teamId: true,  // Get ID to fetch team data separately if needed
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: limit,
-          skip: offset,
-        });
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: limit,
+        skip: offset,
+      });
         
         // If we need coach/team data, fetch it separately and efficiently
         const coachIds = [...new Set(result.map(r => r.coachId).filter(Boolean))];
@@ -318,7 +318,11 @@ export async function GET(request: Request) {
 
       const totalTime = Date.now() - startTime;
       console.log(`✅ Athlete actions query completed in ${totalTime}ms - found ${actions.length} items`);
-      return setCacheHeaders(NextResponse.json(actions, { status: 200 }));
+      
+      // Add caching headers for better performance
+      const response = NextResponse.json(actions, { status: 200 });
+      response.headers.set('Cache-Control', 'private, max-age=30'); // Cache for 30 seconds
+      return response;
     }
 
     // Handle different user roles efficiently

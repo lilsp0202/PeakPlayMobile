@@ -252,11 +252,31 @@ export async function GET(request: Request) {
           id: null,
           studentId: student.id,
           studentName: student.studentName,
-          message: "No skills data found"
+          message: "No skills data found",
+          // Include student profile data for nutrition personalization
+          student: {
+            studentName: student.studentName,
+            age: student.age,
+            academy: student.academy,
+            height: student.height,
+            weight: student.weight
+          }
         });
       }
 
-      return NextResponse.json(skills);
+      // Include student profile data for nutrition personalization
+      const responseData = {
+        ...skills,
+        student: {
+          studentName: student.studentName,
+          age: student.age,
+          academy: student.academy,
+          height: student.height,
+          weight: student.weight
+        }
+      };
+
+      return NextResponse.json(responseData);
     }
 
     return NextResponse.json(

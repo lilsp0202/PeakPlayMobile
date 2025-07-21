@@ -674,6 +674,35 @@ export default function Dashboard() {
     // }));
   };
 
+  // Fetch team details data for refresh purposes
+  const fetchTeamDetails = async (teamId: string) => {
+    try {
+      console.log('🔄 Refreshing team details for team:', teamId);
+      
+      const response = await fetch(`/api/teams/${teamId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Team details refreshed:', data.team);
+        
+        setTeamDetailsData({
+          feedback: data.team.feedback || [],
+          actions: data.team.actions || []
+        });
+      } else {
+        console.error('❌ Failed to refresh team details:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Error refreshing team details:', error);
+    }
+  };
+
   // Enhanced team details functionality with better error handling
   const handleViewTeamDetails = async (team: any) => {
     console.log('🏈 Loading team details for:', team.name);
@@ -740,23 +769,42 @@ export default function Dashboard() {
 
   const handleCreateTeamFeedback = async (feedbackData: any) => {
     try {
+      console.log('📝 Creating team feedback for team:', selectedTeamForDetails?.id);
+      
       const response = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...feedbackData,
-          teamId: selectedTeamForDetails?.id,
-          studentIds: selectedTeamForDetails?.members?.map((m: any) => m.studentId) || []
+          teamId: selectedTeamForDetails?.id
+          // Note: API will create feedback for all team members automatically
         })
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Team feedback created:', result);
+        
         setIsTeamFeedbackModalOpen(false);
-        // Refresh teams data if needed
-        fetchTeams();
+        
+        // Refresh all team-related data
+        await Promise.all([
+          fetchTeams(),
+          // Force refresh of team details if modal is open
+          selectedTeamForDetails && fetchTeamDetails(selectedTeamForDetails.id)
+        ]);
+        
+        // Show success message
+        if (result.count) {
+          console.log(`🎉 Created feedback for ${result.count} team members`);
+        }
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create team feedback');
       }
     } catch (error) {
       console.error('Error creating team feedback:', error);
+      alert(`Failed to create team feedback: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -768,23 +816,42 @@ export default function Dashboard() {
 
   const handleCreateTeamAction = async (actionData: any) => {
     try {
+      console.log('⚡ Creating team action for team:', selectedTeamForDetails?.id);
+      
       const response = await fetch('/api/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...actionData,
-          teamId: selectedTeamForDetails?.id,
-          studentIds: selectedTeamForDetails?.members?.map((m: any) => m.studentId) || []
+          teamId: selectedTeamForDetails?.id
+          // Note: API will create actions for all team members automatically
         })
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Team action created:', result);
+        
         setIsTeamActionModalOpen(false);
-        // Refresh teams data if needed
-        fetchTeams();
+        
+        // Refresh all team-related data
+        await Promise.all([
+          fetchTeams(),
+          // Force refresh of team details if modal is open
+          selectedTeamForDetails && fetchTeamDetails(selectedTeamForDetails.id)
+        ]);
+        
+        // Show success message
+        if (result.count) {
+          console.log(`🎉 Created action for ${result.count} team members`);
+        }
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create team action');
       }
     } catch (error) {
       console.error('Error creating team action:', error);
+      alert(`Failed to create team action: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

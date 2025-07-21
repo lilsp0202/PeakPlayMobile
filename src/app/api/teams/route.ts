@@ -77,20 +77,20 @@ export async function GET(request: NextRequest) {
     
     const result = await withTeamsCacheAndDeduplication(cacheKey, async () => {
       console.log(`🔍 Fetching teams data for user: ${session.user.email}`);
-      
-      // Check if user is a coach
-      const coach = await prisma.coach.findUnique({
+
+    // Check if user is a coach
+    const coach = await prisma.coach.findUnique({
         where: { userId: session.user.id },
         select: { id: true, name: true }
-      });
+    });
 
-      // Check if user is a student
-      const student = await prisma.student.findUnique({
+    // Check if user is a student
+    const student = await prisma.student.findUnique({
         where: { userId: session.user.id },
         select: { id: true, studentName: true }
-      });
+    });
 
-      let teams;
+    let teams;
 
     if (coach) {
       // User is a coach - return teams they manage
@@ -183,7 +183,10 @@ export async function GET(request: NextRequest) {
   const totalTime = Date.now() - startTime;
   console.log(`🏈 Teams API completed in ${totalTime}ms`);
   
-  return NextResponse.json(result);
+  // Add caching headers for better performance
+  const response = NextResponse.json(result);
+  response.headers.set('Cache-Control', 'private, max-age=60'); // Cache for 60 seconds
+  return response;
   } catch (error) {
     const totalTime = Date.now() - startTime;
     console.error(`❌ Teams API error after ${totalTime}ms:`, error);
@@ -191,7 +194,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof Error && error.message.includes('User not found')) {
       return NextResponse.json({ error: 'User not found as coach or student' }, { status: 404 });
     }
-    
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

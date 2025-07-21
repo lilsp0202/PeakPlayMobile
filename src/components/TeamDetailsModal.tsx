@@ -175,6 +175,197 @@ export default function TeamDetailsModal({
     };
   };
 
+  const handleViewProof = (proofMediaUrl: string, proofMediaType?: string, proofFileName?: string) => {
+    // Create a proper viewer modal instead of just opening the URL
+    const newWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+    if (newWindow) {
+      const isVideo = proofMediaType?.startsWith('video/') || proofMediaUrl.startsWith('data:video/');
+      const isImage = proofMediaType?.startsWith('image/') || proofMediaUrl.startsWith('data:image/');
+      
+      const content = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Action Proof - ${proofFileName || 'Media'}</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+              body {
+                margin: 0;
+                padding: 20px;
+                background: #f5f5f5;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                box-sizing: border-box;
+              }
+              
+              .header {
+                background: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                margin-bottom: 20px;
+                text-align: center;
+                width: 100%;
+                max-width: 600px;
+              }
+              
+              .header h2 {
+                margin: 0 0 5px 0;
+                color: #333;
+                font-size: 18px;
+              }
+              
+              .header p {
+                margin: 0;
+                color: #666;
+                font-size: 14px;
+              }
+              
+              .media-container {
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                max-width: 90vw;
+                max-height: 70vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+              
+              img {
+                max-width: 100%;
+                max-height: 60vh;
+                height: auto;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              }
+              
+              video {
+                max-width: 100%;
+                max-height: 60vh;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              }
+              
+              .download-link {
+                margin-top: 15px;
+                text-align: center;
+              }
+              
+              .download-link a {
+                color: #3b82f6;
+                text-decoration: none;
+                font-weight: 500;
+                padding: 8px 16px;
+                border: 1px solid #3b82f6;
+                border-radius: 4px;
+                display: inline-block;
+                transition: all 0.2s;
+              }
+              
+              .download-link a:hover {
+                background: #3b82f6;
+                color: white;
+              }
+              
+              .error {
+                color: #dc2626;
+                text-align: center;
+                padding: 20px;
+                background: #fef2f2;
+                border: 1px solid #fecaca;
+                border-radius: 8px;
+              }
+              
+              @media (max-width: 768px) {
+                body {
+                  padding: 10px;
+                }
+                
+                .header {
+                  padding: 10px 15px;
+                }
+                
+                .media-container {
+                  padding: 15px;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h2>Action Proof</h2>
+              <p>${proofFileName || 'Uploaded Media'}</p>
+            </div>
+            
+            <div class="media-container">
+              ${isImage ? `
+                <img src="${proofMediaUrl}" alt="Action proof" onerror="showError()" />
+              ` : isVideo ? `
+                <video controls preload="metadata" onerror="showError()">
+                  <source src="${proofMediaUrl}" type="${proofMediaType || 'video/mp4'}">
+                  Your browser does not support the video tag.
+                </video>
+              ` : `
+                <div class="error">
+                  <p>Unable to display this media type.</p>
+                  <p>File: ${proofFileName || 'Unknown'}</p>
+                </div>
+              `}
+            </div>
+            
+            <div class="download-link">
+              <a href="${proofMediaUrl}" download="${proofFileName || 'proof-media'}">
+                Download File
+              </a>
+            </div>
+            
+            <script>
+              function showError() {
+                document.querySelector('.media-container').innerHTML = \`
+                  <div class="error">
+                    <p><strong>Error loading media</strong></p>
+                    <p>The file may be corrupted or in an unsupported format.</p>
+                    <p>File: ${proofFileName || 'Unknown'}</p>
+                    <p>Type: ${proofMediaType || 'Unknown'}</p>
+                  </div>
+                \`;
+              }
+              
+              // Auto-focus for better UX
+              window.focus();
+            </script>
+          </body>
+        </html>
+      `;
+      
+      newWindow.document.write(content);
+      newWindow.document.close();
+    } else {
+      // Fallback: try direct download if popup blocked
+      const link = document.createElement('a');
+      link.href = proofMediaUrl;
+      link.download = proofFileName || 'proof-media';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const getActionDataForMember = (studentId: string, actionTitle: string) => {
+    // Find the specific action data for this student from the original team data
+    return teamData.actions?.find(action => 
+      action.studentId === studentId && action.title === actionTitle
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -424,42 +615,84 @@ export default function TeamDetailsModal({
                                   Team Member Progress
                                 </h5>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                  {item.memberData.map((memberData: any) => (
-                                    <div
-                                      key={memberData.studentId}
-                                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                                          <FiUser className="w-4 h-4 text-purple-600" />
+                                  {item.memberData.map((memberData: any) => {
+                                    const actionData = viewType === 'actions' 
+                                      ? getActionDataForMember(memberData.studentId, item.title)
+                                      : null;
+                                    
+                                    return (
+                                      <div
+                                        key={memberData.studentId}
+                                        className="p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
+                                      >
+                                        <div className="flex items-center justify-between mb-2">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                              <FiUser className="w-4 h-4 text-purple-600" />
+                                            </div>
+                                            <div>
+                                              <span className="font-medium text-gray-900 block">
+                                                {memberData.student.studentName}
+                                              </span>
+                                              <span className="text-xs text-gray-500">
+                                                {memberData.student.email}
+                                              </span>
+                                            </div>
+                                          </div>
+                                          <div className={`flex items-center gap-2 ${
+                                            viewType === 'feedback' 
+                                              ? getStatusColor(memberData.isAcknowledged)
+                                              : getStatusColor(memberData.isCompleted, memberData.isCompleted)
+                                          }`}>
+                                            {viewType === 'feedback' 
+                                              ? getStatusIcon(memberData.isAcknowledged)
+                                              : getStatusIcon(memberData.isCompleted, memberData.isCompleted)
+                                            }
+                                            <span className="text-sm font-medium">
+                                              {viewType === 'feedback' 
+                                                ? getStatusText(memberData.isAcknowledged)
+                                                : getStatusText(memberData.isCompleted, memberData.isCompleted)
+                                              }
+                                            </span>
+                                          </div>
                                         </div>
-                                        <div>
-                                          <span className="font-medium text-gray-900 block">
-                                            {memberData.student.studentName}
-                                          </span>
-                                          <span className="text-xs text-gray-500">
-                                            {memberData.student.email}
-                                          </span>
-                                        </div>
+                                        
+                                        {/* Proof Section for Actions */}
+                                        {viewType === 'actions' && actionData && (
+                                          <div className="mt-2 flex items-center justify-between">
+                                            {actionData.proofMediaUrl ? (
+                                              <>
+                                                <div className="flex items-center gap-2">
+                                                  <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center">
+                                                    <FiCheck className="w-2.5 h-2.5 text-green-600" />
+                                                  </div>
+                                                  <span className="text-xs text-green-700 font-medium">
+                                                    Proof Uploaded
+                                                  </span>
+                                                </div>
+                                                                                                 <button
+                                                   onClick={() => handleViewProof(actionData.proofMediaUrl!, actionData.proofMediaType, actionData.proofFileName)}
+                                                   className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors font-medium"
+                                                 >
+                                                   <FiEye className="w-3 h-3" />
+                                                   View Proof
+                                                 </button>
+                                              </>
+                                            ) : (
+                                              <div className="flex items-center gap-2">
+                                                <div className="w-4 h-4 bg-gray-100 rounded-full flex items-center justify-center">
+                                                  <FiUpload className="w-2.5 h-2.5 text-gray-400" />
+                                                </div>
+                                                <span className="text-xs text-gray-500">
+                                                  No proof uploaded
+                                                </span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
-                                      <div className={`flex items-center gap-2 ${
-                                        viewType === 'feedback' 
-                                          ? getStatusColor(memberData.isAcknowledged)
-                                          : getStatusColor(memberData.isCompleted, memberData.isCompleted)
-                                      }`}>
-                                        {viewType === 'feedback' 
-                                          ? getStatusIcon(memberData.isAcknowledged)
-                                          : getStatusIcon(memberData.isCompleted, memberData.isCompleted)
-                                        }
-                                        <span className="text-sm font-medium">
-                                          {viewType === 'feedback' 
-                                            ? getStatusText(memberData.isAcknowledged)
-                                            : getStatusText(memberData.isCompleted, memberData.isCompleted)
-                                          }
-                                        </span>
-                                      </div>
-                                    </div>
-                                  ))}
+                                    );
+                                  })}
                                 </div>
                               </div>
                             </div>
