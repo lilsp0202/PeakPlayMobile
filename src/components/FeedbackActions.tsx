@@ -143,9 +143,9 @@ const FeedbackActions = () => {
       return;
     }
 
-    // Avoid fetching too frequently (cache for 30 seconds on normal load, allow force refresh)
+    // Avoid fetching too frequently (cache for 20 seconds on normal load, allow force refresh)
     const now = Date.now();
-    if (!forceRefresh && lastFetch && (now - lastFetch) < 30000) {
+    if (!forceRefresh && lastFetch && (now - lastFetch) < 20000) { // PERFORMANCE: Reduced from 30 seconds to 20 seconds
       fetchInProgress.current = false;
       return;
     }
@@ -167,7 +167,7 @@ const FeedbackActions = () => {
       // SEQUENTIAL REQUESTS: Fetch feedback first, then actions to prevent connection pool exhaustion
       // Create separate controllers for each request with longer timeouts
       console.log('📝 Fetching feedback...');
-      const feedbackResponse = await fetch('/api/feedback?limit=10', {
+      const feedbackResponse = await fetch('/api/feedback?limit=5', { // PERFORMANCE: Reduced from 10 to 5
         method: 'GET',
         headers: {
           'Cache-Control': 'no-cache',
@@ -194,11 +194,11 @@ const FeedbackActions = () => {
       // Update feedback immediately for faster perceived performance
       setFeedback(Array.isArray(feedbackData) ? feedbackData : []);
 
-      // Small delay before actions request to prevent database overload
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // PERFORMANCE: Increase delay between requests to prevent database overload
+      await new Promise(resolve => setTimeout(resolve, 200)); // Increased from 100ms to 200ms
 
       console.log('⚡ Fetching actions...');
-      const actionsResponse = await fetch('/api/actions?limit=10', {
+      const actionsResponse = await fetch('/api/actions?limit=5', { // PERFORMANCE: Reduced from 10 to 5
         method: 'GET',
         headers: {
           'Cache-Control': 'no-cache',

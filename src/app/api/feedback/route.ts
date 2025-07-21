@@ -4,9 +4,32 @@ import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
 import type { Session } from "next-auth";
 
+// PERFORMANCE: Enhanced caching for feedback API
+const feedbackCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+
+const getFeedbackCache = (key: string): any | null => {
+  const item = feedbackCache.get(key);
+  if (!item) return null;
+  
+  if (Date.now() - item.timestamp > item.ttl) {
+    feedbackCache.delete(key);
+    return null;
+  }
+  
+  return item.data;
+};
+
+const setFeedbackCache = (key: string, data: any, ttlMs: number = 30000) => {
+  feedbackCache.set(key, {
+    data,
+    timestamp: Date.now(),
+    ttl: ttlMs
+  });
+};
+
 // Add response caching headers
 const setCacheHeaders = (response: NextResponse) => {
-  response.headers.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=120');
+  response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
   return response;
 };
 
@@ -40,36 +63,49 @@ export async function GET(request: Request) {
     const studentId = searchParams.get('studentId');
     const teamId = searchParams.get('teamId');
     
-    // PERFORMANCE: Add limit and pagination with better defaults
-    const limit = Math.min(parseInt(searchParams.get('limit') || '15'), 25); // Reduced max limit
+    // PERFORMANCE: Reduced initial limit for faster loading
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 15); // Reduced from 15-25 to 10-15
     const offset = parseInt(searchParams.get('offset') || '0');
+    
+    // Create cache key
+    const cacheKey = `feedback:${session.user.id}:${studentId || 'none'}:${teamId || 'none'}:${limit}:${offset}`;
+    
+    // Check cache first
+    const cached = getFeedbackCache(cacheKey);
+    if (cached !== null) {
+      console.log(`⚡ Feedback cache hit for user: ${session.user.email}`);
+      return setCacheHeaders(NextResponse.json(cached, { status: 200 }));
+    }
+    
+    // PERFORMANCE: Minimal select fields for faster queries
+    const minimalFeedbackSelect = {
+      id: true,
+      title: true,
+      content: true,
+      category: true,
+      priority: true,
+      isAcknowledged: true,
+      acknowledgedAt: true,
+      createdAt: true,
+      coach: {
+        select: {
+          name: true,
+          academy: true,
+        },
+      },
+      team: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    };
     
     // If coach is requesting specific student feedback
     if (studentId && session.user.role === "COACH") {
       const feedback = await prisma.feedback.findMany({
         where: { studentId },
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          category: true,
-          priority: true,
-          isAcknowledged: true,
-          acknowledgedAt: true,
-          createdAt: true,
-          coach: {
-            select: {
-              name: true,
-              academy: true,
-            },
-          },
-          team: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
+        select: minimalFeedbackSelect,
         orderBy: {
           createdAt: "desc",
         },
@@ -77,6 +113,7 @@ export async function GET(request: Request) {
         skip: offset,
       });
       
+      setFeedbackCache(cacheKey, feedback);
       const totalTime = Date.now() - startTime;
       console.log(`✅ Coach feedback query completed in ${totalTime}ms`);
       return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
@@ -87,20 +124,7 @@ export async function GET(request: Request) {
       const feedback = await prisma.feedback.findMany({
         where: { teamId },
         select: {
-          id: true,
-          title: true,
-          content: true,
-          category: true,
-          priority: true,
-          isAcknowledged: true,
-          acknowledgedAt: true,
-          createdAt: true,
-          coach: {
-            select: {
-              name: true,
-              academy: true,
-            },
-          },
+          ...minimalFeedbackSelect,
           student: {
             select: {
               id: true,
@@ -108,12 +132,6 @@ export async function GET(request: Request) {
               email: true,
             },
           },
-          team: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
         },
         orderBy: {
           createdAt: "desc",
@@ -122,55 +140,24 @@ export async function GET(request: Request) {
         skip: offset,
       });
       
+      setFeedbackCache(cacheKey, feedback);
       const totalTime = Date.now() - startTime;
       console.log(`✅ Team feedback query completed in ${totalTime}ms`);
       return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
     }
     
-    // PERFORMANCE OPTIMIZATION: For athletes, use optimized two-step approach
+    // PERFORMANCE OPTIMIZATION: For athletes, use single optimized query
     if (session.user.role === "ATHLETE") {
       console.log('🏃‍♂️ Processing athlete feedback request');
       
-      // Step 1: Get student ID efficiently with minimal select
-      const student = await prisma.student.findUnique({
-        where: { userId: session.user.id },
-        select: { id: true }
-      });
-
-      if (!student) {
-        console.log('❌ Student profile not found for user:', session.user.id);
-        return NextResponse.json({ message: "Student profile not found" }, { status: 404 });
-      }
-
-      console.log('✅ Student found:', student.id);
-
-      // Step 2: Query feedback directly using studentId (much faster)
+      // PERFORMANCE: Single query approach - join student and feedback in one query
       const feedback = await prisma.feedback.findMany({
         where: { 
-          studentId: student.id
+          student: {
+            userId: session.user.id
+          }
         },
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          category: true,
-          priority: true,
-          isAcknowledged: true,
-          acknowledgedAt: true,
-          createdAt: true,
-          coach: {
-            select: {
-              name: true,
-              academy: true,
-            },
-          },
-          team: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
+        select: minimalFeedbackSelect,
         orderBy: {
           createdAt: "desc",
         },
@@ -178,64 +165,31 @@ export async function GET(request: Request) {
         skip: offset,
       });
 
+      setFeedbackCache(cacheKey, feedback);
       const totalTime = Date.now() - startTime;
       console.log(`✅ Athlete feedback query completed in ${totalTime}ms - found ${feedback.length} items`);
       
-      // Add caching headers for better performance
-      const response = NextResponse.json(feedback, { status: 200 });
-      response.headers.set('Cache-Control', 'private, max-age=30'); // Cache for 30 seconds
-      return response;
+      return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));
     }
 
-    // Handle different user roles efficiently
+    // Handle coach role efficiently
     if (session.user.role === "COACH") {
       console.log('👨‍🏫 Processing coach feedback request');
       
-      // PERFORMANCE: Get coach profile with minimal data
-      const coach = await prisma.coach.findUnique({
-        where: { userId: session.user.id },
-        select: { 
-          id: true,
-          students: {
-            select: { id: true }
-          }
-        }
-      });
-
-      if (!coach) {
-        console.log('❌ Coach profile not found for user:', session.user.id);
-        return NextResponse.json({ message: "Coach profile not found" }, { status: 404 });
-      }
-
-      // PERFORMANCE: Optimized query for coach's feedback
-      const studentIds = coach.students.map(s => s.id);
-      
+      // PERFORMANCE: Single optimized query for coach feedback
       const feedback = await prisma.feedback.findMany({
         where: {
-          OR: [
-            { coachId: coach.id },
-            { studentId: { in: studentIds } }
-          ]
+          coach: {
+            userId: session.user.id
+          }
         },
         select: {
-          id: true,
-          title: true,
-          content: true,
-          category: true,
-          priority: true,
-          isAcknowledged: true,
-          acknowledgedAt: true,
-          createdAt: true,
-          coach: {
-            select: {
-              name: true,
-              academy: true,
-            },
-          },
-          team: {
+          ...minimalFeedbackSelect,
+          student: {
             select: {
               id: true,
-              name: true,
+              studentName: true,
+              email: true,
             },
           },
         },
@@ -246,6 +200,7 @@ export async function GET(request: Request) {
         skip: offset,
       });
 
+      setFeedbackCache(cacheKey, feedback);
       const totalTime = Date.now() - startTime;
       console.log(`✅ Coach general feedback query completed in ${totalTime}ms`);
       return setCacheHeaders(NextResponse.json(feedback, { status: 200 }));

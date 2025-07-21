@@ -610,20 +610,55 @@ export default function Dashboard() {
     }
   }, [trackViewType, trackFilters, assignedStudents, studentsSubTab]);
 
-  // Team helper functions
-  const fetchTeams = async () => {
+  // Team helper functions - PERFORMANCE OPTIMIZED
+  const fetchTeams = async (includeDetails = false) => {
     setIsLoadingTeams(true);
     try {
-      const response = await fetch('/api/teams?includeMembers=true&includeStats=true');
+      console.log('🏈 Fetching teams (lightweight load)...');
+      // PERFORMANCE: Initial load without heavy data - much faster
+      const response = await fetch(`/api/teams${includeDetails ? '?includeMembers=true&includeStats=true' : ''}`);
       if (response.ok) {
         const data = await response.json();
         setTeams(data.teams || []);
+        console.log(`✅ Teams loaded: ${data.teams?.length || 0} teams`);
       }
     } catch (error) {
       console.error('Error fetching teams:', error);
       setTeams([]);
     } finally {
       setIsLoadingTeams(false);
+    }
+  };
+
+  // PERFORMANCE: Separate function to load detailed team data when needed
+  const fetchTeamDetails = async (teamId: string) => {
+    try {
+      console.log('🔄 Fetching detailed data for team:', teamId);
+      
+      const response = await fetch(`/api/teams/${teamId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Team details loaded:', data.team);
+        
+        setTeamDetailsData({
+          feedback: data.team.feedback || [],
+          actions: data.team.actions || []
+        });
+        
+        return data.team;
+      } else {
+        console.error('❌ Failed to fetch team details:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching team details:', error);
+      throw error;
     }
   };
 
@@ -672,35 +707,6 @@ export default function Dashboard() {
     //     ? prev.memberIds.filter(id => id !== studentId)
     //     : [...prev.memberIds, studentId]
     // }));
-  };
-
-  // Fetch team details data for refresh purposes
-  const fetchTeamDetails = async (teamId: string) => {
-    try {
-      console.log('🔄 Refreshing team details for team:', teamId);
-      
-      const response = await fetch(`/api/teams/${teamId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Team details refreshed:', data.team);
-        
-        setTeamDetailsData({
-          feedback: data.team.feedback || [],
-          actions: data.team.actions || []
-        });
-      } else {
-        console.error('❌ Failed to refresh team details:', response.status);
-      }
-    } catch (error) {
-      console.error('❌ Error refreshing team details:', error);
-    }
   };
 
   // Enhanced team details functionality with better error handling

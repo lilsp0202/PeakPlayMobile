@@ -19,7 +19,7 @@ const getTeamsCache = (key: string): any | null => {
   return item.data;
 };
 
-const setTeamsCache = (key: string, data: any, ttlMs: number = 45000) => {
+const setTeamsCache = (key: string, data: any, ttlMs: number = 30000) => { // Reduced cache time for faster updates
   teamsCache.set(key, {
     data,
     timestamp: Date.now(),
@@ -27,7 +27,7 @@ const setTeamsCache = (key: string, data: any, ttlMs: number = 45000) => {
   });
 };
 
-const withTeamsCacheAndDeduplication = async <T>(key: string, fn: () => Promise<T>, ttlMs: number = 45000): Promise<T> => {
+const withTeamsCacheAndDeduplication = async <T>(key: string, fn: () => Promise<T>, ttlMs: number = 30000): Promise<T> => {
   // Check cache first
   const cached = getTeamsCache(key);
   if (cached !== null) {
@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const coachId = searchParams.get('coachId');
+    // PERFORMANCE: Default to lightweight data, let frontend request details separately
     const includeMembers = searchParams.get('includeMembers') === 'true';
     const includeStats = searchParams.get('includeStats') === 'true';
 
@@ -78,115 +79,143 @@ export async function GET(request: NextRequest) {
     const result = await withTeamsCacheAndDeduplication(cacheKey, async () => {
       console.log(`🔍 Fetching teams data for user: ${session.user.email}`);
 
-    // Check if user is a coach
-    const coach = await prisma.coach.findUnique({
-        where: { userId: session.user.id },
-        select: { id: true, name: true }
-    });
+      // PERFORMANCE: Check user role first with minimal query
+      const [coach, student] = await Promise.all([
+        prisma.coach.findUnique({
+          where: { userId: session.user.id },
+          select: { id: true, name: true }
+        }),
+        prisma.student.findUnique({
+          where: { userId: session.user.id },
+          select: { id: true, studentName: true }
+        })
+      ]);
 
-    // Check if user is a student
-    const student = await prisma.student.findUnique({
-        where: { userId: session.user.id },
-        select: { id: true, studentName: true }
-    });
+      let teams;
 
-    let teams;
-
-    if (coach) {
-      // User is a coach - return teams they manage
-      teams = await prisma.team.findMany({
-        where: {
-          coachId: coachId || coach.id,
-          isActive: true
-        },
-        include: {
-          members: includeMembers ? {
-            include: {
-              student: {
+      if (coach) {
+        // PERFORMANCE: Optimized coach query with minimal data
+        teams = await prisma.team.findMany({
+          where: {
+            coachId: coachId || coach.id,
+            isActive: true
+          },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            createdAt: true,
+            coachId: true,
+            // PERFORMANCE: Only include heavy data if specifically requested
+            ...(includeMembers && {
+              members: {
                 select: {
                   id: true,
-                  studentName: true,
-                  email: true,
-                  academy: true,
-                  sport: true,
-                  role: true
+                  studentId: true,
+                  roles: true,
+                  student: {
+                    select: {
+                      id: true,
+                      studentName: true,
+                      email: true,
+                      academy: true,
+                      sport: true,
+                      role: true
+                    }
+                  }
                 }
               }
-            }
-          } : false,
-          _count: includeStats ? {
-            select: {
-              members: true,
-              feedback: true,
-              actions: true
-            }
-          } : false
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
-    } else if (student) {
-      // User is a student - return teams they are members of
-      teams = await prisma.team.findMany({
-        where: {
-          isActive: true,
-          members: {
-            some: {
-              studentId: student.id
-            }
-          }
-        },
-        include: {
-          coach: {
-            select: {
-              id: true,
-              userId: true,
-              name: true,
-              email: true
+            }),
+            ...(includeStats && {
+              _count: {
+                select: {
+                  members: true,
+                  feedback: true,
+                  actions: true
+                }
+              }
+            })
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 20 // PERFORMANCE: Limit initial results
+        });
+      } else if (student) {
+        // PERFORMANCE: Optimized student query - much faster approach
+        teams = await prisma.team.findMany({
+          where: {
+            isActive: true,
+            members: {
+              some: {
+                studentId: student.id
+              }
             }
           },
-          members: includeMembers ? {
-            include: {
-              student: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            createdAt: true,
+            coachId: true,
+            coach: {
+              select: {
+                id: true,
+                userId: true,
+                name: true,
+                email: true
+              }
+            },
+            // PERFORMANCE: Only include heavy data if specifically requested
+            ...(includeMembers && {
+              members: {
                 select: {
                   id: true,
-                  studentName: true,
-                  email: true,
-                  academy: true,
-                  sport: true,
-                  role: true
+                  studentId: true,
+                  roles: true,
+                  student: {
+                    select: {
+                      id: true,
+                      studentName: true,
+                      email: true,
+                      academy: true,
+                      sport: true,
+                      role: true
+                    }
+                  }
                 }
               }
-            }
-          } : false,
-          _count: includeStats ? {
-            select: {
-              members: true,
-              feedback: true,
-              actions: true
-            }
-          } : false
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
-    } else {
-      throw new Error('User not found as coach or student');
-    }
+            }),
+            ...(includeStats && {
+              _count: {
+                select: {
+                  members: true,
+                  feedback: true,
+                  actions: true
+                }
+              }
+            })
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 20 // PERFORMANCE: Limit initial results
+        });
+      } else {
+        throw new Error('User not found as coach or student');
+      }
 
-    console.log(`✅ Teams data fetched successfully: ${teams.length} teams`);
-    return { teams };
-  }, 45000); // 45 second cache for teams data
+      console.log(`✅ Teams data fetched successfully: ${teams.length} teams`);
+      return { teams };
+    }, 30000); // PERFORMANCE: Reduced cache time for faster updates
 
-  const totalTime = Date.now() - startTime;
-  console.log(`🏈 Teams API completed in ${totalTime}ms`);
-  
-  // Add caching headers for better performance
-  const response = NextResponse.json(result);
-  response.headers.set('Cache-Control', 'private, max-age=60'); // Cache for 60 seconds
-  return response;
+    const totalTime = Date.now() - startTime;
+    console.log(`🏈 Teams API completed in ${totalTime}ms`);
+    
+    // PERFORMANCE: Aggressive caching headers for faster subsequent loads
+    const response = NextResponse.json(result);
+    response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+    return response;
   } catch (error) {
     const totalTime = Date.now() - startTime;
     console.error(`❌ Teams API error after ${totalTime}ms:`, error);
