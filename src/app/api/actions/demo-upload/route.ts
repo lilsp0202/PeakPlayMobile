@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth";
 import { prisma } from "../../../../lib/prisma";
+import { FileStorageService } from "../../../../lib/fileStorage";
 import type { Session } from "next-auth";
 
 export async function POST(request: NextRequest) {
@@ -56,18 +57,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert file to base64 for simple storage (in production, use proper file storage)
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    
-    // For demo purposes, we'll store as base64
-    // In production, you'd upload to S3, Cloudinary, or similar service
-    const base64File = `data:${file.type};base64,${buffer.toString('base64')}`;
+    // Upload to Supabase Storage with optimization
+    let uploadResult;
+    try {
+      if (file.type.startsWith('image/')) {
+        uploadResult = await FileStorageService.uploadImage(file, 'actions', {
+          maxWidth: 1920,
+          quality: 85,
+          generateThumbnail: true
+        });
+      } else {
+        uploadResult = await FileStorageService.uploadVideo(file, 'actions', 50 * 1024 * 1024);
+      }
+    } catch (uploadError) {
+      console.error("Demo media upload error:", uploadError);
+      return NextResponse.json(
+        { message: "Failed to upload demo media to storage" },
+        { status: 500 }
+      );
+    }
     
     const demoMediaData = {
-      demoMediaUrl: base64File,
+      demoMediaUrl: uploadResult.url,
       demoMediaType: file.type.startsWith('image/') ? 'image' : 'video',
-      demoFileName: file.name,
+      demoFileName: uploadResult.fileName,
       demoUploadedAt: new Date(),
     };
 

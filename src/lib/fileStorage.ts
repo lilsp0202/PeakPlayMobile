@@ -1,10 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Missing Supabase environment variables. Please ensure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.');
+  }
+  
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
 
 export interface FileUploadResult {
   url: string;
@@ -52,6 +58,7 @@ export class FileStorageService {
       const filePath = `images/${fileName}`;
       
       // Upload main image to Supabase Storage
+      const supabase = getSupabaseClient();
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(bucketName)
         .upload(filePath, optimizedBuffer, {
@@ -134,6 +141,7 @@ export class FileStorageService {
       const filePath = `videos/${fileName}`;
       
       // Upload to Supabase Storage
+      const supabase = getSupabaseClient();
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(bucketName)
         .upload(filePath, buffer, {
@@ -168,6 +176,7 @@ export class FileStorageService {
    */
   static async deleteFile(fileName: string, bucketName: string = 'media'): Promise<void> {
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase.storage
         .from(bucketName)
         .remove([`images/${fileName}`, `videos/${fileName}`, `thumbnails/${fileName}`]);
