@@ -13,14 +13,6 @@ export const optimizedPrisma = globalForPrisma.prisma ??
       db: {
         url: process.env.DATABASE_URL
       }
-    },
-    // PERFORMANCE: Configure connection pool
-    __internal: {
-      engine: {
-        connectionTimeout: 60000, // 60 seconds
-        maxRequestsPerConnection: 100,
-        maxConnections: 10,
-      }
     }
   });
 
@@ -42,29 +34,21 @@ export class OptimizedQueries {
         academy: true,
         age: true,
         skills: {
-          take: 1,
-          orderBy: { updatedAt: 'desc' },
           select: {
             battingStance: true,
             battingGrip: true,
             battingBalance: true,
-            bowlingAction: true,
-            bowlingRhythm: true,
-            bowlingAccuracy: true,
-            fieldingCatching: true,
-            fieldingThrowing: true,
-            fieldingPositioning: true,
-            footwork: true,
-            handEyeCoordination: true,
-            reactionTime: true,
-            powerHitting: true,
-            timing: true,
-            focus: true,
-            confidence: true,
-            resilience: true,
-            teamwork: true,
-            adaptability: true,
-            workEthic: true,
+            bowlingGrip: true,
+            runUp: true,
+            release: true,
+            flatCatch: true,
+            highCatch: true,
+            throw: true,
+            aim: true,
+            followThrough: true,
+            hipDrive: true,
+            frontFootLanding: true,
+            backFootLanding: true,
             waterIntake: true,
             sleepScore: true,
             moodScore: true,
