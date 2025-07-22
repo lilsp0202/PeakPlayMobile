@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../../lib/auth";
 import { prisma } from "../../../../lib/prisma";
-import { FileStorageService } from "../../../../lib/fileStorage";
 import type { Session } from "next-auth";
 
 export async function POST(request: NextRequest) {
@@ -36,11 +35,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file size (max 50MB)
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    // Validate file size (max 10MB for base64 storage)
+    const maxSize = 10 * 1024 * 1024; // 10MB for base64
     if (file.size > maxSize) {
       return NextResponse.json(
-        { message: "File size must be less than 50MB" },
+        { message: "File size must be less than 10MB" },
         { status: 400 }
       );
     }
@@ -57,30 +56,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upload to Supabase Storage with optimization
-    let uploadResult;
-    try {
-      if (file.type.startsWith('image/')) {
-        uploadResult = await FileStorageService.uploadImage(file, 'actions', {
-          maxWidth: 1920,
-          quality: 85,
-          generateThumbnail: true
-        });
-      } else {
-        uploadResult = await FileStorageService.uploadVideo(file, 'actions', 50 * 1024 * 1024);
-      }
-    } catch (uploadError) {
-      console.error("Demo media upload error:", uploadError);
-      return NextResponse.json(
-        { message: "Failed to upload demo media to storage" },
-        { status: 500 }
-      );
-    }
+    // Convert file to base64 for temporary storage
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const base64File = `data:${file.type};base64,${buffer.toString('base64')}`;
     
     const demoMediaData = {
-      demoMediaUrl: uploadResult.url,
+      demoMediaUrl: base64File,
       demoMediaType: file.type.startsWith('image/') ? 'image' : 'video',
-      demoFileName: uploadResult.fileName,
+      demoFileName: file.name,
       demoUploadedAt: new Date(),
     };
 
