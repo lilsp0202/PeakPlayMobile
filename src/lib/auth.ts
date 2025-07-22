@@ -13,7 +13,7 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials: any) {
         console.log('🔍 Authorize called with credentials:', { email: credentials?.email, password: '***' });
         
         if (!credentials?.email || !credentials?.password) {
@@ -80,7 +80,7 @@ export const authOptions = {
             response_type: "code"
           }
         },
-        profile(profile) {
+        profile(profile: any) {
           return {
             id: profile.sub,
             name: profile.name,
@@ -103,32 +103,32 @@ export const authOptions = {
     secret: process.env.NEXTAUTH_SECRET,
   },
   callbacks: {
-    async signIn({ user, account }: { user: any; account: any }) {
+    async signIn({ user, account }: any) {
       if (account?.provider === "google") {
         try {
           // Check if user already exists
           const existingUser = await prisma.user.findUnique({
-            where: { email: user.email },
+            where: { email: user.email! },
           });
 
           if (!existingUser) {
             // Create new user with Google profile
             const newUser = await prisma.user.create({
               data: {
-                email: user.email,
-                name: user.name,
+                email: user.email!,
+                name: user.name!,
                 image: user.image,
                 role: "ATHLETE", // Default role for Google sign-ups
-                username: user.email.split("@")[0] + "_" + Math.random().toString(36).substr(2, 9), // Generate unique username
+                username: user.email!.split("@")[0] + "_" + Math.random().toString(36).substr(2, 9), // Generate unique username
               },
             });
 
             // Log successful registration
-            await logAuthEvent('GOOGLE_REGISTER', user.email);
+            await logAuthEvent('GOOGLE_REGISTER', user.email!);
             console.log('✅ New Google user created:', newUser.email);
           } else {
             // Log successful login
-            await logAuthEvent('GOOGLE_LOGIN', user.email);
+            await logAuthEvent('GOOGLE_LOGIN', user.email!);
             console.log('✅ Existing Google user signed in:', existingUser.email);
           }
 
@@ -140,7 +140,7 @@ export const authOptions = {
       }
       return true;
     },
-    async jwt({ token, user }: { token: any; user: any }) {
+    async jwt({ token, user }: any) {
       if (user) {
         token.role = user.role;
         token.id = user.id;
@@ -148,7 +148,7 @@ export const authOptions = {
       }
       return token;
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }: any) {
       if (token && token.sub) {
         session.user = {
           ...session.user,
@@ -159,7 +159,7 @@ export const authOptions = {
       }
       return session;
     },
-    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+    async redirect({ url, baseUrl }: any) {
       // Handle dynamic Vercel URLs
       const isVercelUrl = baseUrl.includes('vercel.app');
       const isDevelopment = process.env.NODE_ENV === 'development';
@@ -200,5 +200,4 @@ async function logAuthEvent(event: string, email: string, details?: string) {
   }
 }
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST }; 
+export default NextAuth(authOptions); 
