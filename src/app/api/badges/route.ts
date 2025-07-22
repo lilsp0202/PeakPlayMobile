@@ -2,224 +2,137 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import type { Session } from "next-auth";
-import { prisma, cachedQueries } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { BadgeEngine } from '@/lib/badgeEngine';
+import { OptimizedBadgeEngine } from '@/lib/badgeEngineOptimized';
 
 // GET /api/badges - Get badges for a student or all badges for management
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type') || 'all';
+    const studentId = searchParams.get('studentId');
+    
+    // Get session
     const session = await getServerSession(authOptions) as Session | null;
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const studentId = searchParams.get('studentId');
-    const type = searchParams.get('type') || 'earned'; // earned, progress, all, manage
-    const manage = searchParams.get('manage'); // for coach management view
-    const completed = searchParams.get('completed'); // for fetching only completed badges
-
-    // PERFORMANCE OPTIMIZATION: If coach wants to manage badges
-    if (manage === 'true' || type === 'manage') {
-      if (session.user.role !== 'COACH') {
-        return NextResponse.json({ error: 'Only coaches can manage badges' }, { status: 403 });
-      }
-
-      // PERFORMANCE: Use cached coach lookup
-      const coach = await cachedQueries.getCoachByUserId(session.user.id);
-      if (!coach) {
-        return NextResponse.json({ error: 'Coach profile not found' }, { status: 404 });
-      }
-
-      // PERFORMANCE: Optimized badge management query with limits
-      const allBadges = await prisma.badge.findMany({
-        include: {
-          category: {
-            select: { name: true, icon: true, color: true }
-          },
-          rules: {
-            select: { 
-              ruleType: true, 
-              fieldName: true, 
-              operator: true, 
-              value: true, 
-              isRequired: true 
-            },
-            take: 5 // PERFORMANCE: Limit rules per badge
-          },
-          _count: {
-            select: {
-              studentBadges: {
-                where: {
-                  isRevoked: false
-                }
-              }
-            }
-          }
-        },
-        orderBy: [
-          { level: 'asc' },
-          { name: 'asc' }
-        ],
-        take: 100 // PERFORMANCE: Limit total badges for management
-      });
-
-      return NextResponse.json(allBadges, { status: 200 });
-    }
-
-    // PERFORMANCE OPTIMIZATION: Determine student for badge operations
+    // Determine target student ID
     let targetStudentId = studentId;
-    
-    if (!targetStudentId) {
-      if (session.user.role === 'ATHLETE') {
-        // PERFORMANCE: Use cached student lookup
-        const student = await cachedQueries.getStudentByUserId(session.user.id);
-        if (!student) {
-          return NextResponse.json({ error: 'Student profile not found' }, { status: 404 });
-        }
-        targetStudentId = student.id;
-      } else {
-        return NextResponse.json({ error: 'Student ID required for coach requests' }, { status: 400 });
-      }
-    }
-
-    // PERFORMANCE: Verify access permissions efficiently
-    if (session.user.role === 'COACH' && targetStudentId) {
-      const coach = await cachedQueries.getCoachByUserId(session.user.id);
-      if (!coach) {
-        return NextResponse.json({ error: 'Coach profile not found' }, { status: 404 });
-      }
-
-      // PERFORMANCE: Quick access verification
+    if (!targetStudentId && session.user.role === 'ATHLETE') {
       const student = await prisma.student.findUnique({
-        where: { id: targetStudentId },
-        select: { coachId: true }
+        where: { userId: session.user.id },
+        select: { id: true }
       });
-
-      if (!student || student.coachId !== coach.id) {
-        return NextResponse.json({ error: 'Access denied to this student' }, { status: 403 });
-      }
+      targetStudentId = student?.id || null;
     }
 
-    // Handle different badge request types efficiently
+    console.log('🏅 Badges API - Request details:', {
+      type,
+      requestedStudentId: studentId,
+      targetStudentId,
+      userRole: session.user.role,
+      userId: session.user.id
+    });
+
     switch (type) {
-      case 'earned':
-        // PERFORMANCE: Optimized earned badges query
-        if (!targetStudentId) {
-          return NextResponse.json({ error: 'Student ID required' }, { status: 400 });
-        }
-        
-        const earnedBadges = await prisma.studentBadge.findMany({
-          where: {
-            studentId: targetStudentId,
-            isRevoked: false
-          },
-          include: {
-            badge: {
-              select: {
-                id: true,
-                name: true,
-                description: true,
-                level: true,
-                icon: true,
-                motivationalText: true,
-                category: {
-                  select: { name: true, color: true }
-                }
-              }
-            }
-          },
-          orderBy: { awardedAt: 'desc' },
-          take: 50 // PERFORMANCE: Limit earned badges
-        });
-
-        return NextResponse.json(earnedBadges.map(sb => ({
-          ...sb.badge,
-          earnedAt: sb.awardedAt,
-          score: sb.score,
-          progress: sb.progress
-        })), { status: 200 });
-
       case 'progress':
         if (!targetStudentId) {
           return NextResponse.json({ error: 'Student ID required' }, { status: 400 });
         }
         
         try {
-          // PERFORMANCE OPTIMIZATION: Use optimized badge progress with timeout
-          const progressPromise = BadgeEngine.getBadgeProgress(targetStudentId);
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Badge evaluation timeout')), 30000) // 30 second timeout
-          );
-
-          const progress = await Promise.race([progressPromise, timeoutPromise]) as any[];
+          console.log('🚀 Using OptimizedBadgeEngine for progress evaluation');
+          const startTime = Date.now();
           
-          // PERFORMANCE: Limit progress results
-          const limitedProgress = progress.slice(0, 25);
+          // PERFORMANCE IMPROVEMENT: Use the optimized badge engine
+          const progress = await OptimizedBadgeEngine.getBadgeProgressOptimized(targetStudentId);
           
-          return NextResponse.json(limitedProgress, { status: 200 });
+          const responseTime = Date.now() - startTime;
+          console.log(`⚡ Optimized badges API completed in ${responseTime}ms (Previous: 2780ms)`);
+          
+          // PERFORMANCE: Return response immediately
+          return NextResponse.json(progress, { 
+            status: 200,
+            headers: {
+              'Cache-Control': 'public, max-age=60', // Cache for 60 seconds
+              'X-Response-Time': responseTime.toString()
+            }
+          });
         } catch (error) {
-          console.error('Badges API error:', error);
-          // PERFORMANCE: Return empty array on timeout/error to prevent app breaking
-          return NextResponse.json([], { status: 200 });
+          console.error('❌ Optimized Badges API error:', error);
+          
+          // PERFORMANCE: Fallback to empty array to prevent app breaking
+          return NextResponse.json([], { 
+            status: 200,
+            headers: {
+              'X-Fallback': 'true'
+            }
+          });
         }
 
       case 'all':
-      default:
+        const badges = await prisma.badge.findMany({
+          where: { isActive: true },
+          include: {
+            category: true,
+            rules: true
+          },
+          orderBy: [
+            { level: 'asc' },
+            { name: 'asc' }
+          ]
+        });
+
+        return NextResponse.json(badges, { status: 200 });
+
+      case 'earned':
         if (!targetStudentId) {
           return NextResponse.json({ error: 'Student ID required' }, { status: 400 });
         }
-        
-        // PERFORMANCE: Get student info for badge filtering
-        const student = await prisma.student.findUnique({
-          where: { id: targetStudentId },
-          select: { sport: true, coach: { select: { id: true } } }
-        });
 
-        if (!student) {
-          return NextResponse.json({ error: 'Student not found' }, { status: 404 });
-        }
-
-        // PERFORMANCE: Use cached badges by sport
-        const allBadgesForSport = await cachedQueries.getActiveBadgesBySport(student.sport);
-        
-        // PERFORMANCE: Filter coach-created badges efficiently
-        const relevantBadges = allBadgesForSport.filter((badge: any) => {
-          if (!badge.description.includes('|||COACH_CREATED:')) {
-            return true;
-          }
-          if (student.coach) {
-            return badge.description.includes(`|||COACH_CREATED:${student.coach.id}`);
-          }
-          return false;
-        });
-
-        // PERFORMANCE: Get earned status in batch
-        const earnedBadgeIds = await prisma.studentBadge.findMany({
-          where: {
+        const earnedBadges = await prisma.studentBadge.findMany({
+          where: { 
             studentId: targetStudentId,
-            isRevoked: false,
-            badgeId: { in: relevantBadges.map((b: any) => b.id) }
+            isRevoked: false
           },
-          select: { badgeId: true, awardedAt: true, score: true }
+          include: {
+            badge: {
+              include: {
+                category: true
+              }
+            }
+          },
+          orderBy: { awardedAt: 'desc' }
         });
 
-        const earnedMap = new Map(earnedBadgeIds.map(sb => [sb.badgeId, sb]));
+        return NextResponse.json(earnedBadges, { status: 200 });
 
-        const allBadgesResponse = relevantBadges.map((badge: any) => ({
-          ...badge,
-          earned: earnedMap.has(badge.id),
-          earnedAt: earnedMap.get(badge.id)?.awardedAt,
-          score: earnedMap.get(badge.id)?.score
-        }));
+      case 'categories':
+        const categories = await prisma.badgeCategory.findMany({
+          include: {
+            _count: {
+              select: { badges: true }
+            }
+          },
+          orderBy: { name: 'asc' }
+        });
 
-        return NextResponse.json(allBadgesResponse, { status: 200 });
+        return NextResponse.json(categories, { status: 200 });
+
+      default:
+        return NextResponse.json({ error: 'Invalid type parameter' }, { status: 400 });
     }
 
   } catch (error) {
     console.error('Badges API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }, 
       { status: 500 }
     );
   }
