@@ -180,3 +180,133 @@ export async function PATCH(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 } 
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions) as Session | null;
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const resolvedParams = await params;
+    const teamId = resolvedParams.id;
+    const { roleUpdates } = await request.json();
+
+    // Validate input
+    if (!Array.isArray(roleUpdates) || roleUpdates.length === 0) {
+      return NextResponse.json({ error: 'Invalid input: roleUpdates must be a non-empty array' }, { status: 400 });
+    }
+
+    // Get coach info
+    const coach = await prisma.coach.findUnique({
+      where: { userId: session.user.id }
+    });
+
+    if (!coach) {
+      return NextResponse.json({ error: 'Coach not found' }, { status: 404 });
+    }
+
+    // Verify team ownership
+    const team = await prisma.team.findUnique({
+      where: {
+        id: teamId,
+        coachId: coach.id
+      },
+      include: {
+        members: {
+          include: {
+            student: {
+              select: {
+                id: true,
+                studentName: true,
+                email: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!team) {
+      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+    }
+
+    // Validate all role updates
+    const validRoles = ['CAPTAIN', 'VICE_CAPTAIN', 'BATSMAN', 'ALL_ROUNDER', 'BATTING_ALL_ROUNDER', 'BOWLING_ALL_ROUNDER', 'BOWLER', 'WICKET_KEEPER'];
+    
+    for (const update of roleUpdates) {
+      if (!update.studentId || !Array.isArray(update.roles)) {
+        return NextResponse.json({ error: 'Each role update must have studentId and roles array' }, { status: 400 });
+      }
+
+      const invalidRoles = update.roles.filter((role: string) => !validRoles.includes(role));
+      if (invalidRoles.length > 0) {
+        return NextResponse.json({ error: `Invalid roles: ${invalidRoles.join(', ')}` }, { status: 400 });
+      }
+    }
+
+    // Check for conflicting leadership roles across all updates
+    const captainUpdates = roleUpdates.filter(update => update.roles.includes('CAPTAIN'));
+    const viceCaptainUpdates = roleUpdates.filter(update => update.roles.includes('VICE_CAPTAIN'));
+
+    if (captainUpdates.length > 1) {
+      return NextResponse.json({ error: 'Only one captain can be assigned per team' }, { status: 400 });
+    }
+
+    if (viceCaptainUpdates.length > 1) {
+      return NextResponse.json({ error: 'Only one vice captain can be assigned per team' }, { status: 400 });
+    }
+
+    // Perform batch update using transaction
+    const updatedMembers = await prisma.$transaction(async (tx) => {
+      const results = [];
+      
+      for (const update of roleUpdates) {
+        const updatedMember = await tx.teamMember.update({
+          where: {
+            teamId_studentId: {
+              teamId: teamId,
+              studentId: update.studentId
+            }
+          },
+          data: {
+            roles: update.roles
+          },
+          include: {
+            student: {
+              select: {
+                id: true,
+                studentName: true,
+                email: true,
+                academy: true,
+                sport: true,
+                user: {
+                  select: {
+                    image: true
+                  }
+                }
+              }
+            }
+          }
+        });
+        
+        results.push(updatedMember);
+      }
+      
+      return results;
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      updatedCount: updatedMembers.length,
+      members: updatedMembers 
+    });
+  } catch (error) {
+    console.error('Error batch updating team member roles:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+} 

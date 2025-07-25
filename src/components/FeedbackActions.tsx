@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useSession, signOut, signIn } from 'next-auth/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiMessageSquare, FiCheckSquare, FiClock, FiUser, FiCalendar, FiCheck, FiX, FiUpload, FiEye, FiRefreshCw, FiAlertCircle, FiLogIn } from 'react-icons/fi';
-import ActionProofUpload from './ActionProofUpload';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { AnimatePresence, motion } from "framer-motion";
+import { FiCheck, FiUpload, FiPlay, FiRefreshCw, FiFilter, FiChevronLeft, FiChevronRight, FiEye } from "react-icons/fi";
+import ActionProofUpload from "./ActionProofUpload";
+import OptimizedMediaViewer from "./OptimizedMediaViewer";
+import InlineMediaViewer from "./InlineMediaViewer";
 
 interface FeedbackItem {
   id: string;
@@ -35,16 +37,18 @@ interface ActionItem {
   completedAt?: string;
   isAcknowledged: boolean;
   acknowledgedAt?: string;
-  // Student proof upload fields
-  proofMediaUrl?: string;
+  // Student proof upload fields (URLs lazy-loaded via API)
   proofMediaType?: string;
   proofFileName?: string;
   proofUploadedAt?: string;
-  // Coach demo media fields
-  demoMediaUrl?: string;
+  proofFileSize?: number;
+  proofUploadMethod?: string;
+  // Coach demo media fields (URLs lazy-loaded via API)
   demoMediaType?: string;
   demoFileName?: string;
   demoUploadedAt?: string;
+  demoFileSize?: number;
+  demoUploadMethod?: string;
   createdAt: string;
   coach: {
     name: string;
@@ -53,6 +57,22 @@ interface ActionItem {
   team?: {
     name: string;
   };
+}
+
+interface TrackPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+interface TrackResponse {
+  data: (FeedbackItem | ActionItem)[];
+  totalTime: number;
+  count: number;
+  pagination: TrackPagination;
 }
 
 const FeedbackActions = () => {
@@ -68,9 +88,61 @@ const FeedbackActions = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [authRetryCount, setAuthRetryCount] = useState(0);
   
+  // PERFORMANCE: Track API pagination and filtering state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8); // PERFORMANCE: Smaller initial page size for faster load
+  const [trackPagination, setTrackPagination] = useState<TrackPagination | null>(null);
+    const [filters, setFilters] = useState({
+    student: 'all',
+    category: 'all',
+    priority: 'all',
+    status: 'all',
+    dateRange: 'week'  // PERFORMANCE: Start with 'week' for faster initial load, coaches can expand if needed
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const [loadingType, setLoadingType] = useState<'feedback' | 'actions' | null>(null);
+  const [performanceMetrics, setPerformanceMetrics] = useState<{ totalTime?: number } | null>(null);
+  
+  // PERFORMANCE: Client-side caching to prevent redundant API calls
+  const [dataCache, setDataCache] = useState<{
+    feedback: { data: FeedbackItem[], pagination: TrackPagination, timestamp: number } | null,
+    actions: { data: ActionItem[], pagination: TrackPagination, timestamp: number } | null
+  }>({ feedback: null, actions: null });
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+  
   // Upload modal state
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadingActionId, setUploadingActionId] = useState<string | null>(null);
+  
+  // Video modal state (kept for backwards compatibility)
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [currentMedia, setCurrentMedia] = useState<{
+    url: string;
+    type: string;
+    fileName: string;
+  } | null>(null);
+
+  // Inline media viewer state - optimized for performance
+  const [openInlineViewers, setOpenInlineViewers] = useState<Set<string>>(new Set());
+
+  // Handle keyboard events for modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showVideoModal) {
+        setShowVideoModal(false);
+      }
+    };
+
+    if (showVideoModal) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showVideoModal]);
 
   // Ref to track if fetch is in progress to prevent duplicate requests
   const fetchInProgress = useRef(false);
@@ -106,34 +178,17 @@ const FeedbackActions = () => {
       console.log(`🔄 Authentication error - attempting refresh (${authRetryCount + 1}/2)`);
       const refreshSuccess = await refreshSession();
       if (refreshSuccess) {
-        // Retry the original request after successful refresh
-        setTimeout(() => fetchFeedbackAndActions(true), 1000);
+        setTimeout(() => fetchData(activeTab, true), 1000);
         return;
       }
     }
     
-    // If refresh failed or max retries reached, show sign-in prompt
     setError('Your session has expired. Please sign in again to continue.');
     setIsLoading(false);
-  }, [authRetryCount, refreshSession]);
+  }, [authRetryCount, refreshSession, activeTab]);
 
-  // Wait for session to be ready before attempting to fetch
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user?.email) {
-      console.log('✅ Session authenticated, fetching feedback and actions...');
-      fetchFeedbackAndActions();
-    } else if (status === 'unauthenticated') {
-      console.log('❌ User not authenticated');
-      setError('Please sign in to view feedback and actions');
-      setIsLoading(false);
-    } else if (status === 'loading') {
-      console.log('⏳ Session loading...');
-      setIsLoading(true);
-    }
-  }, [status, session]);
-
-  // PERFORMANCE: Enhanced fetch with request deduplication to prevent database connection exhaustion
-  const fetchFeedbackAndActions = useCallback(async (forceRefresh = false) => {
+  // PERFORMANCE: Enhanced fetch function with role-based API selection and caching
+  const fetchData = useCallback(async (type: 'feedback' | 'actions', forceRefresh = false, page = 1) => {
     if (status !== 'authenticated' || !session) {
       if (status === 'unauthenticated') {
         setError('Authentication required - please sign in');
@@ -143,14 +198,29 @@ const FeedbackActions = () => {
       return;
     }
 
-    // Avoid fetching too frequently (cache for 20 seconds on normal load, allow force refresh)
+    // PERFORMANCE: Check cache first (unless forced refresh)
     const now = Date.now();
-    if (!forceRefresh && lastFetch && (now - lastFetch) < 20000) { // PERFORMANCE: Reduced from 30 seconds to 20 seconds
+    const cached = dataCache[type];
+    if (!forceRefresh && cached && (now - cached.timestamp) < CACHE_DURATION) {
+      console.log(`🚀 Using cached ${type} data (${Math.round((now - cached.timestamp) / 1000)}s old)`);
+      if (type === 'feedback') {
+        setFeedback(cached.data as FeedbackItem[]);
+      } else {
+        setActions(cached.data as ActionItem[]);
+      }
+      setTrackPagination(cached.pagination);
+      setIsLoading(false);
       fetchInProgress.current = false;
       return;
     }
 
-    // CRITICAL: Prevent multiple simultaneous requests to avoid database connection pool exhaustion
+    // Avoid fetching too frequently unless forced
+    if (!forceRefresh && lastFetch && (now - lastFetch) < 15000) {
+      fetchInProgress.current = false;
+      return;
+    }
+
+    // Prevent multiple simultaneous requests
     if (fetchInProgress.current && !forceRefresh) {
       console.log('🔒 Request already in progress, skipping duplicate request');
       return;
@@ -159,15 +229,31 @@ const FeedbackActions = () => {
     fetchInProgress.current = true;
 
     try {
+      setLoadingType(type);
+      if (page === 1) {
       setIsLoading(true);
+      }
       setError(null);
       
-      console.log('🚀 Fetching feedback and actions...');
+      const userRole = (session.user as any)?.role;
+      console.log(`🚀 Fetching ${type} data for ${userRole}...`);
 
-      // SEQUENTIAL REQUESTS: Fetch feedback first, then actions to prevent connection pool exhaustion
-      // Create separate controllers for each request with longer timeouts
-      console.log('📝 Fetching feedback...');
-      const feedbackResponse = await fetch('/api/feedback?limit=5', { // PERFORMANCE: Reduced from 10 to 5
+      let response: Response;
+
+      if (userRole === 'COACH') {
+        // Use Track API for coaches (existing behavior)
+        const queryParams = new URLSearchParams({
+          type,
+          page: page.toString(),
+          limit: pageSize.toString(),
+          student: filters.student,
+          category: filters.category,
+          priority: filters.priority,
+          status: filters.status,
+          dateRange: filters.dateRange
+        });
+
+        response = await fetch(`/api/track?${queryParams}`, {
         method: 'GET',
         headers: {
           'Cache-Control': 'no-cache',
@@ -176,29 +262,47 @@ const FeedbackActions = () => {
         credentials: 'include',
       });
 
-      // Check for authentication errors early
-      if (feedbackResponse.status === 401) {
-        console.log('🔐 Authentication error detected in feedback - handling...');
+        if (response.status === 401) {
+          console.log('🔐 Authentication error detected - handling...');
         fetchInProgress.current = false;
         await handleAuthError();
         return;
       }
 
-      if (!feedbackResponse.ok) {
-        throw new Error(`Feedback API error: ${feedbackResponse.status}`);
-      }
+        if (!response.ok) {
+          throw new Error(`Track API error: ${response.status}`);
+        }
 
-      const feedbackData = await feedbackResponse.json();
-      console.log(`✅ Feedback fetched: ${feedbackData.length || 0} items`);
-      
-      // Update feedback immediately for faster perceived performance
-      setFeedback(Array.isArray(feedbackData) ? feedbackData : []);
-
-      // PERFORMANCE: Increase delay between requests to prevent database overload
-      await new Promise(resolve => setTimeout(resolve, 200)); // Increased from 100ms to 200ms
-
-      console.log('⚡ Fetching actions...');
-      const actionsResponse = await fetch('/api/actions?limit=5', { // PERFORMANCE: Reduced from 10 to 5
+        const trackData: TrackResponse = await response.json();
+        console.log(`✅ Coach ${type} data fetched in ${trackData.totalTime}ms - ${trackData.count}/${trackData.pagination.total} items`);
+        
+        // Update performance metrics
+        setPerformanceMetrics({ totalTime: trackData.totalTime });
+        
+        // Update pagination state
+        setTrackPagination(trackData.pagination);
+        setCurrentPage(page);
+        
+        // Update data based on type
+        if (type === 'feedback') {
+          setFeedback(trackData.data as FeedbackItem[]);
+        } else {
+          setActions(trackData.data as ActionItem[]);
+        }
+        
+        // PERFORMANCE: Update cache for faster subsequent loads
+        setDataCache(prev => ({
+          ...prev,
+          [type]: {
+            data: trackData.data,
+            pagination: trackData.pagination,
+            timestamp: now
+          }
+        }));
+      } else {
+        // PERFORMANCE: Use new optimized Actions API for athletes with pagination
+        if (type === 'feedback') {
+          response = await fetch('/api/feedback', {
         method: 'GET',
         headers: {
           'Cache-Control': 'no-cache',
@@ -207,71 +311,188 @@ const FeedbackActions = () => {
         credentials: 'include',
       });
 
-      if (actionsResponse.status === 401) {
-        console.log('🔐 Authentication error detected in actions - handling...');
+          if (response.status === 401) {
+            console.log('🔐 Authentication error detected - handling...');
         fetchInProgress.current = false;
         await handleAuthError();
         return;
       }
 
-      if (!actionsResponse.ok) {
-        console.error(`Actions API error: ${actionsResponse.status} ${actionsResponse.statusText}`);
-        throw new Error(`Actions API error: ${actionsResponse.status}`);
+          if (!response.ok) {
+            throw new Error(`Feedback API error: ${response.status}`);
+          }
+
+          const feedbackData = await response.json();
+          console.log(`✅ Athlete feedback data fetched - ${feedbackData.length} items`);
+          setFeedback(feedbackData);
+          
+          // Set mock pagination for athletes (no pagination in direct API)
+          const mockPagination = {
+            page: 1,
+            limit: pageSize,
+            total: feedbackData.length,
+            totalPages: 1,
+            hasNextPage: false,
+            hasPrevPage: false
+          };
+          setTrackPagination(mockPagination);
+          
+          // PERFORMANCE: Update cache for athletes
+          setDataCache(prev => ({
+            ...prev,
+            feedback: {
+              data: feedbackData,
+              pagination: mockPagination,
+              timestamp: now
+            }
+          }));
+        } else {
+          // PERFORMANCE: Use new optimized Actions API with pagination and filters
+          const queryParams = new URLSearchParams({
+            page: page.toString(),
+            limit: pageSize.toString(),
+            category: filters.category !== 'all' ? filters.category : '',
+            priority: filters.priority !== 'all' ? filters.priority : '',
+            status: filters.status !== 'all' ? filters.status : ''
+          });
+
+          // Remove empty params
+          for (const [key, value] of queryParams.entries()) {
+            if (!value) queryParams.delete(key);
+          }
+
+          const apiUrl = `/api/actions${queryParams.toString() ? `?${queryParams}` : ''}`;
+          
+          response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+          });
+
+          if (response.status === 401) {
+            console.log('🔐 Authentication error detected - handling...');
+            fetchInProgress.current = false;
+            await handleAuthError();
+            return;
+          }
+
+          if (!response.ok) {
+            throw new Error(`Actions API error: ${response.status}`);
+          }
+
+          const actionsResult = await response.json();
+          console.log(`✅ Athlete actions data fetched - ${actionsResult.actions?.length || 0}/${actionsResult.pagination?.total || 0} items`);
+          
+          // PERFORMANCE: Handle new API format with actions and pagination
+          const actionsData = actionsResult.actions || actionsResult || [];
+          const paginationData = actionsResult.pagination || {
+            total: actionsData.length,
+            totalPages: 1,
+            currentPage: 1,
+            hasNext: false,
+            hasPrev: false
+          };
+          
+          setActions(actionsData);
+          setTrackPagination(paginationData);
+          setCurrentPage(page);
+          
+          // PERFORMANCE: Update cache for athlete actions
+          setDataCache(prev => ({
+            ...prev,
+            actions: {
+              data: actionsData,
+              pagination: paginationData,
+              timestamp: now
+            }
+          }));
+        }
       }
 
-      const actionsData = await actionsResponse.json();
-      console.log(`✅ Actions fetched: ${actionsData.length || 0} items`);
-
-      // Reset retry count on success
+      // Reset retry counts on success
       setRetryCount(0);
       setAuthRetryCount(0);
-      
-      // Update actions
-      setActions(Array.isArray(actionsData) ? actionsData : []);
       setLastFetch(now);
 
-      console.log('🎉 All data loaded successfully');
+      console.log(`🎉 ${type} data loaded successfully for ${userRole}`);
     } catch (error) {
-      console.error('❌ Error fetching feedback and actions:', error);
+      console.error(`❌ Error fetching ${type} data:`, error);
       
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          setError('Request timed out. The server is taking longer than expected. Please try again.');
+          setError('Request timed out. Please try again.');
         } else if (error.message.includes('Session expired') || error.message.includes('401')) {
           fetchInProgress.current = false;
           await handleAuthError();
           return;
         } else {
-          setError(`Failed to load data: ${error.message}`);
+          setError(`Failed to load ${type}: ${error.message}`);
         }
       } else {
-        setError('Failed to load feedback and actions');
+        setError(`Failed to load ${type} data`);
       }
       
-      // Increment retry count for exponential backoff
       setRetryCount(prev => prev + 1);
     } finally {
       setIsLoading(false);
+      setLoadingType(null);
       fetchInProgress.current = false;
     }
-  }, [lastFetch, status, session, handleAuthError]);
+  }, [lastFetch, status, session, handleAuthError, pageSize, filters]);
+
+  // Wait for session to be ready before attempting to fetch
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.email) {
+      console.log('✅ Session authenticated, fetching track data...');
+      fetchData(activeTab);
+    } else if (status === 'unauthenticated') {
+      console.log('❌ User not authenticated');
+      setError('Please sign in to view feedback and actions');
+      setIsLoading(false);
+    } else if (status === 'loading') {
+      console.log('⏳ Session loading...');
+      setIsLoading(true);
+    }
+  }, [status, session, activeTab, fetchData]);
+
+  // Handle tab changes with data fetching
+  const handleTabChange = useCallback((newTab: 'feedback' | 'actions') => {
+    setActiveTab(newTab);
+    setCurrentPage(1); // Reset to first page
+    fetchData(newTab, true, 1);
+  }, [fetchData]);
+
+  // Handle pagination changes
+  const handlePageChange = useCallback((newPage: number) => {
+    if (newPage >= 1 && trackPagination && newPage <= trackPagination.totalPages) {
+      fetchData(activeTab, false, newPage);
+    }
+  }, [activeTab, trackPagination, fetchData]);
+
+  // Handle filter changes
+  const handleFilterChange = useCallback((filterKey: string, value: string) => {
+    setFilters(prev => ({ ...prev, [filterKey]: value }));
+    setCurrentPage(1); // Reset to first page when filters change
+    // Debounce the API call
+    setTimeout(() => fetchData(activeTab, true, 1), 300);
+  }, [activeTab, fetchData]);
 
   // Manual refresh with exponential backoff
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    
-    // Reset auth retry count on manual refresh
     setAuthRetryCount(0);
     
-    // Exponential backoff delay based on retry count
     const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
     if (delay > 1000) {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
     
-    await fetchFeedbackAndActions(true);
+    await fetchData(activeTab, true, currentPage);
     setIsRefreshing(false);
-  }, [fetchFeedbackAndActions, retryCount]);
+  }, [fetchData, retryCount, activeTab, currentPage]);
 
   // Handle sign in redirect
   const handleSignIn = useCallback(() => {
@@ -348,8 +569,8 @@ const FeedbackActions = () => {
     setShowUploadModal(false);
     setUploadingActionId(null);
     // Refresh the actions list
-    fetchFeedbackAndActions(true);
-  }, [fetchFeedbackAndActions]);
+    fetchData('actions', true, currentPage);
+  }, [fetchData, currentPage]);
 
   // PERFORMANCE: Optimized complete action with optimistic updates
   const handleCompleteAction = useCallback(async (actionId: string) => {
@@ -358,7 +579,6 @@ const FeedbackActions = () => {
       return;
     }
 
-    // Add confirmation dialog
     const confirmed = window.confirm("Are you sure you want to mark this action as completed?");
     if (!confirmed) {
       return;
@@ -416,216 +636,320 @@ const FeedbackActions = () => {
     }
   }, [status, session]);
 
-  const viewProofMedia = (mediaUrl: string) => {
-    window.open(mediaUrl, '_blank');
-  };
+  const [loadingMedia, setLoadingMedia] = useState<string | null>(null);
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'HIGH':
-        return 'bg-red-100 text-red-700 border-red-200';
-      case 'MEDIUM':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'LOW':
-        return 'bg-green-100 text-green-700 border-green-200';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+  // PERFORMANCE OPTIMIZED: Lazy-load media URLs only when user requests viewing
+  const viewProofMedia = async (actionId: string, mediaType: 'demo' | 'proof', fileName?: string) => {
+    if (loadingMedia === `${actionId}-${mediaType}`) {
+      return;
+    }
+
+    setLoadingMedia(`${actionId}-${mediaType}`);
+    
+    try {
+      console.log(`🎥 LAZY LOAD: Fetching ${mediaType} media URL for action:`, actionId);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // Shorter 3-second timeout for better UX
+      
+      const response = await fetch(`/api/actions/${actionId}/media`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=300', // 5 min cache
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Media fetch failed:', { status: response.status, error: errorData });
+        
+        if (response.status === 401) {
+          alert('❌ Please log in again to view media.');
+          window.location.href = '/auth/signin';
+          return;
+        }
+        
+        if (response.status === 403) {
+          alert('❌ You do not have permission to view this media.');
+          return;
+        }
+        
+        if (response.status === 404) {
+          alert(`❌ ${mediaType === 'demo' ? 'Demo video not available.' : 'Proof media not uploaded yet.'}`);
+          return;
+        }
+        
+        throw new Error(`HTTP ${response.status}: ${errorData.message || 'Failed to fetch media'}`);
+      }
+      
+      const mediaData = await response.json();
+      const mediaInfo = mediaType === 'demo' ? mediaData.demoMedia : mediaData.proofMedia;
+      
+      console.log(`🎥 Media URL loaded in ${mediaData.performance?.totalTime || 'unknown'}ms:`, {
+        hasMediaInfo: !!mediaInfo,
+        mediaType: mediaType,
+        hasUrl: !!mediaInfo?.url,
+        type: mediaInfo?.type,
+        fileName: mediaInfo?.fileName,
+        fileSize: mediaInfo?.fileSize ? `${Math.round(mediaInfo.fileSize / 1024)}KB` : 'unknown'
+      });
+      
+      if (!mediaInfo || !mediaInfo.url || mediaInfo.url === 'base64_data_processed' || mediaInfo.url === 'base64_stored') {
+        alert(`❌ ${mediaType === 'demo' ? 'Demo video not available from coach.' : 'Please upload your proof media.'}`);
+        return;
+      }
+
+      setCurrentMedia({
+        url: mediaInfo.url,
+        type: mediaInfo.type || 'video/mp4',
+        fileName: mediaInfo.fileName || `${mediaType}_${fileName || 'media'}`
+      });
+      setShowVideoModal(true);
+      
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        alert(`❌ Media loading timed out. Please try again.`);
+      } else {
+        console.error(`❌ Error viewing ${mediaType} media:`, error);
+        alert(`Failed to load ${mediaType} media. Please try again.`);
+      }
+    } finally {
+      setLoadingMedia(null);
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category.toLowerCase()) {
-      case 'training':
-        return 'bg-blue-100 text-blue-700';
-      case 'preparation':
-        return 'bg-purple-100 text-purple-700';
-      case 'recovery':
-        return 'bg-green-100 text-green-700';
-      case 'nutrition':
-        return 'bg-orange-100 text-orange-700';
-      case 'mental':
-        return 'bg-pink-100 text-pink-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
+  // Inline media viewer handlers - optimized for performance
+  const openInlineViewer = useCallback((actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    setOpenInlineViewers(prev => new Set(prev).add(viewerId));
+  }, []);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+  const closeInlineViewer = useCallback((actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    setOpenInlineViewers(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(viewerId);
+      return newSet;
     });
-  };
+  }, []);
 
-  const isOverdue = (dueDate: string) => {
-    return new Date(dueDate) < new Date();
-  };
+  const isInlineViewerOpen = useCallback((actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    return openInlineViewers.has(viewerId);
+  }, [openInlineViewers]);
 
-  // PERFORMANCE: Show loading only on initial load or when no cached data
+  // Loading state
   if (status === 'loading') {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Loading session...</span>
-        </div>
+      <div className="flex flex-col items-center justify-center py-12 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mb-4"></div>
+        <p className="text-indigo-700 font-medium">Loading session...</p>
       </div>
     );
   }
 
-  if (isLoading && !feedback.length && !actions.length) {
+  // Authentication error state
+  if (error && error.includes('session')) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-gray-900">Feedback & Actions</h3>
-          <div className="flex space-x-2">
-            <div className="h-8 w-20 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-8 w-20 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-        </div>
-        <div className="space-y-4">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse"></div>
-          ))}
-        </div>
-        <div className="text-center text-sm text-gray-500 mt-4">
-          Loading your feedback and actions...
-          <br />
-          <span className="text-xs text-gray-400">
-            Initial load may take a few moments while we optimize your data
-          </span>
-        </div>
+      <div className="text-center py-12 bg-gradient-to-br from-red-50 to-orange-100 rounded-xl">
+        <p className="text-red-700 mb-4">{error}</p>
+        <button 
+          onClick={handleSignIn}
+          className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          Sign In
+        </button>
       </div>
     );
   }
-
-  if (error) {
-    const isAuthError = error.includes('session') || error.includes('Authentication') || error.includes('sign in');
     
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="text-center py-12">
-          <FiAlertCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-          <div className="text-red-600 text-lg mb-2">Unable to Load</div>
-          <p className="text-gray-600 mb-6 max-w-md mx-auto">{error}</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            {isAuthError ? (
-              <>
+    <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+      {/* Header with tabs and controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+          <div className="flex bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
                 <button
-                  onClick={handleSignIn}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                >
-                  <FiLogIn className="w-4 h-4" />
-                  Sign In
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                >
-                  <FiRefreshCw className="w-4 h-4" />
-                  Sign Out & Refresh
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-colors ${
-                  isRefreshing 
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-              >
-                <FiRefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {isRefreshing ? 'Retrying...' : 'Try Again'}
-              </button>
-            )}
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+              onClick={() => handleTabChange('feedback')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex-1 sm:flex-none ${
+                activeTab === 'feedback'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
             >
-              Refresh Page
-            </button>
+              Feedback
+              {unreadFeedback.length > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                  {unreadFeedback.length}
+                </span>
+              )}
+                </button>
+                <button
+              onClick={() => handleTabChange('actions')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex-1 sm:flex-none ${
+                activeTab === 'actions'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Actions
+              {pendingActions.length > 0 && (
+                <span className="ml-2 bg-orange-500 text-white text-xs rounded-full px-2 py-0.5">
+                  {pendingActions.length}
+                </span>
+              )}
+              </button>
           </div>
-          {retryCount > 0 && !isAuthError && (
-            <p className="text-sm text-gray-500 mt-4">
-              Retry attempt: {retryCount}/5
-            </p>
-          )}
-          {isAuthError && authRetryCount > 0 && (
-            <p className="text-sm text-gray-500 mt-4">
-              Session refresh attempts: {authRetryCount}/2
-            </p>
+          
+          {/* Performance indicator */}
+          {performanceMetrics?.totalTime && (
+            <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
+              Loaded in {performanceMetrics.totalTime}ms
+            </div>
           )}
         </div>
-      </div>
-    );
-  }
 
-  return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Header with refresh button */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-gray-900">Feedback & Actions</h3>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* Filter toggle - only show for coaches */}
+          {(session?.user as any)?.role === 'COACH' && (
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`p-2 rounded-lg transition-colors ${
+                showFilters 
+                  ? 'bg-indigo-100 text-indigo-600' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <FiFilter className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Refresh button */}
         <button
           onClick={handleRefresh}
-          disabled={isRefreshing}
-          className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
-            isRefreshing 
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-          }`}
+            disabled={isRefreshing || loadingType !== null}
+            className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
         >
           <FiRefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span className="hidden sm:inline">Refresh</span>
         </button>
+        </div>
       </div>
 
-      {/* Performance indicator */}
-      {lastFetch > 0 && (
-        <div className="text-xs text-gray-500 text-right">
-          Last updated: {new Date(lastFetch).toLocaleTimeString()}
+      {/* Filters - only show for coaches */}
+      <AnimatePresence>
+        {showFilters && (session?.user as any)?.role === 'COACH' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-gray-50 rounded-lg p-4 mb-6"
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  value={filters.category}
+                  onChange={(e) => handleFilterChange('category', e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded-md px-2 py-1"
+                >
+                  <option value="all">All Categories</option>
+                  <option value="GENERAL">General</option>
+                  <option value="TECHNICAL">Technical</option>
+                  <option value="MENTAL">Mental</option>
+                  <option value="NUTRITIONAL">Nutritional</option>
+                  <option value="TACTICAL">Tactical</option>
+                </select>
         </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
+                <select
+                  value={filters.priority}
+                  onChange={(e) => handleFilterChange('priority', e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded-md px-2 py-1"
+                >
+                  <option value="all">All Priorities</option>
+                  <option value="HIGH">High</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="LOW">Low</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded-md px-2 py-1"
+                >
+                  <option value="all">All Status</option>
+                  {activeTab === 'feedback' ? (
+                    <>
+                      <option value="pending">Pending</option>
+                      <option value="acknowledged">Acknowledged</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="pending">Pending</option>
+                      <option value="completed">Completed</option>
+                      <option value="acknowledged">Acknowledged</option>
+                    </>
+                  )}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Time Period</label>
+                <select
+                  value={filters.dateRange}
+                  onChange={(e) => handleFilterChange('dateRange', e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded-md px-2 py-1"
+                >
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="quarter">This Quarter</option>
+                  <option value="all">All Time</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Page Size</label>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="w-full text-sm border border-gray-300 rounded-md px-2 py-1"
+                >
+                  <option value={5}>5 items</option>
+                  <option value={10}>10 items</option>
+                  <option value={20}>20 items</option>
+                  <option value={50}>50 items</option>
+                </select>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error display */}
+      {error && !error.includes('session') && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p className="text-red-700 text-sm">{error}</p>
+        <button
+            onClick={handleRefresh}
+            className="mt-2 text-red-600 hover:text-red-800 text-sm underline"
+          >
+            Try again
+        </button>
+      </div>
       )}
 
-      {/* Tab Navigation - Mobile optimized */}
-      <div className="flex bg-gray-100 rounded-lg p-1">
-        <button
-          onClick={() => setActiveTab('feedback')}
-          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-md transition-all text-sm sm:text-base ${
-            activeTab === 'feedback'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <FiMessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span>Feedback</span>
-          {unreadFeedback.length > 0 && (
-            <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
-              {unreadFeedback.length}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('actions')}
-          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-md transition-all text-sm sm:text-base ${
-            activeTab === 'actions'
-              ? 'bg-white text-orange-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <FiCheckSquare className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span>Actions</span>
-          {pendingActions.length > 0 && (
-            <span className="bg-orange-600 text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
-              {pendingActions.length}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* Content Area */}
+      {/* Content */}
       <AnimatePresence mode="wait">
         {activeTab === 'feedback' ? (
           <motion.div
@@ -636,19 +960,44 @@ const FeedbackActions = () => {
             transition={{ duration: 0.2 }}
             className="space-y-3 sm:space-y-4"
           >
-            {feedback.length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <FiMessageSquare className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
-                <p className="text-gray-500 text-base sm:text-lg">No feedback available</p>
-                <p className="text-gray-400 text-sm">Check back later for feedback from your coach</p>
-                {status === 'authenticated' && session && (
-                  <button
-                    onClick={() => fetchFeedbackAndActions(true)}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                  >
-                    Refresh Feedback
-                  </button>
+            {/* PERFORMANCE: Skeleton loader for better UX during initial load */}
+            {isLoading && feedback.length === 0 ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, idx) => (
+                  <div key={idx} className="border border-gray-200 rounded-lg p-4 animate-pulse">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                      <div className="h-6 bg-gray-200 rounded w-16"></div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="h-6 bg-gray-200 rounded w-20"></div>
+                      <div className="h-8 bg-gray-200 rounded w-24"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Loading indicator for subsequent loads */}
+                {loadingType === 'feedback' && (
+                  <div className="text-center py-6 border border-blue-200 bg-blue-50 rounded-lg">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"></div>
+                    <p className="text-blue-700 text-sm">Loading feedback...</p>
+                  </div>
                 )}
+              </>
+            )}
+
+            {feedback.length === 0 && !isLoading && !loadingType ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>{(session?.user as any)?.role === 'COACH' ? 'No feedback found for the selected filters.' : 'No feedback found.'}</p>
               </div>
             ) : (
               feedback.map((item) => (
@@ -656,39 +1005,37 @@ const FeedbackActions = () => {
                   key={item.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-lg border-2 border-blue-200 p-3 sm:p-4 shadow-sm"
+                  className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
                 >
-                  {/* Mobile-friendly header */}
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 space-y-2 sm:space-y-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(item.priority)}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{item.title}</h3>
+                        <div className="flex gap-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            item.priority === 'HIGH' 
+                              ? 'bg-red-100 text-red-700'
+                              : item.priority === 'MEDIUM'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}>
                         {item.priority}
-                      </div>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+                          </span>
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
                         {item.category}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
-                      <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span>{item.coach.name}</span>
+                          </span>
                     </div>
                   </div>
 
-                  <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{item.title}</h3>
-                  <p className="text-gray-700 mb-3 text-sm sm:text-base leading-relaxed">{item.content}</p>
-
-                  {/* Mobile-friendly metadata */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <FiCalendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span>{formatDate(item.createdAt)}</span>
+                      <p className="text-gray-600 text-sm">{item.content}</p>
+                      
+                      <div className="flex flex-col sm:flex-row gap-2 text-xs text-gray-500">
+                        <span>From: {item.coach.name} ({item.coach.academy})</span>
+                        {item.team && <span>Team: {item.team.name}</span>}
+                        <span>
+                          {new Date(item.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
-                      {item.team && (
-                        <div className="flex items-center gap-1">
-                          <span>Team: {item.team.name}</span>
-                        </div>
-                      )}
                     </div>
 
                     {!item.isAcknowledged && (
@@ -697,20 +1044,27 @@ const FeedbackActions = () => {
                         disabled={processingIds.has(item.id)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-xs sm:text-sm w-full sm:w-auto"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm w-full sm:w-auto justify-center"
                       >
                         {processingIds.has(item.id) ? (
                           <>
-                            <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white"></div>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                             <span>Processing...</span>
                           </>
                         ) : (
                           <>
-                            <FiCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <FiCheck className="w-4 h-4" />
                             <span>Acknowledge</span>
                           </>
                         )}
                       </motion.button>
+                    )}
+
+                    {item.isAcknowledged && (
+                      <div className="flex items-center gap-2 text-green-600 text-sm">
+                        <FiCheck className="w-4 h-4" />
+                        <span>Acknowledged</span>
+                      </div>
                     )}
                   </div>
                 </motion.div>
@@ -726,28 +1080,44 @@ const FeedbackActions = () => {
             transition={{ duration: 0.2 }}
             className="space-y-3 sm:space-y-4"
           >
-            {/* Show loading indicator if actions are still loading */}
-            {isLoading && actions.length === 0 && (
-              <div className="text-center py-6 border border-orange-200 bg-orange-50 rounded-lg">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-3"></div>
-                <p className="text-orange-700 text-sm">Loading actions...</p>
-                <p className="text-orange-600 text-xs mt-1">This may take a moment due to database optimization</p>
+            {/* PERFORMANCE: Skeleton loader for better UX during initial load */}
+            {isLoading && actions.length === 0 ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, idx) => (
+                  <div key={idx} className="border border-gray-200 rounded-lg p-4 animate-pulse">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                      <div className="h-6 bg-gray-200 rounded w-16"></div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="h-6 bg-gray-200 rounded w-20"></div>
+                      <div className="h-8 bg-gray-200 rounded w-24"></div>
+                    </div>
+                  </div>
+                ))}
               </div>
+            ) : (
+              <>
+                {/* Loading indicator for subsequent loads */}
+                {loadingType === 'actions' && (
+                  <div className="text-center py-6 border border-orange-200 bg-orange-50 rounded-lg">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-3"></div>
+                    <p className="text-orange-700 text-sm">Loading actions...</p>
+                  </div>
+                )}
+              </>
             )}
             
-            {!isLoading && actions.length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <FiCheckSquare className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
-                <p className="text-gray-500 text-base sm:text-lg">No actions available</p>
-                <p className="text-gray-400 text-sm">Check back later for new tasks from your coach</p>
-                {status === 'authenticated' && session && (
-                  <button
-                    onClick={() => fetchFeedbackAndActions(true)}
-                    className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm"
-                  >
-                    Refresh Actions
-                  </button>
-                )}
+            {actions.length === 0 && !isLoading && !loadingType ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>{(session?.user as any)?.role === 'COACH' ? 'No actions found for the selected filters.' : 'No actions found.'}</p>
               </div>
             ) : (
               actions.map((item) => (
@@ -755,135 +1125,88 @@ const FeedbackActions = () => {
                   key={item.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`bg-white rounded-lg border-2 p-3 sm:p-4 transition-all ${
-                    item.isCompleted 
-                      ? 'border-green-200 bg-green-50/50' 
-                      : item.dueDate && isOverdue(item.dueDate)
-                      ? 'border-red-200 bg-red-50/50'
-                      : 'border-orange-200 shadow-sm'
-                  }`}
+                  className="border border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors"
                 >
-                  {/* Mobile-friendly header */}
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 space-y-2 sm:space-y-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(item.priority)}`}>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{item.title}</h3>
+                          <div className="flex gap-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              item.priority === 'HIGH' 
+                                ? 'bg-red-100 text-red-700'
+                                : item.priority === 'MEDIUM'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-green-100 text-green-700'
+                            }`}>
                         {item.priority}
-                      </div>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+                            </span>
+                            <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
                         {item.category}
+                            </span>
+                            {item.isCompleted && (
+                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                Completed
+                              </span>
+                            )}
                       </div>
-                      {item.dueDate && isOverdue(item.dueDate) && !item.isCompleted && (
-                        <div className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
-                          OVERDUE
                         </div>
-                      )}
+                        
+                        <p className="text-gray-600 text-sm">{item.description}</p>
+                        
+                        <div className="flex flex-col sm:flex-row gap-2 text-xs text-gray-500">
+                          <span>From: {item.coach.name} ({item.coach.academy})</span>
+                          {item.team && <span>Team: {item.team.name}</span>}
+                          {item.dueDate && (
+                            <span>Due: {new Date(item.dueDate).toLocaleDateString()}</span>
+                          )}
+                          <span>
+                            Created: {new Date(item.createdAt).toLocaleDateString()}
+                          </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
-                      <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span>{item.coach.name}</span>
                     </div>
                   </div>
 
-                  <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{item.title}</h3>
-                  <p className="text-gray-700 mb-3 text-sm sm:text-base leading-relaxed">{item.description}</p>
-
-                  {/* Demo media display */}
-                  {item.demoMediaUrl && (
-                    <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FiEye className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-900">Coach Demonstration</span>
-                      </div>
-                      {item.demoMediaType?.startsWith('image/') ? (
-                        <img 
-                          src={item.demoMediaUrl} 
-                          alt="Coach demonstration"
-                          className="w-full max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => viewProofMedia(item.demoMediaUrl!)}
-                        />
-                      ) : item.demoMediaType?.startsWith('video/') ? (
-                        <video 
-                          src={item.demoMediaUrl}
-                          controls
-                          className="w-full max-w-xs rounded-lg"
-                          preload="metadata"
-                        >
-                          Your browser does not support the video tag.
-                        </video>
-                      ) : (
-                        <a 
-                          href={item.demoMediaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                          <FiEye className="w-4 h-4" />
-                          View demonstration ({item.demoFileName})
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Proof media display */}
-                  {item.proofMediaUrl && (
-                    <div className="mb-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FiUpload className="w-4 h-4 text-green-600" />
-                        <span className="text-sm font-medium text-green-900">Your Proof Submitted</span>
-                      </div>
-                      {item.proofMediaType?.startsWith('image/') ? (
-                        <img 
-                          src={item.proofMediaUrl} 
-                          alt="Action proof"
-                          className="w-full max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => viewProofMedia(item.proofMediaUrl!)}
-                        />
-                      ) : item.proofMediaType?.startsWith('video/') ? (
-                        <video 
-                          src={item.proofMediaUrl}
-                          controls
-                          className="w-full max-w-xs rounded-lg"
-                          preload="metadata"
-                        >
-                          Your browser does not support the video tag.
-                        </video>
-                      ) : (
-                        <a 
-                          href={item.proofMediaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-green-600 hover:text-green-800 text-sm"
-                        >
-                          <FiEye className="w-4 h-4" />
-                          View proof ({item.proofFileName})
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Mobile-friendly metadata and actions */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <FiCalendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span>{formatDate(item.createdAt)}</span>
-                      </div>
-                      {item.dueDate && (
-                        <div className={`flex items-center gap-1 ${isOverdue(item.dueDate) && !item.isCompleted ? 'text-red-600 font-medium' : ''}`}>
-                          <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span>Due: {formatDate(item.dueDate)}</span>
+                    {/* Media preview - PERFORMANCE: Check for media metadata availability */}
+                    {(item.demoMediaType || item.proofMediaType) && (
+                      <div className="flex gap-2">
+                        {item.demoMediaType && item.demoFileName && (
+                          <button
+                            onClick={() => openInlineViewer(item.id, 'demo')}
+                            className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-xs"
+                          >
+                            <FiPlay className="w-3 h-3" />
+                            <span>{isInlineViewerOpen(item.id, 'demo') ? 'Hide Demo' : 'View Demo'}</span>
+                            {item.demoFileSize && (
+                              <span className="text-xs opacity-75">
+                                ({Math.round(item.demoFileSize / 1024)}KB)
+                              </span>
+                            )}
+                          </button>
+                        )}
+                        
+                        {item.proofMediaType && item.proofFileName && (
+                          <button
+                            onClick={() => openInlineViewer(item.id, 'proof')}
+                            className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs"
+                          >
+                            <FiEye className="w-3 h-3" />
+                            <span>{isInlineViewerOpen(item.id, 'proof') ? 'Hide Proof' : 'View Proof'}</span>
+                            {item.proofFileSize && (
+                              <span className="text-xs opacity-75">
+                                ({Math.round(item.proofFileSize / 1024)}KB)
+                              </span>
+                            )}
+                          </button>
+                        )}
                         </div>
                       )}
-                      {item.team && (
-                        <div className="flex items-center gap-1">
-                          <span>Team: {item.team.name}</span>
-                        </div>
-                      )}
-                    </div>
 
+                    {/* Action buttons - PERFORMANCE: Check for media metadata not URLs */}
                     {!item.isCompleted && (
                       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        {!item.proofMediaUrl && (
+                        {!item.proofMediaType && (
                           <button
                             onClick={() => handleUploadProof(item.id)}
                             className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm"
@@ -915,12 +1238,39 @@ const FeedbackActions = () => {
                     )}
 
                     {item.isCompleted && (
-                      <div className="flex items-center gap-2 text-green-600 text-xs sm:text-sm">
+                      <div className="flex items-center gap-2 text-green-600 text-sm">
                         <FiCheck className="w-4 h-4" />
-                        <span>Completed {item.completedAt ? formatDate(item.completedAt) : ''}</span>
+                        <span>Completed {item.completedAt && `on ${new Date(item.completedAt).toLocaleDateString()}`}</span>
                       </div>
                     )}
                   </div>
+
+                  {/* Inline Media Viewers - Performance Optimized */}
+                  {item.demoMediaType && item.demoFileName && (
+                    <InlineMediaViewer
+                      actionId={item.id}
+                      mediaType="demo"
+                      fileName={item.demoFileName}
+                      fileSize={item.demoFileSize}
+                      mediaFileType={item.demoMediaType}
+                      isOpen={isInlineViewerOpen(item.id, 'demo')}
+                      onClose={() => closeInlineViewer(item.id, 'demo')}
+                      className="mt-4"
+                    />
+                  )}
+
+                  {item.proofMediaType && item.proofFileName && (
+                    <InlineMediaViewer
+                      actionId={item.id}
+                      mediaType="proof"
+                      fileName={item.proofFileName}
+                      fileSize={item.proofFileSize}
+                      mediaFileType={item.proofMediaType}
+                      isOpen={isInlineViewerOpen(item.id, 'proof')}
+                      onClose={() => closeInlineViewer(item.id, 'proof')}
+                      className="mt-4"
+                    />
+                  )}
                 </motion.div>
               ))
             )}
@@ -928,17 +1278,102 @@ const FeedbackActions = () => {
         )}
       </AnimatePresence>
 
+      {/* Pagination - only show for coaches */}
+      {trackPagination && trackPagination.totalPages > 1 && (session?.user as any)?.role === 'COACH' && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-200">
+          <div className="text-sm text-gray-600">
+            Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, trackPagination.total)} of {trackPagination.total} items
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!trackPagination.hasPrevPage || loadingType !== null}
+              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FiChevronLeft className="w-4 h-4" />
+            </button>
+            
+            <span className="px-3 py-2 text-sm">
+              Page {currentPage} of {trackPagination.totalPages}
+            </span>
+            
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!trackPagination.hasNextPage || loadingType !== null}
+              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FiChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Upload Modal */}
       {showUploadModal && uploadingActionId && (
         <ActionProofUpload
-          isOpen={showUploadModal}
-          onClose={() => {
-            setShowUploadModal(false);
-            setUploadingActionId(null);
-          }}
           actionId={uploadingActionId}
           onUploadSuccess={handleUploadSuccess}
+          onClose={() => setShowUploadModal(false)}
+          isOpen={showUploadModal}
         />
+      )}
+
+      {/* Optimized Media Modal */}
+      {showVideoModal && currentMedia && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="flex justify-between items-center p-4 border-b bg-gray-50">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">{currentMedia.fileName}</h3>
+                <p className="text-sm text-gray-600">
+                  {currentMedia.type.startsWith('video/') ? 'Video' : 'Image'} • Click to interact
+                </p>
+              </div>
+              <button
+                onClick={() => setShowVideoModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl hover:bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 bg-gray-50">
+              <div className="bg-white rounded-lg shadow-inner p-4">
+                {currentMedia.type.startsWith('video/') ? (
+                  <video 
+                    controls 
+                    className="w-full h-auto max-h-[60vh] rounded-lg shadow-lg"
+                    src={currentMedia.url}
+                    preload="metadata"
+                    poster=""
+                  >
+                    <source src={currentMedia.url} type={currentMedia.type} />
+                    Your browser does not support video playback.
+                  </video>
+                ) : (
+                  <img 
+                    src={currentMedia.url} 
+                    alt={currentMedia.fileName}
+                    className="w-full h-auto max-h-[60vh] object-contain rounded-lg shadow-lg"
+                    loading="lazy"
+                  />
+                )}
+              </div>
+              <div className="mt-4 flex justify-center">
+                <a
+                  href={currentMedia.url}
+                  download={currentMedia.fileName}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

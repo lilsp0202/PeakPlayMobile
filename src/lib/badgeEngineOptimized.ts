@@ -42,7 +42,7 @@ export class OptimizedBadgeEngine {
       }
 
       // PERFORMANCE: Parallel data fetching with optimized queries
-      const [student, latestSkills, badges, earnedBadges] = await Promise.all([
+      const [student, badges, earnedBadges] = await Promise.all([
         // Optimized student query - only fetch necessary fields
         prisma.student.findUnique({
           where: { id: studentId },
@@ -51,15 +51,52 @@ export class OptimizedBadgeEngine {
             sport: true,
             academy: true,
             age: true,
+            skills: {
+              select: {
+                // Technical skills
+                battingStance: true,
+                battingGrip: true,
+                battingBalance: true,
+                bowlingGrip: true,
+                followThrough: true,
+                runUp: true,
+                release: true,
+                aim: true,
+                // Physical skills
+                pushupScore: true,
+                pullupScore: true,
+                verticalJump: true,
+                gripStrength: true,
+                sprintTime: true,
+                sprint50m: true,
+                shuttleRun: true,
+                run5kTime: true,
+                yoyoTest: true,
+                // Fielding skills
+                flatCatch: true,
+                highCatch: true,
+                pickUp: true,
+                throw: true,
+                receiving: true,
+                softHands: true,
+                calling: true,
+                runningBetweenWickets: true,
+                // Mental/Wellness
+                moodScore: true,
+                sleepScore: true,
+                // Nutrition
+                waterIntake: true,
+                protein: true,
+                carbohydrates: true,
+                fats: true,
+                totalCalories: true,
+                updatedAt: true
+              }
+            },
             coach: {
               select: { id: true }
             }
           }
-        }),
-        // Separate optimized skills query - using all fields to avoid schema errors
-        prisma.skills.findFirst({
-          where: { studentId: studentId },
-          orderBy: { updatedAt: 'desc' }
         }),
         
         // Optimized badges query with caching
@@ -85,7 +122,8 @@ export class OptimizedBadgeEngine {
         return [];
       }
 
-      if (!latestSkills) {
+      const skills = student.skills;
+      if (!skills) {
         console.log('⚠️ No skills data found for student:', studentId);
         return [];
       }
@@ -94,8 +132,7 @@ export class OptimizedBadgeEngine {
       const relevantBadges = badges.filter(badge => {
         if (badge.sport !== 'ALL' && badge.sport !== student.sport) return false;
         if (!badge.description.includes('|||COACH_CREATED:')) return true;
-        // For coach-created badges, we'll skip this check for now to improve performance
-        return false;
+        return student.coach && badge.description.includes(`|||COACH_CREATED:${student.coach.id}`);
       });
 
       console.log(`📊 Processing ${relevantBadges.length} relevant badges for ${student.sport}`);
@@ -130,7 +167,7 @@ export class OptimizedBadgeEngine {
             }
 
             // PERFORMANCE: Use optimized rule evaluation
-            const evaluation = await this.evaluateBadgeRulesOptimized(badge.rules, latestSkills, studentId);
+            const evaluation = await this.evaluateBadgeRulesOptimized(badge.rules, skills, studentId);
             
             return {
               badgeId: badge.id,
@@ -296,8 +333,8 @@ export class OptimizedBadgeEngine {
 
     const skillFields = [
       'battingStance', 'battingGrip', 'battingBalance',
-      'bowlingAction', 'bowlingRhythm', 'bowlingAccuracy',
-      'fieldingCatching', 'fieldingThrowing', 'fieldingPositioning'
+      'bowlingGrip', 'followThrough', 'runUp',
+      'flatCatch', 'highCatch', 'pickUp', 'throw'
     ];
 
     const values = skillFields

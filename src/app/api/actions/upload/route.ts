@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file size (max 10MB for base64 storage)
-    const maxSize = 10 * 1024 * 1024; // 10MB for base64
+    // Validate file size (max 50MB)
+    const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
       return NextResponse.json(
-        { message: "File size must be less than 10MB" },
+        { message: "File size must be less than 50MB" },
         { status: 400 }
       );
     }
@@ -71,9 +71,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert file to base64 for temporary storage
+    // Convert file to base64 for simple storage (in production, use proper file storage)
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    
+    // For demo purposes, we'll store as base64
+    // In production, you'd upload to S3, Cloudinary, or similar service
     const base64File = `data:${file.type};base64,${buffer.toString('base64')}`;
     
     // Update action with proof media

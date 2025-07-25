@@ -3,7 +3,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw, FiEye, FiPlus, FiUpload, FiImage, FiVideo, FiCheck } from "react-icons/fi";
+import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw, FiEye, FiPlus, FiUpload, FiImage, FiVideo, FiCheck, FiPlay } from "react-icons/fi";
 import { Check } from "lucide-react";
 import dynamic from 'next/dynamic';
 import PeakPlayLogo from "@/components/PeakPlayLogo";
@@ -68,6 +68,11 @@ const CreateFeedbackActionModal = dynamic(() => import("@/components/CreateFeedb
 const OverallStats = dynamic(() => import("@/components/OverallStats").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Stats temporarily unavailable</div> })), { 
   ssr: false,
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-32"></div>
+});
+
+const InlineMediaViewer = dynamic(() => import("@/components/InlineMediaViewer").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Media viewer temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-32 flex items-center justify-center"><div className="text-gray-500">Loading media viewer...</div></div>
 });
 
 // New coach components
@@ -244,6 +249,9 @@ export default function Dashboard() {
   const [isLoadingTeamDetails, setIsLoadingTeamDetails] = useState(false);
   const [teamDetailsViewType, setTeamDetailsViewType] = useState<'feedback' | 'actions'>('feedback');
   const [expandedTeamItems, setExpandedTeamItems] = useState<string[]>([]);
+
+  // Inline media viewer state for Coach Dashboard
+  const [openInlineViewers, setOpenInlineViewers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     console.log('🔍 Dashboard useEffect - Status:', status, 'Session exists:', !!session);
@@ -601,7 +609,74 @@ export default function Dashboard() {
         </html>
       `);
     }
-  };;
+  };
+
+  // Media viewer for lazy-loaded media (proof/demo)
+  const viewProofMedia = async (actionId: string, mediaType: 'demo' | 'proof', fileName?: string) => {
+    try {
+      console.log(`🎥 Fetching ${mediaType} media URL for action:`, actionId);
+      
+      const response = await fetch(`/api/actions/${actionId}/media`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=300',
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          alert('❌ Please log in again to view media.');
+          return;
+        }
+        if (response.status === 403) {
+          alert('❌ You do not have permission to view this media.');
+          return;
+        }
+        if (response.status === 404) {
+          alert(`❌ ${mediaType === 'demo' ? 'Demo video not available.' : 'Proof media not uploaded yet.'}`);
+          return;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const mediaData = await response.json();
+      const mediaInfo = mediaType === 'demo' ? mediaData.demoMedia : mediaData.proofMedia;
+      
+      if (!mediaInfo || !mediaInfo.url) {
+        alert(`❌ ${mediaType === 'demo' ? 'Demo video not available from coach.' : 'Please upload your proof media.'}`);
+        return;
+      }
+
+      // Open media in new window
+      viewMedia(mediaInfo.url, mediaInfo.fileName || fileName);
+      
+    } catch (error) {
+      console.error(`❌ Error viewing ${mediaType} media:`, error);
+      alert(`Failed to load ${mediaType} media. Please try again.`);
+    }
+  };
+
+  // Inline media viewer handlers for Coach Dashboard - optimized for performance
+  const openInlineViewer = (actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    setOpenInlineViewers(prev => new Set(prev).add(viewerId));
+  };
+
+  const closeInlineViewer = (actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    setOpenInlineViewers(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(viewerId);
+      return newSet;
+    });
+  };
+
+  const isInlineViewerOpen = (actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    return openInlineViewers.has(viewerId);
+  };
 
   // Fetch track data when view type or filters change
   useEffect(() => {
@@ -678,8 +753,8 @@ export default function Dashboard() {
 
       const result = await response.json();
       
-      // Refresh teams list
-      await fetchTeams();
+      // Refresh teams list with member details
+      await fetchTeams(true);
       
       return result;
     } catch (error) {
@@ -898,7 +973,7 @@ export default function Dashboard() {
   // Fetch teams when teams tab is active
   useEffect(() => {
     if (activeTab === 'teams' && (session as unknown as Session)?.user?.role === 'COACH') {
-      fetchTeams();
+      fetchTeams(true); // Include team members and stats for role management
     }
   }, [activeTab, (session as unknown as Session)?.user?.role]);
 
@@ -2445,8 +2520,15 @@ export default function Dashboard() {
                             <div className="p-4 sm:p-6">
                               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                                 <div className="flex-1">
-                                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                                     <h3 className="text-lg font-bold text-gray-900">{item.title}</h3>
+                                    <div className="flex items-center gap-2 text-sm font-medium text-purple-700 bg-purple-50 px-2 py-1 rounded-md border border-purple-200">
+                                      <FiUser className="w-4 h-4" />
+                                      <span>{item.student?.studentName || item.studentName || 'Unknown Student'}</span>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex flex-wrap items-center gap-2 mb-3">
                                     <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getPriorityColor(item.priority)}`}>
                                       {item.priority}
                                     </span>
@@ -2457,12 +2539,8 @@ export default function Dashboard() {
                                   
                                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                                     <div className="flex items-center gap-1">
-                                      <FiUser className="w-4 h-4" />
-                                      <span><strong>Student:</strong> {item.studentName}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
                                       <FiCalendar className="w-4 h-4" />
-                                      <span>{formatDate(item.createdAt)}</span>
+                                      <span>Created: {formatDate(item.createdAt)}</span>
                                     </div>
                                     {trackViewType === 'actions' && item.dueDate && (
                                       <div className="flex items-center gap-1">
@@ -2506,48 +2584,50 @@ export default function Dashboard() {
                                 </div>
                               </div>
 
-                              {/* Demo Media (Coach provided) - IN-PAGE PREVIEW */}
-                              {trackViewType === 'actions' && item.demoMediaUrl && (
+                              {/* Demo Media (Coach provided) - INLINE VIEWER */}
+                              {trackViewType === 'actions' && item.demoMediaType && item.demoFileName && (
                                 <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                                   <div className="flex items-center gap-2 mb-3">
                                     {item.demoMediaType === 'image' ? <FiImage className="w-5 h-5 text-blue-600" /> : <FiVideo className="w-5 h-5 text-blue-600" />}
                                     <h4 className="text-sm font-semibold text-blue-900">Coach Demo Media</h4>
                                   </div>
                                   
-                                  {item.demoMediaType === 'image' ? (
-                                    <div className="relative">
-                                      <img 
-                                        src={item.demoMediaUrl} 
-                                        alt="Coach demo"
-                                        className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-                                        style={{ maxHeight: '200px', objectFit: 'cover' }}
-                                        onClick={() => viewMedia(item.demoMediaUrl, item.demoFileName)}
-                                      />
-                                      <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                                        Click to enlarge
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <video 
-                                      src={item.demoMediaUrl}
-                                      controls
-                                      className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md"
-                                      preload="metadata"
-                                      style={{ maxHeight: '200px' }}
+                                  <div className="flex flex-col sm:flex-row gap-3">
+                                    <button
+                                      onClick={() => openInlineViewer(item.id, 'demo')}
+                                      className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-xs"
                                     >
-                                      Your browser does not support video.
-                                    </video>
-                                  )}
+                                      <FiPlay className="w-3 h-3" />
+                                      {isInlineViewerOpen(item.id, 'demo') ? 'Hide Demo' : 'View Demo'}
+                                      {item.demoFileSize && (
+                                        <span className="text-xs opacity-75">
+                                          ({Math.round(item.demoFileSize / 1024)}KB)
+                                        </span>
+                                      )}
+                                    </button>
+                                    <div className="text-xs text-blue-700 flex items-center">
+                                      <span><strong>Type:</strong> {item.demoMediaType} | <strong>Uploaded:</strong> {item.demoUploadedAt ? formatDate(item.demoUploadedAt) : 'N/A'}</span>
+                                    </div>
+                                  </div>
                                   
-                                  <p className="text-xs text-blue-700 mt-2">
-                                    <strong>File:</strong> {item.demoFileName} • 
-                                    <strong> Uploaded:</strong> {item.demoUploadedAt ? formatDate(item.demoUploadedAt) : 'N/A'}
-                                  </p>
+                                  {/* Inline Demo Media Viewer */}
+                                  {item.demoMediaType && item.demoFileName && (
+                                    <InlineMediaViewer
+                                      actionId={item.id}
+                                      mediaType="demo"
+                                      fileName={item.demoFileName}
+                                      fileSize={item.demoFileSize}
+                                      mediaFileType={item.demoMediaType}
+                                      isOpen={isInlineViewerOpen(item.id, 'demo')}
+                                      onClose={() => closeInlineViewer(item.id, 'demo')}
+                                      className="mt-4"
+                                    />
+                                  )}
                                 </div>
                               )}
 
-                              {/* Student Proof (Athlete uploaded) - COACH CAN VIEW */}
-                              {trackViewType === 'actions' && item.proofMediaUrl && (
+                              {/* Student Proof (Athlete uploaded) - INLINE VIEWER */}
+                              {trackViewType === 'actions' && item.proofMediaType && item.proofFileName && (
                                 <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
                                   <div className="flex items-center gap-2 mb-3">
                                     <FiUpload className="w-5 h-5 text-green-600" />
@@ -2555,47 +2635,37 @@ export default function Dashboard() {
                                     {item.isCompleted && <FiCheck className="w-4 h-4 text-green-600" />}
                                   </div>
                                   
-                                  {item.proofMediaType?.startsWith('image') ? (
-                                    <div className="relative">
-                                      <img 
-                                        src={item.proofMediaUrl} 
-                                        alt="Student proof"
-                                        className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-                                        style={{ maxHeight: '200px', objectFit: 'cover' }}
-                                        onClick={() => viewMedia(item.proofMediaUrl, item.proofFileName)}
-                                      />
-                                      <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                                        Click to enlarge
-                                      </div>
-                                    </div>
-                                  ) : item.proofMediaType?.startsWith('video') ? (
-                                    <video 
-                                      src={item.proofMediaUrl}
-                                      controls
-                                      className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md"
-                                      preload="metadata"
-                                      style={{ maxHeight: '200px' }}
-                                    >
-                                      Your browser does not support video.
-                                    </video>
-                                  ) : (
+                                  <div className="flex flex-col sm:flex-row gap-3">
                                     <button
-                                      onClick={() => viewMedia(item.proofMediaUrl, item.proofFileName)}
-                                      className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                      onClick={() => openInlineViewer(item.id, 'proof')}
+                                      className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs"
                                     >
-                                      <FiEye className="w-4 h-4" />
-                                      View proof ({item.proofFileName})
+                                      <FiEye className="w-3 h-3" />
+                                      {isInlineViewerOpen(item.id, 'proof') ? 'Hide Proof' : 'View Proof'}
+                                      {item.proofFileSize && (
+                                        <span className="text-xs opacity-75">
+                                          ({Math.round(item.proofFileSize / 1024)}KB)
+                                        </span>
+                                      )}
                                     </button>
-                                  )}
-                                  
-                                  <div className="flex justify-between items-center mt-3">
-                                    <p className="text-xs text-green-700">
-                                      <strong>File:</strong> {item.proofFileName}
-                                    </p>
-                                    <p className="text-xs text-green-700">
-                                      <strong>Submitted:</strong> {item.proofUploadedAt ? formatDate(item.proofUploadedAt) : 'N/A'}
-                                    </p>
+                                    <div className="text-xs text-green-700 flex items-center">
+                                      <span><strong>Type:</strong> {item.proofMediaType} | <strong>Submitted:</strong> {item.proofUploadedAt ? formatDate(item.proofUploadedAt) : 'N/A'}</span>
+                                    </div>
                                   </div>
+                                  
+                                  {/* Inline Proof Media Viewer */}
+                                  {item.proofMediaType && item.proofFileName && (
+                                    <InlineMediaViewer
+                                      actionId={item.id}
+                                      mediaType="proof"
+                                      fileName={item.proofFileName}
+                                      fileSize={item.proofFileSize}
+                                      mediaFileType={item.proofMediaType}
+                                      isOpen={isInlineViewerOpen(item.id, 'proof')}
+                                      onClose={() => closeInlineViewer(item.id, 'proof')}
+                                      className="mt-4"
+                                    />
+                                  )}
                                 </div>
                               )}
 
@@ -3358,9 +3428,9 @@ export default function Dashboard() {
           onClose={() => setIsCreateTeamModalOpen(false)}
           availableStudents={assignedStudents || []}
           onTeamCreated={() => {
-            // Refresh teams list
+            // Refresh teams list with member details
             if (studentsSubTab === 'assigned') {
-              fetchTeams();
+              fetchTeams(true); // Include team members for new team
             }
             setSuccessMessage('Team created successfully!');
             setTimeout(() => setSuccessMessage(null), 3000);
@@ -3448,7 +3518,7 @@ export default function Dashboard() {
                 <TeamManagement 
                   teams={[selectedTeamForRoles]} 
                   onTeamsUpdate={() => {
-                    fetchTeams();
+                    fetchTeams(true); // Include team members after role updates
                     if (studentsSubTab === 'assigned') {
                       fetchProfile();
                     }

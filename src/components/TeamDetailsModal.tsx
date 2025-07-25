@@ -18,6 +18,7 @@ import {
   FiEye,
   FiCalendar
 } from 'react-icons/fi';
+import InlineMediaViewer from './InlineMediaViewer';
 
 interface TeamDetailsModalProps {
   isOpen: boolean;
@@ -42,6 +43,29 @@ export default function TeamDetailsModal({
   expandedItems,
   onToggleItemExpanded
 }: TeamDetailsModalProps) {
+  // Inline media viewer state - optimized for performance
+  const [openInlineViewers, setOpenInlineViewers] = useState<Set<string>>(new Set());
+
+  // Inline media viewer handlers
+  const openInlineViewer = (actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    setOpenInlineViewers(prev => new Set(prev).add(viewerId));
+  };
+
+  const closeInlineViewer = (actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    setOpenInlineViewers(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(viewerId);
+      return newSet;
+    });
+  };
+
+  const isInlineViewerOpen = (actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    return openInlineViewers.has(viewerId);
+  };
+
   // Helper functions for better UX
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

@@ -3,7 +3,18 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../../../../lib/prisma";
 import { signUpSchema, validateRequest } from "../../../../lib/validations";
 import { checkRateLimit } from "../../../../lib/rate-limit";
-import * as Sentry from "@sentry/nextjs";
+
+// Conditional Sentry import with error handling
+let Sentry: any = null;
+try {
+  if (typeof window === 'undefined') {
+    // Only import Sentry on server-side and if available
+    Sentry = require("@sentry/nextjs");
+  }
+} catch (error) {
+  console.warn('Sentry not available:', error);
+  Sentry = null;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -110,7 +121,7 @@ export async function POST(request: NextRequest) {
     console.error("Registration error:", error);
     
     // Report to Sentry
-    Sentry.captureException(error, {
+    Sentry?.captureException(error, {
       tags: {
         endpoint: '/api/auth/register',
       },

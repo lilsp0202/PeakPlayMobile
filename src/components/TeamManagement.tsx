@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUsers, FiSearch, FiEdit2, FiUser, FiStar, FiAward, FiMail, FiBook, FiAlertCircle } from 'react-icons/fi';
-import RoleEditModal from './RoleEditModal';
+import BatchRoleAssignmentModal from './BatchRoleAssignmentModal';
 import { Team, TeamMember, TeamRole, ROLE_COLORS, ROLE_DISPLAY_NAMES } from '@/types/team';
 
 interface TeamManagementProps {
@@ -15,8 +15,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teams, onTeamsUpdate })
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<TeamRole | 'ALL' | 'UNASSIGNED'>('ALL');
-  const [isRoleEditModalOpen, setIsRoleEditModalOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [isBatchRoleModalOpen, setIsBatchRoleModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Auto-select the first team if only one team is provided (single team modal)
@@ -55,14 +54,12 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teams, onTeamsUpdate })
     return acc;
   }, {} as Record<TeamRole | 'UNASSIGNED', TeamMember[]>);
 
-  const handleEditRoles = (member: TeamMember) => {
-    setSelectedMember(member);
-    setIsRoleEditModalOpen(true);
+  const handleOpenBatchRoleAssignment = () => {
+    setIsBatchRoleModalOpen(true);
   };
 
-  const handleRoleUpdate = async () => {
-    setIsRoleEditModalOpen(false);
-    setSelectedMember(null);
+  const handleBatchRoleUpdate = async () => {
+    setIsBatchRoleModalOpen(false);
     onTeamsUpdate();
   };
 
@@ -135,12 +132,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teams, onTeamsUpdate })
           </div>
         </div>
         
-        <button
-          onClick={() => handleEditRoles(member)}
-          className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors flex-shrink-0 ml-2"
-        >
-          <FiEdit2 className="w-4 h-4" />
-        </button>
+
       </div>
     </motion.div>
   );
@@ -195,14 +187,28 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teams, onTeamsUpdate })
               </p>
             </div>
             
-            {/* Unassigned roles alert */}
-            {selectedTeam.members?.some(m => !m.roles || m.roles.length === 0) && (
-              <div className="flex items-center text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
-                <FiAlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span className="hidden sm:inline">Some members need role assignment</span>
-                <span className="sm:hidden">Roles needed</span>
-              </div>
-            )}
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              {/* Unassigned roles alert */}
+              {selectedTeam.members?.some(m => !m.roles || m.roles.length === 0) && (
+                <div className="flex items-center text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
+                  <FiAlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="hidden sm:inline">Some members need role assignment</span>
+                  <span className="sm:hidden">Roles needed</span>
+                </div>
+              )}
+              
+              {/* Batch Role Assignment Button */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleOpenBatchRoleAssignment}
+                className="flex items-center px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm"
+              >
+                <FiEdit2 className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Assign Roles</span>
+                <span className="sm:hidden">Roles</span>
+              </motion.button>
+            </div>
           </div>
 
           {/* Search and Filter */}
@@ -288,13 +294,13 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teams, onTeamsUpdate })
         </motion.div>
       )}
 
-      {/* Role Edit Modal */}
-      {isRoleEditModalOpen && selectedMember && selectedTeam && (
-        <RoleEditModal
-          member={selectedMember}
+      {/* Batch Role Assignment Modal */}
+      {isBatchRoleModalOpen && selectedTeam && (
+        <BatchRoleAssignmentModal
           team={selectedTeam}
-          onClose={() => setIsRoleEditModalOpen(false)}
-          onSuccess={handleRoleUpdate}
+          isOpen={isBatchRoleModalOpen}
+          onClose={() => setIsBatchRoleModalOpen(false)}
+          onSuccess={handleBatchRoleUpdate}
         />
       )}
     </div>

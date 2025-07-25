@@ -106,7 +106,8 @@ export default function TeamActionModal({
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/actions/demo-upload', {
+      // PERFORMANCE: Use optimized demo upload endpoint
+      const response = await fetch('/api/actions/demo-upload-optimized', {
         method: 'POST',
         body: formData,
       });
@@ -342,9 +343,9 @@ export default function TeamActionModal({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Demo Media (Optional)
             </label>
-            <p className="text-xs text-gray-600 mb-3">
-              Upload an image or video to show the team how this action should be performed
-            </p>
+                              <p className="text-xs text-gray-600 mb-3">
+                    Upload an image or video to show the team how this action should be performed. Images will be optimized, videos uploaded as-is.
+                  </p>
             
             {!demoMedia.url ? (
               <div

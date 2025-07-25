@@ -22,11 +22,15 @@ interface Action {
   proofMediaType?: string;
   proofFileName?: string;
   proofUploadedAt?: string;
+  proofFileSize?: number;
+  proofUploadMethod?: string;
   // Coach demo media fields
   demoMediaUrl?: string;
   demoMediaType?: string;
   demoFileName?: string;
   demoUploadedAt?: string;
+  demoFileSize?: number;
+  demoUploadMethod?: string;
   createdAt: string;
   coach: {
     name: string;
@@ -58,24 +62,38 @@ export default function CoachActions({ studentId, isCoachView = false }: CoachAc
     try {
       setLoading(true);
       
-      // Use a shorter timeout for better UX
+      // PERFORMANCE: Use optimized timeout and abort controller
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
       
-      const url = studentId ? `/api/actions?studentId=${studentId}` : '/api/actions';
+      // PERFORMANCE: Use new optimized API with pagination
+      const queryParams = new URLSearchParams();
+      if (studentId) {
+        queryParams.set('studentId', studentId);
+      }
+      queryParams.set('page', '1');
+      queryParams.set('limit', '20'); // Reasonable limit for initial load
+      
+      const url = `/api/actions?${queryParams}`;
       
       const response = await fetch(url, {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
         },
+        credentials: 'include',
       });
       
       clearTimeout(timeoutId);
       
       if (response.ok) {
         const data = await response.json();
-        setActions(data);
+        
+        // PERFORMANCE: Handle new API format with actions and pagination
+        const actions = data.actions || data || [];
+        console.log(`✅ Actions loaded: ${actions.length} items`);
+        setActions(actions);
       } else if (response.status === 404) {
         // Student profile not found - this is ok, just show no actions
         setActions([]);
@@ -87,7 +105,7 @@ export default function CoachActions({ studentId, isCoachView = false }: CoachAc
         console.error("Failed to fetch actions:", response.status);
         setActions([]);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log("Actions request timeout - showing empty state");
         // Don't show error for timeout, just show empty state

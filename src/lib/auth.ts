@@ -1,9 +1,33 @@
-import NextAuth from "next-auth/next"
+import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
-import * as Sentry from "@sentry/nextjs";
+
+// Conditional Sentry import with error handling
+let Sentry: any = null;
+try {
+  if (typeof window === 'undefined') {
+    // Only import Sentry on server-side and if available
+    Sentry = require("@sentry/nextjs");
+  }
+} catch (error) {
+  console.warn('Sentry not available:', error);
+  Sentry = null;
+}
+
+// Helper function to log auth events
+async function logAuthEvent(event: string, email: string, details?: string) {
+  try {
+    console.log(`[AUTH_EVENT] ${event} - ${email} ${details ? `- ${details}` : ''}`);
+    // In production, you might want to store these in a database
+    // await prisma.authLog.create({
+    //   data: { event, email, details, timestamp: new Date() }
+    // });
+  } catch (error) {
+    console.error('Failed to log auth event:', error);
+  }
+}
 
 export const authOptions = {
   providers: [
@@ -13,7 +37,7 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials: any) {
+      async authorize(credentials) {
         console.log('🔍 Authorize called with credentials:', { email: credentials?.email, password: '***' });
         
         if (!credentials?.email || !credentials?.password) {
@@ -40,140 +64,106 @@ export const authOptions = {
           }
 
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-          console.log('🔐 Password valid:', isPasswordValid);
-
+          
           if (!isPasswordValid) {
-            // Log failed login attempt
-            await logAuthEvent('LOGIN_FAILED', user.email, 'Invalid password');
+            await logAuthEvent('LOGIN_FAILED', credentials.email, 'Invalid password');
             throw new Error("Invalid email or password");
           }
 
-          console.log('✅ Authentication successful for:', user.email);
-          
           // Log successful login
-          await logAuthEvent('LOGIN_SUCCESS', user.email);
+          await logAuthEvent('LOGIN_SUCCESS', user.email, `Role: ${user.role}`);
 
-          // Check if user needs onboarding
-          const needsOnboarding = user.role === "ATHLETE" ? !user.student : !user.coach;
-          
           return {
             id: user.id,
             email: user.email,
-            name: needsOnboarding ? "temp" : (user.name || user.username),
-            role: user.role as "ATHLETE" | "COACH",
+            name: user.name,
+            role: user.role,
+            student: user.student,
+            coach: user.coach
           };
         } catch (error) {
-          console.error('❌ Authentication error:', error);
-          Sentry.captureException(error);
-          throw new Error("Authentication failed");
+          console.error('❌ Authorize error:', error);
+          
+          // Log auth errors to Sentry if available
+          if (Sentry) {
+            Sentry.captureException(error);
+          }
+          
+          if (error instanceof Error) {
+            throw error;
+          }
+          throw new Error("An error occurred during authentication");
         }
       }
     }),
-    ...(process.env.ENABLE_GOOGLE_AUTH === 'true' && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
-      GoogleProvider({
-        clientId: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        authorization: {
-          params: {
-            prompt: "consent",
-            access_type: "offline",
-            response_type: "code"
-          }
-        },
-        profile(profile: any) {
-          return {
-            id: profile.sub,
-            name: profile.name,
-            email: profile.email,
-            image: profile.picture,
-            role: "ATHLETE" as const,
-          }
-        },
-      })
-    ] : []),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
+    })
   ],
   session: {
     strategy: "jwt" as const,
     maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours - update session more frequently for better performance
   },
   jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
-    // Optimize JWT processing for production
-    secret: process.env.NEXTAUTH_SECRET,
   },
   callbacks: {
-    async signIn({ user, account }: any) {
-      if (account?.provider === "google") {
-        try {
-          // Check if user already exists
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! },
-          });
-
-          if (!existingUser) {
-            // Create new user with Google profile
-            const newUser = await prisma.user.create({
-              data: {
-                email: user.email!,
-                name: user.name!,
-                image: user.image,
-                role: "ATHLETE", // Default role for Google sign-ups
-                username: user.email!.split("@")[0] + "_" + Math.random().toString(36).substr(2, 9), // Generate unique username
-              },
-            });
-
-            // Log successful registration
-            await logAuthEvent('GOOGLE_REGISTER', user.email!);
-            console.log('✅ New Google user created:', newUser.email);
-          } else {
-            // Log successful login
-            await logAuthEvent('GOOGLE_LOGIN', user.email!);
-            console.log('✅ Existing Google user signed in:', existingUser.email);
-          }
-
-          return true;
-        } catch (error) {
-          console.error('❌ Google sign-in error:', error);
-          return false;
-        }
-      }
-      return true;
-    },
-    async jwt({ token, user }: any) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
         token.role = user.role;
         token.id = user.id;
-        token.name = user.name; // Ensure temp status is preserved
+        token.student = user.student;
+        token.coach = user.coach;
       }
       return token;
     },
-    async session({ session, token }: any) {
-      if (token && token.sub) {
-        session.user = {
-          ...session.user,
-          id: token.sub,
-          role: token.role as "ATHLETE" | "COACH",
-          name: token.name as string, // Ensure temp status is preserved
-        };
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.student = token.student as any;
+        session.user.coach = token.coach as any;
       }
       return session;
     },
-    async redirect({ url, baseUrl }: any) {
-      // Handle dynamic Vercel URLs
-      const isVercelUrl = baseUrl.includes('vercel.app');
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      
-      if (isVercelUrl || isDevelopment) {
-        if (url.startsWith("/")) return `${baseUrl}${url}`;
-        if (new URL(url).origin === baseUrl) return url;
-        return baseUrl;
+    async signIn({ user, account, profile, email, credentials }) {
+      try {
+        // Handle Google OAuth sign-in
+        if (account?.provider === "google" && profile?.email) {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: profile.email.toLowerCase() }
+          });
+
+          if (!existingUser) {
+            // Create new user for Google sign-in
+            const newUser = await prisma.user.create({
+              data: {
+                email: profile.email.toLowerCase(),
+                name: profile.name || "Google User",
+                username: profile.email.split('@')[0], // Generate username from email
+                role: "STUDENT", // Default role for Google sign-ups
+                password: "", // No password for OAuth users
+              }
+            });
+            
+            await logAuthEvent('GOOGLE_SIGNUP', newUser.email, 'New user created via Google OAuth');
+            return true;
+          } else {
+            await logAuthEvent('GOOGLE_LOGIN', existingUser.email, 'Existing user login via Google OAuth');
+            return true;
+          }
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('❌ SignIn callback error:', error);
+        if (Sentry) {
+          Sentry.captureException(error);
+        }
+        return false;
       }
-      
-      // Production logic
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      if (new URL(url).origin === baseUrl) return url;
-      return baseUrl;
     },
   },
   pages: {
@@ -187,17 +177,4 @@ export const authOptions = {
   useSecureCookies: process.env.NODE_ENV === "production",
 };
 
-// Helper function to log auth events
-async function logAuthEvent(event: string, email: string, details?: string) {
-  try {
-    console.log(`[AUTH_EVENT] ${event} - ${email} ${details ? `- ${details}` : ''}`);
-    // In production, you might want to store these in a database
-    // await prisma.authLog.create({
-    //   data: { event, email, details, timestamp: new Date() }
-    // });
-  } catch (error) {
-    console.error('Failed to log auth event:', error);
-  }
-}
-
-export default NextAuth(authOptions); 
+// authOptions is already exported above as const export 

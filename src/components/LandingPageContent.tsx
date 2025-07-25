@@ -420,21 +420,32 @@ export function LandingPageContent() {
             />
 
             {/* Floating Particles */}
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full opacity-30"
-                style={{
-                  width: `${Math.random() * 4 + 2}px`,
-                  height: `${Math.random() * 4 + 2}px`,
-                  background: `rgba(${i % 2 === 0 ? "99, 102, 241" : "168, 85, 247"}, 0.4)`,
-                  top: `${Math.random() * 100}%`,
-                  left: `${Math.random() * 100}%`,
-                  animation: `floatingParticle ${15 + Math.random() * 20}s linear infinite`,
-                  animationDelay: `${Math.random() * 15}s`,
-                }}
-              />
-            ))}
+            {[...Array(8)].map((_, i) => {
+              // Use deterministic values based on index to prevent hydration mismatch
+              const seed = (i + 1) * 12.34567; // Simple deterministic seed
+              const width = 2 + ((seed * 23) % 4);
+              const height = 2 + ((seed * 17) % 4); 
+              const top = (seed * 67) % 100;
+              const left = (seed * 89) % 100;
+              const duration = 15 + ((seed * 41) % 20);
+              const delay = (seed * 31) % 15;
+              
+              return (
+                <div
+                  key={i}
+                  className="absolute rounded-full opacity-30"
+                  style={{
+                    width: `${width}px`,
+                    height: `${height}px`,
+                    background: `rgba(${i % 2 === 0 ? "99, 102, 241" : "168, 85, 247"}, 0.4)`,
+                    top: `${top}%`,
+                    left: `${left}%`,
+                    animation: `floatingParticle ${duration}s linear infinite`,
+                    animationDelay: `${delay}s`,
+                  }}
+                />
+              );
+            })}
 
             {/* Ambient Light Spots */}
             <div

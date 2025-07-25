@@ -302,7 +302,8 @@ export default function CreateFeedbackActionModal({
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/actions/demo-upload', {
+      // PERFORMANCE: Use optimized demo upload endpoint
+      const response = await fetch('/api/actions/demo-upload-optimized', {
         method: 'POST',
         body: formData,
       });
@@ -615,7 +616,7 @@ export default function CreateFeedbackActionModal({
                   Demo Media (Optional)
                 </label>
                 <p className="text-xs text-gray-600 mb-3">
-                  Upload an image or video to show how this action should be performed
+                  Upload an image or video to show how this action should be performed. Images will be optimized, videos uploaded as-is.
                 </p>
                 
                 {!demoMedia.url ? (

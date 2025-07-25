@@ -1,6 +1,116 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
+// Add polyfills for Node.js test environment
+if (typeof TextEncoder === 'undefined') {
+  const { TextEncoder, TextDecoder } = require('util');
+  global.TextEncoder = TextEncoder;
+  global.TextDecoder = TextDecoder;
+}
+
+// Add File and FormData polyfills
+if (typeof File === 'undefined') {
+  global.File = class File {
+    constructor(parts, name, options = {}) {
+      this.name = name;
+      this.size = parts.reduce((acc, part) => acc + (part.length || part.byteLength || 0), 0);
+      this.type = options.type || '';
+      this.lastModified = options.lastModified || Date.now();
+      this._parts = parts;
+    }
+    
+    arrayBuffer() {
+      const buffer = new ArrayBuffer(this.size);
+      const view = new Uint8Array(buffer);
+      let offset = 0;
+      
+      for (const part of this._parts) {
+        if (part instanceof ArrayBuffer) {
+          view.set(new Uint8Array(part), offset);
+          offset += part.byteLength;
+        } else if (typeof part === 'string') {
+          const encoder = new TextEncoder();
+          const encoded = encoder.encode(part);
+          view.set(encoded, offset);
+          offset += encoded.length;
+        }
+      }
+      
+      return Promise.resolve(buffer);
+    }
+    
+    text() {
+      return this.arrayBuffer().then(buffer => {
+        const decoder = new TextDecoder();
+        return decoder.decode(buffer);
+      });
+    }
+  };
+}
+
+if (typeof FormData === 'undefined') {
+  global.FormData = class FormData {
+    constructor() {
+      this._data = new Map();
+    }
+    
+    append(name, value, filename) {
+      if (!this._data.has(name)) {
+        this._data.set(name, []);
+      }
+      this._data.get(name).push({ value, filename });
+    }
+    
+    get(name) {
+      const entries = this._data.get(name);
+      return entries ? entries[0].value : null;
+    }
+    
+    getAll(name) {
+      const entries = this._data.get(name);
+      return entries ? entries.map(entry => entry.value) : [];
+    }
+    
+    has(name) {
+      return this._data.has(name);
+    }
+    
+    set(name, value, filename) {
+      this._data.set(name, [{ value, filename }]);
+    }
+    
+    delete(name) {
+      this._data.delete(name);
+    }
+    
+    *entries() {
+      for (const [name, entries] of this._data) {
+        for (const entry of entries) {
+          yield [name, entry.value];
+        }
+      }
+    }
+    
+    *keys() {
+      for (const [name] of this._data) {
+        yield name;
+      }
+    }
+    
+    *values() {
+      for (const [name, entries] of this._data) {
+        for (const entry of entries) {
+          yield entry.value;
+        }
+      }
+    }
+    
+    [Symbol.iterator]() {
+      return this.entries();
+    }
+  };
+}
+
 // Mock Prisma Client
 jest.mock('@prisma/client', () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
@@ -14,6 +124,14 @@ jest.mock('@prisma/client', () => ({
     student: {
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    action: {
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -35,6 +153,10 @@ jest.mock('@prisma/client', () => ({
     $connect: jest.fn(),
     $disconnect: jest.fn(),
     $transaction: jest.fn(),
+    $use: jest.fn((middleware) => {
+      // Mock the middleware function - just call the next function
+      return jest.fn(async (params, next) => next(params));
+    }),
   })),
 }))
 
@@ -296,10 +418,17 @@ jest.mock('next-auth/react', () => ({
 }))
 
 // Mock next-auth server functions
-jest.mock('next-auth', () => ({
-  default: jest.fn(),
-  getServerSession: jest.fn(),
-}))
+jest.mock('next-auth', () => {
+  const mockNextAuth = jest.fn(() => ({
+    GET: jest.fn(),
+    POST: jest.fn(),
+  }));
+  mockNextAuth.getServerSession = jest.fn();
+  return {
+    default: mockNextAuth,
+    getServerSession: jest.fn(),
+  };
+})
 
 // Mock dynamic imports
 jest.mock('next/dynamic', () => () => {

@@ -247,39 +247,52 @@ model Feedback {
 }
 
 model Action {
-  id              String    @id @default(cuid())
-  studentId       String
-  coachId         String
-  title           String
-  description     String
-  category        String    @default("GENERAL")
-  priority        String    @default("MEDIUM")
-  dueDate         DateTime?
-  isCompleted     Boolean   @default(false)
-  completedAt     DateTime?
-  isAcknowledged  Boolean   @default(false)
-  acknowledgedAt  DateTime?
-  notes           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  teamId          String?
-  proofFileName   String?
-  proofMediaType  String?
-  proofMediaUrl   String?
-  proofUploadedAt DateTime?
-  demoMediaUrl    String?
-  demoMediaType   String?
-  demoFileName    String?
-  demoUploadedAt  DateTime?
-  coach           Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
-  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  team            Team?     @relation(fields: [teamId], references: [id])
+  id                    String    @id @default(cuid())
+  studentId             String
+  coachId               String
+  title                 String
+  description           String
+  category              String    @default("GENERAL")
+  priority              String    @default("MEDIUM")
+  dueDate               DateTime?
+  isCompleted           Boolean   @default(false)
+  completedAt           DateTime?
+  isAcknowledged        Boolean   @default(false)
+  acknowledgedAt        DateTime?
+  notes                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  teamId                String?
+  
+  // Proof Media Fields (uploaded by athletes)
+  proofFileName         String?
+  proofMediaType        String?
+  proofMediaUrl         String?
+  proofUploadedAt       DateTime?
+  proofFileSize         Int?       // File size in bytes
+  proofUploadMethod     String?    // 'supabase' | 'optimized_base64' | 'chunked_base64'
+  proofProcessingTime   Int?       // Processing time in milliseconds
+  
+  // Demo Media Fields (uploaded by coaches)
+  demoMediaUrl          String?
+  demoMediaType         String?
+  demoFileName          String?
+  demoUploadedAt        DateTime?
+  demoFileSize          Int?       // File size in bytes
+  demoUploadMethod      String?    // 'supabase' | 'optimized_base64' | 'chunked_base64'
+  demoProcessingTime    Int?       // Processing time in milliseconds
+  
+  coach                 Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  student               Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  team                  Team?     @relation(fields: [teamId], references: [id])
 
   @@index([studentId, createdAt])
   @@index([coachId, createdAt])
   @@index([teamId, createdAt])
   @@index([studentId, isCompleted])
   @@index([studentId, isAcknowledged])
+  @@index([proofUploadMethod])    // Performance tracking index
+  @@index([demoUploadMethod])     // Performance tracking index
 }
 
 model BadgeCategory {

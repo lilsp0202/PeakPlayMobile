@@ -4,7 +4,18 @@ import { authOptions } from "@/lib/auth";
 import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
-import * as Sentry from "@sentry/nextjs";
+
+// Conditional Sentry import with error handling
+let Sentry: any = null;
+try {
+  if (typeof window === 'undefined') {
+    // Only import Sentry on server-side and if available
+    Sentry = require("@sentry/nextjs");
+  }
+} catch (error) {
+  console.warn('Sentry not available:', error);
+  Sentry = null;
+}
 import bcrypt from "bcryptjs";
 
 export async function DELETE(request: NextRequest) {
@@ -128,7 +139,9 @@ export async function DELETE(request: NextRequest) {
     console.log(`[ACCOUNT_DELETION] Successfully deleted account for user ${session.user.id}`);
     
     // Report to monitoring
+    if (Sentry) {
     Sentry.captureMessage(`Account deleted: ${session.user.id}`, 'info');
+    }
 
     return NextResponse.json(
       { 
@@ -140,12 +153,14 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Account deletion error:", error);
     
+    if (Sentry) {
     Sentry.captureException(error, {
       tags: {
         endpoint: '/api/profile/delete',
         userId: ((await getServerSession(authOptions)) as Session | null)?.user?.id,
       },
     });
+    }
 
     return NextResponse.json(
       { error: "Failed to delete account. Please try again or contact support." },
@@ -263,12 +278,14 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Data export error:", error);
     
+    if (Sentry) {
     Sentry.captureException(error, {
       tags: {
         endpoint: '/api/profile/delete',
         action: 'export',
       },
     });
+    }
 
     return NextResponse.json(
       { error: "Failed to export data. Please try again." },

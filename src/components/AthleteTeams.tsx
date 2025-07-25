@@ -11,6 +11,7 @@ import {
   FiArrowRight
 } from 'react-icons/fi';
 import TeamModal from './TeamModal';
+import ViewTeamRolesModal from './ViewTeamRolesModal';
 
 interface AthleteTeamsProps {
   studentId?: string;
@@ -23,6 +24,8 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTeamForRoles, setSelectedTeamForRoles] = useState<any>(null);
+  const [isRolesModalOpen, setIsRolesModalOpen] = useState(false);
 
   useEffect(() => {
     fetchTeamData();
@@ -65,7 +68,9 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
         credentials: 'include',
       });
       if (feedbackResponse.ok) {
-        const feedback = await feedbackResponse.json();
+        const feedbackData = await feedbackResponse.json();
+        // Handle API response format (may return array directly or object with data property)
+        const feedback = Array.isArray(feedbackData) ? feedbackData : (feedbackData.data || feedbackData || []);
         const teamRelatedFeedback = feedback.filter((item: any) => item.team);
         setTeamFeedback(teamRelatedFeedback);
       }
@@ -76,7 +81,9 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
         signal: actionsController.signal,
       });
       if (actionsResponse.ok) {
-        const actions = await actionsResponse.json();
+        const actionsData = await actionsResponse.json();
+        // Handle new API response format for athletes
+        const actions = actionsData.actions || actionsData || [];
         const teamRelatedActions = actions.filter((item: any) => item.team);
         setTeamActions(teamRelatedActions);
       }
@@ -194,6 +201,16 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
     setSelectedTeam(null);
   };
 
+  const handleViewTeamRoles = (team: any) => {
+    setSelectedTeamForRoles(team);
+    setIsRolesModalOpen(true);
+  };
+
+  const handleCloseRolesModal = () => {
+    setIsRolesModalOpen(false);
+    setSelectedTeamForRoles(null);
+  };
+
   const renderTeamsList = () => (
     <div className="space-y-3">
       {teams.length === 0 ? (
@@ -301,6 +318,22 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
                   </div>
                 )}
 
+                {/* View Roles Button - Mobile Optimized */}
+                <div className="mt-3">
+                  <motion.button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewTeamRoles(team);
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-xs font-medium flex items-center justify-center space-x-2"
+                  >
+                    <FiUsers className="w-3 h-3" />
+                    <span>View Team Roles</span>
+                  </motion.button>
+                </div>
+
                 {/* Pending Items Alert - Mobile Optimized */}
                 {stats.pendingItems > 0 && (
                   <div className="mt-2 bg-orange-50 border border-orange-100 rounded-lg p-2.5">
@@ -354,6 +387,14 @@ export default function AthleteTeams({ studentId }: AthleteTeamsProps) {
             teamActions={getTeamActions(selectedTeam.id)}
             onAcknowledge={handleAcknowledge}
             onComplete={handleComplete}
+          />
+        )}
+
+        {/* View Team Roles Modal */}
+        {selectedTeamForRoles && isRolesModalOpen && (
+          <ViewTeamRolesModal
+            team={selectedTeamForRoles}
+            onClose={handleCloseRolesModal}
           />
         )}
       </div>

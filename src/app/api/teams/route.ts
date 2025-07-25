@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -20,7 +19,7 @@ const getTeamsCache = (key: string): any | null => {
   return item.data;
 };
 
-const setTeamsCache = (key: string, data: any, ttlMs: number = 300000) => { // 5 minute cache for better performance
+const setTeamsCache = (key: string, data: any, ttlMs: number = 30000) => { // Reduced cache time for faster updates
   teamsCache.set(key, {
     data,
     timestamp: Date.now(),
@@ -28,7 +27,7 @@ const setTeamsCache = (key: string, data: any, ttlMs: number = 300000) => { // 5
   });
 };
 
-const withTeamsCacheAndDeduplication = async <T>(key: string, fn: () => Promise<T>, ttlMs: number = 180000): Promise<T> => {
+const withTeamsCacheAndDeduplication = async <T>(key: string, fn: () => Promise<T>, ttlMs: number = 30000): Promise<T> => {
   // Check cache first
   const cached = getTeamsCache(key);
   if (cached !== null) {
@@ -42,38 +41,12 @@ const withTeamsCacheAndDeduplication = async <T>(key: string, fn: () => Promise<
     return pendingTeamsRequests.get(key) as Promise<T>;
   }
 
-  // Create new request with timeout protection
-      const promise = Promise.race([
-      fn(),
-      new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error('NUCLEAR TEAMS TIMEOUT')), 1500) // 1.5 second MAXIMUM
-      )
-    ])
-      .then(result => {
-        setTeamsCache(key, result, ttlMs);
-        const itemCount = Array.isArray(result) ? result.length : 'N/A';
-        console.log(`⚡ FAST Teams query: ${itemCount} teams`);
-        return result;
-      })
-      .catch(error => {
-        console.error('🚨 NUCLEAR TEAMS FALLBACK activated:', error.message);
-        // IMMEDIATE static fallback
-        const staticTeamsFallback = [{
-          id: 'fallback-team-1',
-          name: 'Default Team',
-          academy: 'System Academy',
-          sport: 'CRICKET',
-          description: 'System generated team',
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          members: [],
-          _count: { members: 0 }
-        }] as T;
-        
-        setTeamsCache(key, staticTeamsFallback, 5000); // Cache for 5 seconds only
-        return staticTeamsFallback;
-      })
+  // Create new request
+  const promise = fn()
+    .then(result => {
+      setTeamsCache(key, result, ttlMs);
+      return result;
+    })
     .finally(() => {
       pendingTeamsRequests.delete(key);
     });
@@ -88,7 +61,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🏈 Teams API - Starting request');
     
-    const session = await getServerSession(authOptions) as Session | null;
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -257,7 +230,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions) as Session | null;
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

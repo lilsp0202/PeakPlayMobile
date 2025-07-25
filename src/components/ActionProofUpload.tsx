@@ -1,8 +1,6 @@
 "use client";
-
-import { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { FiUpload, FiFile, FiImage, FiVideo, FiX, FiCheck } from 'react-icons/fi';
+import React, { useState, useRef } from 'react';
+import { FiUpload, FiX, FiFile, FiImage, FiVideo, FiCheck, FiClock } from 'react-icons/fi';
 
 interface ActionProofUploadProps {
   actionId: string;
@@ -21,6 +19,12 @@ export default function ActionProofUpload({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{
+    time?: number;
+    size?: string;
+    compression?: string;
+    mode?: string;
+  }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (file: File) => {
@@ -40,6 +44,7 @@ export default function ActionProofUpload({
 
     setSelectedFile(file);
     setError('');
+    setUploadProgress({});
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -64,28 +69,53 @@ export default function ActionProofUpload({
 
     setUploading(true);
     setError('');
+    setUploadProgress({});
 
     try {
+      console.log('🎯 Starting optimized proof upload for action:', actionId);
+      
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('actionId', actionId);
 
-      const response = await fetch('/api/actions/upload', {
+      // PERFORMANCE: Use optimized upload endpoint
+      const response = await fetch('/api/actions/upload-optimized', {
         method: 'POST',
         body: formData,
       });
 
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Upload successful:', data);
+        
+        // Update progress with performance metrics
+        if (data.performance) {
+          setUploadProgress({
+            time: data.performance.uploadTime,
+            size: data.performance.fileSize ? `${(data.performance.fileSize / 1024).toFixed(2)}KB` : undefined,
+            compression: data.performance.compressionRatio,
+            mode: data.performance.mode || 'optimized'
+          });
+        }
+
+        // Call success callback with action data
         onUploadSuccess(data.action);
-        setSelectedFile(null);
-        onClose();
+        
+        // Auto-close after 1 second to show success feedback
+        setTimeout(() => {
+          setSelectedFile(null);
+          setUploadProgress({});
+          onClose();
+        }, 1500);
+        
       } else {
         const errorData = await response.json();
+        console.error('❌ Upload failed:', errorData);
         setError(errorData.message || 'Upload failed');
       }
     } catch (error) {
-      setError('An error occurred during upload');
+      console.error('❌ Upload error:', error);
+      setError('Network error occurred during upload. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -108,131 +138,157 @@ export default function ActionProofUpload({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-gray-900">Upload Proof</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h3 className="text-lg font-semibold text-gray-900">Upload Action Proof</h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            disabled={uploading}
           >
-            <FiX className="w-5 h-5 text-gray-500" />
+            <FiX className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Upload Area */}
-        <div
-          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
-            dragOver 
-              ? 'border-blue-400 bg-blue-50' 
-              : selectedFile 
-              ? 'border-green-400 bg-green-50' 
-              : 'border-gray-300 hover:border-gray-400'
-          }`}
-          onDrop={handleDrop}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
-        >
-          {selectedFile ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-center">
-                {getFileIcon(selectedFile)}
-              </div>
-              <div>
-                <p className="font-medium text-gray-900 truncate">{selectedFile.name}</p>
-                <p className="text-sm text-gray-500">{formatFileSize(selectedFile.size)}</p>
-              </div>
-              <button
-                onClick={() => setSelectedFile(null)}
-                className="text-sm text-red-600 hover:text-red-700 underline"
-              >
-                Remove file
-              </button>
+        <div className="p-6">
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-center">
-                <FiUpload className="w-12 h-12 text-gray-400" />
+          )}
+
+          {/* Upload Progress Display */}
+          {uploadProgress.time && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+              <div className="flex items-center mb-2">
+                <FiCheck className="w-4 h-4 mr-2" />
+                <span className="font-medium">Upload Successful!</span>
               </div>
-              <div>
-                <p className="text-lg font-medium text-gray-900 mb-2">
-                  Upload your completion proof
-                </p>
-                <p className="text-sm text-gray-500 mb-4">
-                  Drag and drop or click to select
-                </p>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                  Choose File
-                </button>
+              <div className="text-sm space-y-1">
+                <div className="flex items-center">
+                  <FiClock className="w-3 h-3 mr-2" />
+                  Upload time: {uploadProgress.time}ms
+                </div>
+                {uploadProgress.size && (
+                  <div>Optimized size: {uploadProgress.size}</div>
+                )}
+                {uploadProgress.compression && (
+                  <div>Compression: {uploadProgress.compression} smaller</div>
+                )}
+                {uploadProgress.mode && (
+                  <div>Mode: {uploadProgress.mode === 'optimized' ? '🚀 Optimized Storage' : '📦 Fallback Storage'}</div>
+                )}
               </div>
             </div>
           )}
-        </div>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,video/*"
-          onChange={handleFileInputChange}
-          className="hidden"
-        />
+          {!selectedFile ? (
+            <div
+              onDrop={handleDrop}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={() => setDragOver(false)}
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+                dragOver
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <FiUpload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">
+                Drop your proof file here or click to browse
+              </p>
+              <p className="text-sm text-gray-500">
+                Images (JPG, PNG, GIF) or Videos (MP4, MOV, WebM)
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Maximum file size: 50MB
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileInputChange}
+                accept="image/*,video/*"
+                className="hidden"
+                disabled={uploading}
+              />
+            </div>
+          ) : (
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center space-x-3 mb-4">
+                {getFileIcon(selectedFile)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {selectedFile.name}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {formatFileSize(selectedFile.size)}
+                  </p>
+                </div>
+                {!uploading && !uploadProgress.time && (
+                  <button
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setError('');
+                      setUploadProgress({});
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <FiX className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
 
-        {/* File Type Info */}
-        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600">
-            <strong>Supported formats:</strong> Images (JPEG, PNG, GIF) and Videos (MP4, MOV, WebM)
-          </p>
-          <p className="text-xs text-gray-600 mt-1">
-            <strong>Maximum size:</strong> 50MB
-          </p>
-        </div>
+              {!uploadProgress.time && (
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleUpload}
+                    disabled={uploading}
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  >
+                    {uploading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <FiUpload className="w-4 h-4 mr-2" />
+                        Upload Proof
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setError('');
+                      setUploadProgress({});
+                    }}
+                    disabled={uploading}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleUpload}
-            disabled={!selectedFile || uploading}
-            className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
-          >
-            {uploading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                Uploading...
-              </>
-            ) : (
-              <>
-                <FiCheck className="w-4 h-4" />
-                Upload Proof
-              </>
+          <div className="mt-4 text-xs text-gray-500">
+            <p>💡 <strong>Tip:</strong> Images will be automatically optimized for faster loading. Videos are uploaded as-is.</p>
+            {selectedFile && selectedFile.type.startsWith('image/') && selectedFile.size > 5 * 1024 * 1024 && (
+              <p className="mt-1 text-blue-600">🚀 Large image detected - will be compressed for optimal performance.</p>
             )}
-          </button>
+            {selectedFile && selectedFile.type.startsWith('video/') && (
+              <p className="mt-1 text-purple-600">🎥 Video file - will be uploaded without compression.</p>
+            )}
+          </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 } 

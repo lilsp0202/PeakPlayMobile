@@ -5,7 +5,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// PERFORMANCE: Create optimized Prisma client with AGGRESSIVE connection settings
+// PERFORMANCE: Create optimized Prisma client with enhanced settings
 export const prisma = globalForPrisma.prisma ?? 
   new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
@@ -14,12 +14,8 @@ export const prisma = globalForPrisma.prisma ??
         url: process.env.DATABASE_URL,
       },
     },
+    // PERFORMANCE: Connection pool optimization removed for TypeScript compatibility
   })
-
-// NUCLEAR: Minimal connection settings for speed
-process.env.DATABASE_URL = process.env.DATABASE_URL?.includes('?') 
-  ? `${process.env.DATABASE_URL}&connection_limit=3&pool_timeout=10`
-  : `${process.env.DATABASE_URL}?connection_limit=3&pool_timeout=10`
 
 // PERFORMANCE: Enable query optimization middleware
 prisma.$use(async (params, next) => {
