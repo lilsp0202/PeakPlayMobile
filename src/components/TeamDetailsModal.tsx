@@ -73,10 +73,10 @@ export default function TeamDetailsModal({
     }
   };
 
-  if (!isOpen) return null;
-
   // Group team feedback/actions by creation time and other common fields
   const groupedData = React.useMemo(() => {
+    if (!isOpen) return [];
+    
     const currentData = viewType === 'feedback' ? teamData.feedback : teamData.actions;
     if (!currentData || currentData.length === 0) return [];
 
@@ -112,7 +112,7 @@ export default function TeamDetailsModal({
 
   // Calculate separate counts for feedback and actions
   const feedbackCount = React.useMemo(() => {
-    if (!teamData.feedback || teamData.feedback.length === 0) return 0;
+    if (!isOpen || !teamData.feedback || teamData.feedback.length === 0) return 0;
     
     const groups = new Map();
     teamData.feedback.forEach(item => {
@@ -125,7 +125,7 @@ export default function TeamDetailsModal({
   }, [teamData.feedback]);
 
   const actionsCount = React.useMemo(() => {
-    if (!teamData.actions || teamData.actions.length === 0) return 0;
+    if (!isOpen || !teamData.actions || teamData.actions.length === 0) return 0;
     
     const groups = new Map();
     teamData.actions.forEach(item => {
@@ -365,6 +365,8 @@ export default function TeamDetailsModal({
       action.studentId === studentId && action.title === actionTitle
     );
   };
+
+  if (!isOpen) return null;
 
   return (
     <motion.div

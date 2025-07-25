@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSession, signOut, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMessageSquare, FiCheckSquare, FiClock, FiUser, FiCalendar, FiCheck, FiX, FiUpload, FiEye, FiRefreshCw, FiAlertCircle, FiLogIn } from 'react-icons/fi';
+import { FiMessageSquare, FiCheckSquare, FiClock, FiUser, FiCalendar, FiCheck, FiX, FiUpload, FiEye, FiRefreshCw, FiAlertCircle, FiLogIn, FiImage, FiVideo } from 'react-icons/fi';
 import ActionProofUpload from './ActionProofUpload';
 
 interface FeedbackItem {
@@ -416,8 +416,101 @@ const FeedbackActions = () => {
     }
   }, [status, session]);
 
-  const viewProofMedia = (mediaUrl: string) => {
-    window.open(mediaUrl, '_blank');
+  const viewMedia = (mediaUrl: string, fileName?: string) => {
+    const newWindow = window.open('', '_blank');
+    if (newWindow && mediaUrl) {
+      newWindow.document.write(`
+        <html>
+          <head>
+            <title>${fileName || 'Media Viewer'}</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              body { margin: 0; padding: 0; background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+              .viewer-container { display: flex; flex-direction: column; min-height: 100vh; }
+              .viewer-header { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+              .viewer-title { margin: 0; color: #374151; font-size: 18px; font-weight: 600; }
+              .viewer-controls { display: flex; gap: 8px; }
+              .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+              .btn-close { background: #ef4444; color: white; }
+              .btn-close:hover { background: #dc2626; }
+              .btn-download { background: #3b82f6; color: white; }
+              .btn-download:hover { background: #2563eb; }
+              .viewer-content { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+              .media-container { text-align: center; max-width: 95vw; max-height: 85vh; }
+              .media-item { max-width: 100%; max-height: 85vh; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+              .viewer-footer { background: #fff; border-top: 1px solid #e5e7eb; padding: 12px 20px; text-align: center; color: #6b7280; font-size: 12px; }
+              @media (max-width: 768px) { 
+                .viewer-header { padding: 10px 15px; }
+                .viewer-title { font-size: 16px; }
+                .btn { padding: 6px 12px; font-size: 12px; }
+                .viewer-content { padding: 15px; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="viewer-container">
+              <div class="viewer-header">
+                <h1 class="viewer-title">${fileName || 'Media Viewer'}</h1>
+                <div class="viewer-controls">
+                  <button class="btn btn-download" onclick="downloadMedia()">Download</button>
+                  <button class="btn btn-close" onclick="window.close()">Close</button>
+                </div>
+              </div>
+              <div class="viewer-content">
+                <div class="media-container">
+                  ${mediaUrl.includes('image') || mediaUrl.startsWith('data:image') 
+                    ? `<img src="${mediaUrl}" class="media-item" alt="${fileName || 'Media'}" onclick="toggleFullscreen(this)" style="cursor: zoom-in;" />` 
+                    : `<video src="${mediaUrl}" controls class="media-item" preload="metadata">Your browser does not support video playback.</video>`
+                  }
+                </div>
+              </div>
+              <div class="viewer-footer">
+                Click image to zoom • Press ESC to close • PeakPlay Media Viewer
+              </div>
+            </div>
+            <script>
+              function downloadMedia() {
+                const link = document.createElement('a');
+                link.href = '${mediaUrl}';
+                link.download = '${fileName || 'media-file'}';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }
+              
+              function toggleFullscreen(img) {
+                if (!document.fullscreenElement) {
+                  img.requestFullscreen().catch(err => {
+                    console.log('Fullscreen not supported');
+                  });
+                  img.style.cursor = 'zoom-out';
+                } else {
+                  document.exitFullscreen();
+                  img.style.cursor = 'zoom-in';
+                }
+              }
+              
+              document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                  if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                  } else {
+                    window.close();
+                  }
+                }
+              });
+              
+              document.addEventListener('fullscreenchange', function() {
+                const img = document.querySelector('img');
+                if (img) {
+                  img.style.cursor = document.fullscreenElement ? 'zoom-out' : 'zoom-in';
+                }
+              });
+            </script>
+          </body>
+        </html>
+      `);
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -525,10 +618,10 @@ const FeedbackActions = () => {
                 >
                   <FiRefreshCw className="w-4 h-4" />
                   Sign Out & Refresh
-                </button>
+              </button>
               </>
             ) : (
-              <button
+            <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
                 className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-colors ${
@@ -539,15 +632,15 @@ const FeedbackActions = () => {
               >
                 <FiRefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {isRefreshing ? 'Retrying...' : 'Try Again'}
-              </button>
-            )}
-            <button
+            </button>
+          )}
+        <button
               onClick={() => window.location.reload()}
               className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-            >
+        >
               Refresh Page
-            </button>
-          </div>
+        </button>
+        </div>
           {retryCount > 0 && !isAuthError && (
             <p className="text-sm text-gray-500 mt-4">
               Retry attempt: {retryCount}/5
@@ -558,8 +651,8 @@ const FeedbackActions = () => {
               Session refresh attempts: {authRetryCount}/2
             </p>
           )}
-        </div>
       </div>
+        </div>
     );
   }
 
@@ -580,13 +673,13 @@ const FeedbackActions = () => {
           <FiRefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           <span className="hidden sm:inline">Refresh</span>
         </button>
-      </div>
-
+              </div>
+              
       {/* Performance indicator */}
       {lastFetch > 0 && (
         <div className="text-xs text-gray-500 text-right">
           Last updated: {new Date(lastFetch).toLocaleTimeString()}
-        </div>
+              </div>
       )}
 
       {/* Tab Navigation - Mobile optimized */}
@@ -728,11 +821,11 @@ const FeedbackActions = () => {
           >
             {/* Show loading indicator if actions are still loading */}
             {isLoading && actions.length === 0 && (
-              <div className="text-center py-6 border border-orange-200 bg-orange-50 rounded-lg">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-3"></div>
-                <p className="text-orange-700 text-sm">Loading actions...</p>
+                  <div className="text-center py-6 border border-orange-200 bg-orange-50 rounded-lg">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-3"></div>
+                    <p className="text-orange-700 text-sm">Loading actions...</p>
                 <p className="text-orange-600 text-xs mt-1">This may take a moment due to database optimization</p>
-              </div>
+                  </div>
             )}
             
             {!isLoading && actions.length === 0 ? (
@@ -789,75 +882,106 @@ const FeedbackActions = () => {
 
                   {/* Demo media display */}
                   {item.demoMediaUrl && (
-                    <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FiEye className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-900">Coach Demonstration</span>
+                    <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        {item.demoMediaType?.startsWith('image') ? <FiImage className="w-5 h-5 text-blue-600" /> : <FiVideo className="w-5 h-5 text-blue-600" />}
+                        <h4 className="text-sm font-semibold text-blue-900">Coach Demo Media</h4>
                       </div>
-                      {item.demoMediaType?.startsWith('image/') ? (
-                        <img 
-                          src={item.demoMediaUrl} 
-                          alt="Coach demonstration"
-                          className="w-full max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => viewProofMedia(item.demoMediaUrl!)}
-                        />
-                      ) : item.demoMediaType?.startsWith('video/') ? (
+                      
+                      {item.demoMediaType?.startsWith('image') ? (
+                        <div className="relative">
+                          <img 
+                            src={item.demoMediaUrl} 
+                            alt="Coach demo"
+                            className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+                            style={{ maxHeight: '200px', objectFit: 'cover' }}
+                            onClick={() => viewMedia(item.demoMediaUrl, item.demoFileName)}
+                          />
+                          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                            Click to enlarge
+                          </div>
+                        </div>
+                      ) : item.demoMediaType?.startsWith('video') ? (
                         <video 
                           src={item.demoMediaUrl}
                           controls
-                          className="w-full max-w-xs rounded-lg"
+                          className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md"
                           preload="metadata"
+                          style={{ maxHeight: '200px' }}
                         >
-                          Your browser does not support the video tag.
+                          Your browser does not support video.
                         </video>
                       ) : (
-                        <a 
-                          href={item.demoMediaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
+                        <button
+                          onClick={() => viewMedia(item.demoMediaUrl, item.demoFileName)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                         >
                           <FiEye className="w-4 h-4" />
-                          View demonstration ({item.demoFileName})
-                        </a>
+                          View demo ({item.demoFileName})
+                        </button>
                       )}
+                      
+                      <div className="flex justify-between items-center mt-3">
+                        <p className="text-xs text-blue-700">
+                          <strong>File:</strong> {item.demoFileName}
+                        </p>
+                        <p className="text-xs text-blue-700">
+                          <strong>Uploaded:</strong> {item.demoUploadedAt ? formatDate(item.demoUploadedAt) : 'N/A'}
+                        </p>
+                      </div>
                     </div>
                   )}
 
                   {/* Proof media display */}
                   {item.proofMediaUrl && (
-                    <div className="mb-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FiUpload className="w-4 h-4 text-green-600" />
-                        <span className="text-sm font-medium text-green-900">Your Proof Submitted</span>
+                    <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FiUpload className="w-5 h-5 text-green-600" />
+                        <h4 className="text-sm font-semibold text-green-900">Student Proof Submission</h4>
+                        {item.isCompleted && <FiCheck className="w-4 h-4 text-green-600" />}
                       </div>
-                      {item.proofMediaType?.startsWith('image/') ? (
-                        <img 
-                          src={item.proofMediaUrl} 
-                          alt="Action proof"
-                          className="w-full max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => viewProofMedia(item.proofMediaUrl!)}
-                        />
-                      ) : item.proofMediaType?.startsWith('video/') ? (
+                      
+                      {item.proofMediaType?.startsWith('image') ? (
+                        <div className="relative">
+                          <img 
+                            src={item.proofMediaUrl} 
+                            alt="Student proof"
+                            className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+                            style={{ maxHeight: '200px', objectFit: 'cover' }}
+                            onClick={() => viewMedia(item.proofMediaUrl, item.proofFileName)}
+                          />
+                          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                            Click to enlarge
+                          </div>
+                        </div>
+                      ) : item.proofMediaType?.startsWith('video') ? (
                         <video 
                           src={item.proofMediaUrl}
                           controls
-                          className="w-full max-w-xs rounded-lg"
+                          className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md"
                           preload="metadata"
+                          style={{ maxHeight: '200px' }}
                         >
-                          Your browser does not support the video tag.
+                          Your browser does not support video.
                         </video>
                       ) : (
-                        <a 
-                          href={item.proofMediaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-green-600 hover:text-green-800 text-sm"
+                        <button
+                          onClick={() => viewMedia(item.proofMediaUrl, item.proofFileName)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                         >
                           <FiEye className="w-4 h-4" />
                           View proof ({item.proofFileName})
-                        </a>
+                        </button>
                       )}
+                      
+                      <div className="flex justify-between items-center mt-3">
+                        <p className="text-xs text-green-700">
+                          <strong>File:</strong> {item.proofFileName}
+                        </p>
+                        <p className="text-xs text-green-700">
+                          <strong>Submitted:</strong> {item.proofUploadedAt ? formatDate(item.proofUploadedAt) : 'N/A'}
+                        </p>
+                      </div>
                     </div>
                   )}
 

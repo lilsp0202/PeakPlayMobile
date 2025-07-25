@@ -8,6 +8,7 @@ import { Check } from "lucide-react";
 import dynamic from 'next/dynamic';
 import PeakPlayLogo from "@/components/PeakPlayLogo";
 import Portal from '../../components/Portal';
+import StudentFeedbackActionsModal from '@/components/StudentFeedbackActionsModal';
 import type { Session } from "next-auth";
 import { Team, TeamMember, TeamRole } from "@/types/team";
 
@@ -200,8 +201,10 @@ export default function Dashboard() {
   
   // Modal states for student features
   const [selectedStudentModal, setSelectedStudentModal] = useState<any>(null);
-  const [activeModal, setActiveModal] = useState<'skillsnap' | 'badges' | 'feedback' | 'progress' | null>(null);
+  const [activeModal, setActiveModal] = useState<'skillsnap' | 'badges' | 'feedback' | 'progress' | 'actions' | 'view' | null>(null);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [actionsModalOpen, setActionsModalOpen] = useState(false);
+  const [viewStudentModalOpen, setViewStudentModalOpen] = useState(false);
   const [isSkillSnapModalOpen, setIsSkillSnapModalOpen] = useState(false);
   const [multiStudentFeedbackOpen, setMultiStudentFeedbackOpen] = useState(false);
   const [studentDetailModalOpen, setStudentDetailModalOpen] = useState(false);
@@ -469,11 +472,15 @@ export default function Dashboard() {
   };
 
   // Modal handler functions
-  const openStudentModal = (student: any, modalType: 'skillsnap' | 'badges' | 'feedback' | 'progress') => {
+  const openStudentModal = (student: any, modalType: 'skillsnap' | 'badges' | 'feedback' | 'progress' | 'actions' | 'view') => {
     setSelectedStudentModal(student);
     setActiveModal(modalType);
     if (modalType === 'feedback') {
       setFeedbackModalOpen(true);
+    } else if (modalType === 'actions') {
+      setActionsModalOpen(true);
+    } else if (modalType === 'view') {
+      setViewStudentModalOpen(true);
     } else if (modalType === 'skillsnap') {
       // For SkillSnap, open the inline modal directly
       // Don't open StudentDetailModal for SkillSnap
@@ -494,6 +501,8 @@ export default function Dashboard() {
     setSelectedStudentModal(null);
     setActiveModal(null);
     setFeedbackModalOpen(false);
+    setActionsModalOpen(false);
+    setViewStudentModalOpen(false);
     setStudentDetailModalOpen(false);
     setMultiStudentFeedbackOpen(false);
     setProgressModalOpen(false);
@@ -1989,15 +1998,15 @@ export default function Dashboard() {
                           )}
                         </AnimatePresence>
                         
-                        {/* Mobile-Optimized Action Buttons - Added Track Progress */}
-                        <div className="flex gap-2">
+                        {/* Mobile-Optimized Action Buttons - Compact 2x2 Grid */}
+                        <div className="grid grid-cols-2 gap-2">
                           <motion.button
                           onClick={() => openStudentModal(student, 'skillsnap')}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="flex-1 px-3 py-3 sm:px-2 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[48px] sm:min-h-0 shadow-md"
+                            className="px-2 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[36px] shadow-sm"
                           >
-                              <FiActivity className="w-4 h-4 sm:w-3 sm:h-3" />
+                              <FiActivity className="w-3 h-3" />
                             <span className="truncate">Skills</span>
                             </motion.button>
                           
@@ -2005,10 +2014,30 @@ export default function Dashboard() {
                           onClick={() => openStudentModal(student, 'feedback')}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="flex-1 px-3 py-3 sm:px-2 sm:py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[48px] sm:min-h-0 shadow-md"
+                            className="px-2 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[36px] shadow-sm"
                         >
-                              <FiMessageSquare className="w-4 h-4 sm:w-3 sm:h-3" />
+                              <FiMessageSquare className="w-3 h-3" />
                           <span className="truncate">Feedback</span>
+                            </motion.button>
+
+                          <motion.button
+                          onClick={() => openStudentModal(student, 'actions')}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="px-2 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs font-medium rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[36px] shadow-sm"
+                        >
+                              <FiCheckSquare className="w-3 h-3" />
+                          <span className="truncate">Actions</span>
+                            </motion.button>
+
+                          <motion.button
+                          onClick={() => openStudentModal(student, 'view')}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="px-2 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[36px] shadow-sm"
+                        >
+                              <FiEye className="w-3 h-3" />
+                          <span className="truncate">View</span>
                             </motion.button>
 
                           <StudentReportPDF
@@ -3226,6 +3255,33 @@ export default function Dashboard() {
                         age: selectedStudentModal.age || 18
                       }}
                       onCreated={handleFeedbackCreated}
+                      defaultMode="feedback"
+        />
+                  </div>
+                )}
+
+                {activeModal === 'actions' && (
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">
+                      <h4 className="text-lg font-semibold text-orange-900 mb-2 flex items-center">
+                        <FiCheckSquare className="mr-2" />
+                        Assign Student Action
+                      </h4>
+                      <p className="text-orange-700 text-sm mb-4">
+                        Create actionable tasks and goals for {selectedStudentModal.studentName || selectedStudentModal.name} to complete.
+                      </p>
+                    </div>
+                    <CreateFeedbackActionModal
+          isOpen={actionsModalOpen}
+                      onClose={closeModal}
+                      student={{
+                        id: selectedStudentModal.id,
+                        studentName: selectedStudentModal.studentName || selectedStudentModal.name || 'Student',
+                        username: selectedStudentModal.username || selectedStudentModal.email || 'student',
+                        age: selectedStudentModal.age || 18
+                      }}
+                      onCreated={handleFeedbackCreated}
+                      defaultMode="action"
         />
                   </div>
                 )}
@@ -3458,6 +3514,15 @@ export default function Dashboard() {
             </div>
           </div>
         </Portal>
+      )}
+
+      {/* Student Feedback & Actions View Modal */}
+      {viewStudentModalOpen && selectedStudentModal && (
+        <StudentFeedbackActionsModal
+          student={selectedStudentModal}
+          isOpen={viewStudentModalOpen}
+          onClose={closeModal}
+        />
       )}
 
     </div>

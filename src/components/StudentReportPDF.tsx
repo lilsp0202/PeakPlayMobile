@@ -802,9 +802,9 @@ export default function StudentReportPDF({
   const buttonContent = (
     <>
       {isGenerating ? (
-        <FiLoader className="h-4 w-4 animate-spin mr-2" />
+        <FiLoader className="h-3 w-3 animate-spin mr-2" />
       ) : (
-        <FiDownload className="h-4 w-4 mr-2" />
+        <FiDownload className="h-3 w-3 mr-2" />
       )}
       {isGenerating ? 'Generating...' : 'Generate Report'}
     </>
@@ -817,13 +817,13 @@ export default function StudentReportPDF({
         whileTap={{ scale: 0.95 }}
         onClick={generatePDF}
         disabled={isGenerating}
-        className={`p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        className={`p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px] flex items-center justify-center ${className}`}
         title="Generate PDF Report"
       >
         {isGenerating ? (
-          <FiLoader className="h-4 w-4 animate-spin" />
+          <FiLoader className="h-3 w-3 animate-spin" />
         ) : (
-          <FiDownload className="h-4 w-4" />
+          <FiDownload className="h-3 w-3" />
         )}
       </motion.button>
     );
@@ -835,7 +835,7 @@ export default function StudentReportPDF({
       whileTap={{ scale: 0.98 }}
       onClick={generatePDF}
       disabled={isGenerating}
-      className={`flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`w-full flex items-center justify-center px-2 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px] ${className}`}
     >
       {buttonContent}
     </motion.button>
