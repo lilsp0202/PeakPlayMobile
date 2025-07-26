@@ -1,0 +1,27 @@
+-- AlterTable
+ALTER TABLE "Skills" ADD COLUMN "aim" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "backFootDrag" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "backFootLanding" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "backLift" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "battingBalance" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "battingGrip" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "battingStance" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "bowlingGrip" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "calling" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "cockingOfWrist" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "flatCatch" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "followThrough" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "frontFootLanding" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "highCatch" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "highElbow" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "hipDrive" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "nonBowlingArm" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "pickUp" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "positioningOfBall" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "receiving" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "release" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "runUp" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "runningBetweenWickets" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "softHands" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "throw" INTEGER;
+ALTER TABLE "Skills" ADD COLUMN "topHandDominance" INTEGER;

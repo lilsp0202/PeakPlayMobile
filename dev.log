@@ -1,0 +1,232 @@
+
+> peakplay@1.0.0 dev
+> next dev
+
+   ▲ Next.js 15.3.2
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.75:3000
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     · clientTraceMetadata
+
+ ✓ Starting...
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /Users/lilsp/peakplay-prototype/node_modules/next-pwa/register.js
+> [PWA] Service worker: /Users/lilsp/peakplay-prototype/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+> [PWA] Build in develop mode, cache and precache are mostly disabled. This means offline support is disabled, but you can continue developing other functions in service worker.
+ ✓ Ready in 2.2s
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ○ Compiling / ...
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ HEAD / 200 in 4809ms
+ HEAD / 200 in 52ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⨯ ./src/app/dashboard/page.tsx
+Error:   [31mx[0m Unexpected token `div`. Expected jsx identifier
+      ,-[[36;1;4m/Users/lilsp/peakplay-prototype/src/app/dashboard/page.tsx[0m:1814:1]
+ [2m1811[0m | 
+ [2m1812[0m |       case 'students':
+ [2m1813[0m |         return (
+ [2m1814[0m |           <div 
+      : [35;1m           ^^^[0m
+ [2m1815[0m |             className="space-y-6 sm:space-y-8"
+ [2m1816[0m |           >
+ [2m1817[0m |             {/* Success/Error Messages - Modern Design */}
+      `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/app/dashboard/page.tsx
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /Users/lilsp/peakplay-prototype/node_modules/next-pwa/register.js
+> [PWA] Service worker: /Users/lilsp/peakplay-prototype/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+> [PWA] Build in develop mode, cache and precache are mostly disabled. This means offline support is disabled, but you can continue developing other functions in service worker.
+<w> [webpack.cache.PackFileCacheStrategy] Restoring pack failed from /Users/lilsp/peakplay-prototype/.next/cache/webpack/client-development-fallback.pack.gz: Error: invalid stored block lengths
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /Users/lilsp/peakplay-prototype/node_modules/next-pwa/register.js
+> [PWA] Service worker: /Users/lilsp/peakplay-prototype/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+> [PWA] Build in develop mode, cache and precache are mostly disabled. This means offline support is disabled, but you can continue developing other functions in service worker.
+<w> [webpack.cache.PackFileCacheStrategy] Restoring pack failed from /Users/lilsp/peakplay-prototype/.next/cache/webpack/client-development-fallback.pack.gz: Error: invalid stored block lengths
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /Users/lilsp/peakplay-prototype/node_modules/next-pwa/register.js
+> [PWA] Service worker: /Users/lilsp/peakplay-prototype/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+> [PWA] Build in develop mode, cache and precache are mostly disabled. This means offline support is disabled, but you can continue developing other functions in service worker.
+<w> [webpack.cache.PackFileCacheStrategy] Restoring pack failed from /Users/lilsp/peakplay-prototype/.next/cache/webpack/client-development-fallback.pack.gz: Error: invalid stored block lengths
+ ⨯ ./src/app/dashboard/page.tsx
+Error:   [31mx[0m Unexpected token `div`. Expected jsx identifier
+      ,-[[36;1;4m/Users/lilsp/peakplay-prototype/src/app/dashboard/page.tsx[0m:1814:1]
+ [2m1811[0m | 
+ [2m1812[0m |       case 'students':
+ [2m1813[0m |         return (
+ [2m1814[0m |           <div 
+      : [35;1m           ^^^[0m
+ [2m1815[0m |             className="space-y-6 sm:space-y-8"
+ [2m1816[0m |           >
+ [2m1817[0m |             {/* Success/Error Messages - Modern Design */}
+      `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/app/dashboard/page.tsx
+ GET /dashboard 500 in 12ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/lilsp/peakplay-prototype/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/Users/lilsp/peakplay-prototype/.next/cache/webpack/client-development-fallback/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/lilsp/peakplay-prototype/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/Users/lilsp/peakplay-prototype/.next/cache/webpack/client-development-fallback/0.pack.gz'
+ GET /dashboard 500 in 30ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /_next/static/webpack/ba9da888c46c27ae.webpack.hot-update.json 404 in 1372ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /dashboard 200 in 917ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 2098ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /auth/signin 200 in 2155ms
+ GET /auth/signin 200 in 273ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 99ms
+ GET /dashboard 200 in 144ms
+ GET /api/auth/session 200 in 14ms
+ GET /auth/signin 200 in 13ms
+ GET /api/auth/providers 200 in 21ms
+ GET /api/auth/csrf 200 in 8ms
+🔍 Authorize called with credentials: { email: 'coach@transform.com', password: '***' }
+👤 User found: {
+  id: 'cmdhro8nw0000w23okks1u7j6',
+  email: 'coach@transform.com',
+  role: 'COACH'
+}
+[AUTH_EVENT] LOGIN_SUCCESS - coach@transform.com - Role: COACH
+ POST /api/auth/callback/credentials 200 in 518ms
+ GET /api/auth/session 200 in 12ms
+ GET /dashboard 200 in 29ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/coach/profile 200 in 2188ms
+ GET /api/coach/profile 200 in 2306ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🏅 Badges API - Request details: {
+  type: 'all',
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cmdhro8nw0000w23okks1u7j6'
+}
+🏅 Badges API - Request details: {
+  type: 'all',
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cmdhro8nw0000w23okks1u7j6'
+}
+ GET /api/badges?manage=true 200 in 1802ms
+ GET /api/students/by-academy?academy=Transform 200 in 1824ms
+ GET /api/badges?manage=true 200 in 1842ms
+ GET /api/skills 200 in 1849ms
+ GET /api/skills 200 in 1832ms
+ GET /api/coach/profile 200 in 1850ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /api/coach/profile 200 in 96ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/students/by-academy?academy=Transform 200 in 999ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /_next/static/webpack/57a09ef21876d4a9.webpack.hot-update.json 404 in 1073ms
+ GET /dashboard 200 in 164ms
+ GET /api/auth/session 200 in 13ms
+ GET /api/coach/profile 200 in 69ms
+🏅 Badges API - Request details: {
+  type: 'all',
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cmdhro8nw0000w23okks1u7j6'
+}
+ GET /api/badges?manage=true 200 in 65ms
+ GET /api/students/by-academy?academy=Transform 200 in 71ms
+ GET /api/coach/profile 200 in 89ms
+ GET /api/skills 200 in 157ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+📊 Track API - Starting bulk request
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+📊 Track API - Request: type=feedback, student=all, dateRange=week, limit=10, page=1
+✅ Coach found: Coach Transform with 4 students
+🎯 Valid student IDs for coach: 4
+📅 Date filter: week (7 days) - cutoff: 2025-07-19T22:38:32.723Z
+✅ Track API (feedback) completed in 200ms - found 5/5 items (page 1/1)
+ GET /api/track?type=feedback&student=all&category=all&priority=all&status=all&dateRange=week 200 in 1136ms
+📊 Track API - Starting bulk request
+📊 Track API - Request: type=actions, student=all, dateRange=week, limit=10, page=1
+✅ Coach found: Coach Transform with 4 students
+🎯 Valid student IDs for coach: 4
+📅 Date filter: week (7 days) - cutoff: 2025-07-19T22:38:35.595Z
+🔍 Actions query where clause: {
+  "studentId": {
+    "in": [
+      "cmdhrpp2e0004w28a5tyk60pz",
+      "cmdhrppcg0007w28ap0oll62s",
+      "cmdhrppmd000aw28au1i94pip",
+      "cmdhs7k810004w2zrawpsh6wp"
+    ]
+  },
+  "createdAt": {
+    "gte": "2025-07-19T22:38:35.595Z"
+  }
+}
+📊 Actions query results:
+   Total actions: 10
+   Actions with proof media: 2
+   Actions with demo media: 8
+🎯 Proof media actions:
+   1. "Test local again" - video (1753520447338-img_2753.mov)
+   2. "Team welcome meeting " - image (1753520482677-img_2681.jpeg)
+✅ Track API (actions) completed in 184ms - found 10/21 items (page 1/3)
+ GET /api/track?type=actions&student=all&category=all&priority=all&status=all&dateRange=week 200 in 200ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.

@@ -1,0 +1,25 @@
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Prisma Studio is up on http://localhost:5555
+node:events:485
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::5555
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at _6.start (/Users/lilsp/peakplay-prototype/node_modules/prisma/build/index.js:4807:14103)
+    at e.parse (/Users/lilsp/peakplay-prototype/node_modules/prisma/build/index.js:4846:1145)
+    at async s4t (/Users/lilsp/peakplay-prototype/node_modules/prisma/build/index.js:4899:2350)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1973:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 5555
+}
+
+Node.js v23.9.0

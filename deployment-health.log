@@ -1,0 +1,150 @@
+{
+  "timestamp": "2025-07-14T19:49:31.426Z",
+  "summary": {
+    "totalIssues": 0,
+    "environments": {
+      "local": {},
+      "vercel": {
+        "Homepage": {
+          "url": "https://peakplay-8xjabeq3l-shreyasprasanna25-6637s-projects.vercel.app/",
+          "status": 200,
+          "responseTime": 180,
+          "healthy": true,
+          "bodySize": 23590,
+          "headers": {
+            "age": "0",
+            "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Mon, 14 Jul 2025 19:49:31 GMT",
+            "link": "</_next/static/media/569ce4b8f30dc480-s.p.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/93f479601ee12b01-s.p.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\"",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "server": "Vercel",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "DENY",
+            "x-matched-path": "/",
+            "x-powered-by": "Next.js",
+            "x-robots-tag": "noindex",
+            "x-vercel-cache": "MISS",
+            "x-vercel-id": "sfo1::iad1::s47jq-1752522571564-c02be547c550",
+            "transfer-encoding": "chunked"
+          },
+          "error": null,
+          "critical": true
+        },
+        "Database Health": {
+          "url": "https://peakplay-8xjabeq3l-shreyasprasanna25-6637s-projects.vercel.app/api/test-db",
+          "status": 200,
+          "responseTime": 885,
+          "healthy": true,
+          "bodySize": 163,
+          "headers": {
+            "age": "0",
+            "cache-control": "no-store, max-age=0",
+            "content-type": "application/json",
+            "date": "Mon, 14 Jul 2025 19:49:32 GMT",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "server": "Vercel",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "DENY",
+            "x-matched-path": "/api/test-db",
+            "x-robots-tag": "noindex",
+            "x-vercel-cache": "MISS",
+            "x-vercel-id": "sfo1::iad1::s47jq-1752522571698-c2eb7c372ce3",
+            "transfer-encoding": "chunked"
+          },
+          "error": null,
+          "critical": true
+        },
+        "Teams API": {
+          "url": "https://peakplay-8xjabeq3l-shreyasprasanna25-6637s-projects.vercel.app/api/teams",
+          "status": 401,
+          "responseTime": 105,
+          "healthy": true,
+          "bodySize": 24,
+          "headers": {
+            "age": "0",
+            "cache-control": "no-store, max-age=0",
+            "content-type": "application/json",
+            "date": "Mon, 14 Jul 2025 19:49:32 GMT",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "server": "Vercel",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "DENY",
+            "x-matched-path": "/api/teams",
+            "x-robots-tag": "noindex",
+            "x-vercel-cache": "MISS",
+            "x-vercel-id": "sfo1::iad1::58jp5-1752522572582-3abebb864196",
+            "transfer-encoding": "chunked"
+          },
+          "error": null,
+          "critical": true
+        },
+        "Dashboard": {
+          "url": "https://peakplay-8xjabeq3l-shreyasprasanna25-6637s-projects.vercel.app/dashboard",
+          "status": 200,
+          "responseTime": 21,
+          "healthy": true,
+          "bodySize": 18786,
+          "headers": {
+            "accept-ranges": "bytes",
+            "access-control-allow-origin": "*",
+            "age": "52218",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "content-disposition": "inline",
+            "content-length": "18790",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Mon, 14 Jul 2025 19:49:32 GMT",
+            "etag": "\"6a5a7170e2a9a5b0aa7041e7951e7b62\"",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "server": "Vercel",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "DENY",
+            "x-matched-path": "/dashboard",
+            "x-nextjs-prerender": "1",
+            "x-nextjs-stale-time": "4294967294",
+            "x-robots-tag": "noindex",
+            "x-vercel-cache": "HIT",
+            "x-vercel-id": "sfo1::x6gvd-1752522572689-ee31887212d9"
+          },
+          "error": null,
+          "critical": true
+        },
+        "Auth Endpoint": {
+          "url": "https://peakplay-8xjabeq3l-shreyasprasanna25-6637s-projects.vercel.app/api/auth/signin",
+          "status": 302,
+          "responseTime": 116,
+          "healthy": false,
+          "bodySize": 0,
+          "headers": {
+            "age": "0",
+            "cache-control": "no-store, max-age=0",
+            "content-length": "0",
+            "date": "Mon, 14 Jul 2025 19:49:32 GMT",
+            "location": "/auth/signin?callbackUrl=https%3A%2F%2Fpeakplay-8xjabeq3l-shreyasprasanna25-6637s-projects.vercel.app",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "server": "Vercel",
+            "set-cookie": [
+              "__Host-next-auth.csrf-token=c172d775bf3e790ff0600818d36bbf16f03b77e70228b6adbe6cbfc720133afb%7C1a25c330346d1269da3bb928cb7a960f4bf65d11d0b63923214d74d5aed290bd; Path=/; HttpOnly; Secure; SameSite=Lax",
+              "__Secure-next-auth.callback-url=https%3A%2F%2Fpeakplay-8xjabeq3l-shreyasprasanna25-6637s-projects.vercel.app; Path=/; HttpOnly; Secure; SameSite=Lax"
+            ],
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "DENY",
+            "x-matched-path": "/api/auth/[...nextauth]",
+            "x-robots-tag": "noindex",
+            "x-vercel-cache": "MISS",
+            "x-vercel-id": "sfo1::iad1::x6gvd-1752522572712-30f02999796c"
+          },
+          "error": null,
+          "critical": false
+        }
+      }
+    }
+  },
+  "issues": []
+}

@@ -1,0 +1,359 @@
+"use client";
+
+import { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
+import { Plus, MapPin, Camera, ChevronDown, Edit, Trash2, MoreVertical, AlertTriangle } from 'lucide-react';
+import AddMatchModal from './AddMatchModal';
+import MatchDetailsModal from './MatchDetailsModal';
+import ScorecardUploadModal from './ScorecardUploadModal';
+import EditMatchModal from './EditMatchModal';
+
+export interface MatchPerformance {
+  id: string;
+  position?: string;
+  stats: string;
+  rating?: number;
+  notes?: string;
+  match: {
+    id: string;
+    matchName: string;
+    opponent: string;
+    venue?: string;
+    matchDate: string;
+    sport: string;
+    matchType: string;
+    result?: string;
+  };
+  student?: {
+    studentName: string;
+    sport: string;
+    role: string;
+  };
+}
+
+export default function RecentMatchScores({ studentId, isCoachView = false }: any) {
+  const [performances, setPerformances] = useState<MatchPerformance[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedMatch, setSelectedMatch] = useState<MatchPerformance | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isScorecardModalOpen, setIsScorecardModalOpen] = useState(false);
+  const [showAddDropdown, setShowAddDropdown] = useState(false);
+  const { data: session } = useSession();
+  const [playerRole, setPlayerRole] = useState("BATSMAN");
+
+  const fetchPlayerRole = async () => {
+    try {
+      const response = await fetch('/api/students');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.length > 0) {
+          setPlayerRole(data[0].role || "BATSMAN");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching player role:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (session?.user?.role === "ATHLETE") {
+      fetchPlayerRole();
+    }
+  }, [session]);
+
+  const fetchMatches = useCallback(async () => {
+    setLoading(true);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      
+      const response = await fetch(`/api/matches${studentId ? `?studentId=${studentId}` : ''}`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPerformances(data);
+      } else if (response.status === 404) {
+        setPerformances([]);
+      } else {
+        console.error("Failed to fetch matches:", response.status);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error("Matches request timeout");
+      } else {
+        console.error("Error fetching match scores:", error);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [studentId]);
+
+  useEffect(() => {
+    fetchMatches();
+  }, [fetchMatches]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showAddDropdown) {
+        setShowAddDropdown(false);
+      }
+    };
+
+    if (showAddDropdown) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showAddDropdown]);
+
+  const handleScorecardAnalysis = async (analysisResult: any) => {
+    try {
+      console.log("RecentMatchScores - Processing scorecard analysis:", analysisResult);
+      setError(null);
+
+      // Convert the analysis result to match data format
+      const matchData = {
+        matchName: analysisResult.matchDetails.matchName,
+        opponent: analysisResult.matchDetails.opponent,
+        venue: analysisResult.matchDetails.venue,
+        matchDate: analysisResult.matchDetails.matchDate,
+        sport: "CRICKET",
+        matchType: analysisResult.matchDetails.matchType,
+        result: analysisResult.matchDetails.result,
+        position: playerRole || "Player",
+        stats: {
+          // Batting stats
+          runs: analysisResult.playerStats.batting.runs,
+          balls: analysisResult.playerStats.batting.balls,
+          fours: analysisResult.playerStats.batting.fours,
+          sixes: analysisResult.playerStats.batting.sixes,
+          dots: analysisResult.playerStats.batting.dots,
+          notOut: analysisResult.playerStats.batting.notOut,
+          strikeRate: analysisResult.playerStats.batting.strikeRate,
+          // Bowling stats
+          wickets: analysisResult.playerStats.bowling.wickets,
+          overs: analysisResult.playerStats.bowling.overs,
+          maidens: analysisResult.playerStats.bowling.maidens,
+          wides: analysisResult.playerStats.bowling.wides,
+          noBalls: analysisResult.playerStats.bowling.noBalls,
+          economyRate: analysisResult.playerStats.bowling.economyRate,
+          // Fielding stats
+          catches: analysisResult.playerStats.fielding.catches,
+          runOuts: analysisResult.playerStats.fielding.runOuts,
+          stumpings: analysisResult.playerStats.fielding.stumpings,
+        },
+        rating: 7.0, // Default rating
+        notes: `${analysisResult.notes} (Analyzed from scorecard with ${analysisResult.confidence}% confidence)`
+      };
+
+      const response = await fetch("/api/matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(matchData),
+      });
+
+      const responseData = await response.json();
+      console.log("RecentMatchScores - API response:", responseData);
+
+      if (response.ok) {
+        console.log("RecentMatchScores - Match added successfully from scorecard");
+        await fetchMatches();
+        setIsScorecardModalOpen(false);
+      } else {
+        console.error("RecentMatchScores - API error:", responseData);
+        throw new Error(responseData.error || "Failed to add match from scorecard");
+      }
+    } catch (error) {
+      console.error("RecentMatchScores - Error processing scorecard:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to process scorecard. Please try again.";
+      setError(errorMessage);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Recent Match Scores</h2>
+        {session?.user?.role === "ATHLETE" && (
+          <div className="relative">
+            <button
+              onClick={() => setShowAddDropdown(!showAddDropdown)}
+              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add Match
+              <ChevronDown className="w-4 h-4 ml-2" />
+            </button>
+            
+            {showAddDropdown && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      setIsAddModalOpen(true);
+                      setShowAddDropdown(false);
+                    }}
+                    className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Plus className="w-5 h-5 mr-3 text-indigo-500" />
+                    <div>
+                      <div className="font-medium">Manual Entry</div>
+                      <div className="text-sm text-gray-500">Enter match details manually</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsScorecardModalOpen(true);
+                      setShowAddDropdown(false);
+                    }}
+                    className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                  >
+                    <Camera className="w-5 h-5 mr-3 text-green-500" />
+                    <div>
+                      <div className="font-medium">Upload Scorecard</div>
+                      <div className="text-sm text-gray-500">AI analysis from screenshot</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center items-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
+        </div>
+      ) : error ? (
+        <div className="text-red-500 text-center py-4">{error}</div>
+      ) : performances.length === 0 ? (
+        <div className="text-gray-500 text-center py-4">No match scores available</div>
+      ) : (
+        <div className="space-y-4">
+          {performances.map((performance) => (
+            <div
+              key={performance.id}
+              className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => setSelectedMatch(performance)}
+            >
+              <div className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-semibold text-gray-800">{performance.match.matchName}</h3>
+                    <p className="text-sm text-gray-600">
+                      vs {performance.match.opponent} • {new Date(performance.match.matchDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center">
+                    {performance.match.result && (
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded ${
+                          performance.match.result === "WIN"
+                            ? "bg-green-100 text-green-800"
+                            : performance.match.result === "LOSS"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {performance.match.result}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  {performance.match.venue || "Venue not specified"}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isAddModalOpen && (
+        <AddMatchModal
+          isOpen={isAddModalOpen}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setError(null);
+          }}
+          onSubmit={async (matchData) => {
+            try {
+              console.log("RecentMatchScores - Submitting match data:", matchData);
+              setError(null);
+              
+              const response = await fetch("/api/matches", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(matchData),
+              });
+
+              const responseData = await response.json();
+              console.log("RecentMatchScores - API response:", responseData);
+
+              if (response.ok) {
+                console.log("RecentMatchScores - Match added successfully");
+                await fetchMatches();
+                setIsAddModalOpen(false);
+              } else {
+                console.error("RecentMatchScores - API error:", responseData);
+                throw new Error(responseData.error || "Failed to add match");
+              }
+            } catch (error) {
+              console.error("RecentMatchScores - Error adding match:", error);
+              const errorMessage = error instanceof Error ? error.message : "Failed to add match. Please try again.";
+              setError(errorMessage);
+            }
+          }}
+          role={playerRole}
+        />
+      )}
+
+      {isScorecardModalOpen && (
+        <ScorecardUploadModal
+          isOpen={isScorecardModalOpen}
+          onClose={() => {
+            setIsScorecardModalOpen(false);
+            setError(null);
+          }}
+          onAnalysisComplete={handleScorecardAnalysis}
+          role={playerRole}
+        />
+      )}
+
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+              <div className="mt-4">
+                <button
+                  onClick={() => setError(null)}
+                  className="text-sm bg-red-100 text-red-800 px-3 py-1 rounded hover:bg-red-200"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedMatch && (
+        <MatchDetailsModal match={selectedMatch} onClose={() => setSelectedMatch(null)} />
+      )}
+    </div>
+  );
+} 
