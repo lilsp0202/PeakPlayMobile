@@ -4,6 +4,9 @@ const withPWA = require("next-pwa")({
   register: true,
   skipWaiting: true,
   disable: false, // Enable PWA in all environments
+  sw: '/sw.js',
+  cacheOnFrontEndNav: false,
+  reloadOnOnline: true,
   buildExcludes: [/middleware-manifest\.json$/, /_middleware\.js$/, /_middleware\.js\.map$/, /\.map$/],
   publicExcludes: ['!robots.txt', '!sitemap.xml'],
   runtimeCaching: [
@@ -76,6 +79,18 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
           },
         ],
       },

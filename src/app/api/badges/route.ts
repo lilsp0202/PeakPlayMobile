@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'all';
+    const manage = searchParams.get('manage') === 'true';
     const studentId = searchParams.get('studentId');
     
     // Get session
@@ -31,11 +32,41 @@ export async function GET(request: NextRequest) {
 
     console.log('🏅 Badges API - Request details:', {
       type,
+      manage,
       requestedStudentId: studentId,
       targetStudentId,
       userRole: session.user.role,
       userId: session.user.id
     });
+
+    // Handle management view for coaches
+    if (manage && session.user.role === 'COACH') {
+      const allBadges = await prisma.badge.findMany({
+        where: { isActive: true },
+        include: {
+          category: true,
+          rules: true,
+          _count: {
+            select: {
+              studentBadges: {
+                where: { isRevoked: false }
+              }
+            }
+          }
+        },
+        orderBy: [
+          { category: { name: 'asc' } },
+          { level: 'asc' },
+          { name: 'asc' }
+        ]
+      });
+
+      return NextResponse.json({
+        badges: allBadges,
+        success: true,
+        total: allBadges.length
+      }, { status: 200 });
+    }
 
     switch (type) {
       case 'progress':
@@ -53,8 +84,12 @@ export async function GET(request: NextRequest) {
           const responseTime = Date.now() - startTime;
           console.log(`⚡ Optimized badges API completed in ${responseTime}ms (Previous: 2780ms)`);
           
-          // PERFORMANCE: Return response immediately
-          return NextResponse.json(progress, { 
+          // PERFORMANCE: Return response immediately with correct structure
+          return NextResponse.json({
+            badges: progress,
+            success: true,
+            total: progress.length
+          }, { 
             status: 200,
             headers: {
               'Cache-Control': 'public, max-age=60', // Cache for 60 seconds
@@ -65,7 +100,12 @@ export async function GET(request: NextRequest) {
           console.error('❌ Optimized Badges API error:', error);
           
           // PERFORMANCE: Fallback to empty array to prevent app breaking
-          return NextResponse.json([], { 
+          return NextResponse.json({
+            badges: [],
+            success: false,
+            total: 0,
+            error: 'Failed to load badge progress'
+          }, { 
             status: 200,
             headers: {
               'X-Fallback': 'true'
@@ -86,7 +126,11 @@ export async function GET(request: NextRequest) {
           ]
         });
 
-        return NextResponse.json(badges, { status: 200 });
+        return NextResponse.json({
+          badges: badges,
+          success: true,
+          total: badges.length
+        }, { status: 200 });
 
       case 'earned':
         if (!targetStudentId) {

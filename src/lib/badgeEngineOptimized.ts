@@ -252,6 +252,7 @@ export class OptimizedBadgeEngine {
 
   /**
    * PERFORMANCE: Optimized rule evaluation with minimal database queries
+   * NOW WITH PARTIAL PROGRESS CALCULATION
    */
   private static async evaluateBadgeRulesOptimized(
     rules: any[], 
@@ -267,38 +268,49 @@ export class OptimizedBadgeEngine {
       maxScore += rule.weight;
       if (rule.isRequired) totalRequiredRules++;
 
-      let ruleResult = false;
+      let ruleProgress = 0; // Change from boolean to progress percentage
+      let rulePassed = false;
 
       try {
         switch (rule.ruleType) {
           case 'SKILLS_METRIC':
-            ruleResult = this.evaluateSkillsMetric(rule, skills);
+            const skillsResult = this.evaluateSkillsMetricWithProgress(rule, skills);
+            ruleProgress = skillsResult.progress;
+            rulePassed = skillsResult.passed;
             break;
           case 'SKILLS_AVERAGE':
-            ruleResult = this.evaluateSkillsAverage(rule, skills);
+            const avgResult = this.evaluateSkillsAverageWithProgress(rule, skills);
+            ruleProgress = avgResult.progress;
+            rulePassed = avgResult.passed;
             break;
           case 'WELLNESS_STREAK':
-            ruleResult = this.evaluateWellnessStreak(rule, skills);
+            // Keep original boolean logic for non-metric rules
+            rulePassed = this.evaluateWellnessStreak(rule, skills);
+            ruleProgress = rulePassed ? 100 : 0;
             break;
           default:
             // PERFORMANCE: Skip complex queries for now, focus on skills-based badges
-            ruleResult = false;
+            ruleProgress = 0;
+            rulePassed = false;
         }
       } catch (error) {
         console.error(`Rule evaluation error for ${rule.ruleType}:`, error);
-        ruleResult = false;
+        ruleProgress = 0;
+        rulePassed = false;
       }
 
-      if (ruleResult) {
-        totalScore += rule.weight;
-        if (rule.isRequired) requiredRulesPassed++;
+      // Add weighted partial score instead of all-or-nothing
+      totalScore += (ruleProgress / 100) * rule.weight;
+      
+      if (rulePassed && rule.isRequired) {
+        requiredRulesPassed++;
       }
     }
 
     const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
     const earned = totalRequiredRules > 0 ? 
       (requiredRulesPassed === totalRequiredRules) : 
-      (progress >= 80); // Simplified earning criteria
+      (progress >= 100); // Full completion required for earning
 
     return { progress, earned, score: totalScore };
   }
@@ -382,5 +394,87 @@ export class OptimizedBadgeEngine {
       badgeCache: badgeCache.size,
       studentCache: studentDataCache.size
     };
+  }
+
+  /**
+   * NEW: Calculate partial progress for skills metrics
+   */
+  private static evaluateSkillsMetricWithProgress(rule: any, skills: any): { progress: number; passed: boolean } {
+    if (!skills) return { progress: 0, passed: false };
+    
+    const fieldValue = skills[rule.fieldName];
+    if (!fieldValue || fieldValue === 0) return { progress: 0, passed: false };
+    
+    const numericValue = parseFloat(fieldValue);
+    const targetValue = parseFloat(rule.value);
+    let progress = 0;
+    let passed = false;
+
+    switch (rule.operator.toUpperCase()) {
+      case 'GT':
+        passed = numericValue > targetValue;
+        progress = Math.min(100, Math.max(0, (numericValue / targetValue) * 100));
+        break;
+      case 'GTE':
+        passed = numericValue >= targetValue;
+        progress = Math.min(100, Math.max(0, (numericValue / targetValue) * 100));
+        break;
+      case 'LT':
+        passed = numericValue < targetValue;
+        // For "less than" goals, progress is inverse (closer to target = higher progress)
+        if (numericValue > targetValue) {
+          progress = 0; // If above target, no progress
+        } else {
+          progress = Math.min(100, Math.max(0, ((targetValue - numericValue) / targetValue) * 100));
+        }
+        break;
+      case 'LTE':
+        passed = numericValue <= targetValue;
+        // For "less than or equal" goals
+        if (numericValue > targetValue) {
+          progress = 0;
+        } else {
+          progress = Math.min(100, Math.max(0, ((targetValue - numericValue) / targetValue) * 100));
+        }
+        break;
+      case 'EQ':
+        passed = numericValue === targetValue;
+        // For equality, progress based on how close to target
+        const difference = Math.abs(numericValue - targetValue);
+        const tolerance = targetValue * 0.1; // 10% tolerance
+        progress = Math.max(0, 100 - ((difference / tolerance) * 100));
+        break;
+      default:
+        return { progress: 0, passed: false };
+    }
+
+    return { progress: Math.round(progress), passed };
+  }
+
+  /**
+   * NEW: Calculate partial progress for skills averages
+   */
+  private static evaluateSkillsAverageWithProgress(rule: any, skills: any): { progress: number; passed: boolean } {
+    if (!skills) return { progress: 0, passed: false };
+
+    const skillFields = [
+      'battingStance', 'battingGrip', 'battingBalance',
+      'bowlingGrip', 'followThrough', 'runUp',
+      'flatCatch', 'highCatch', 'pickUp', 'throw'
+    ];
+
+    const values = skillFields
+      .map(field => skills[field])
+      .filter(value => value && value > 0);
+
+    if (values.length === 0) return { progress: 0, passed: false };
+
+    const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const targetValue = parseFloat(rule.value);
+    
+    const passed = average >= targetValue;
+    const progress = Math.min(100, Math.max(0, (average / targetValue) * 100));
+
+    return { progress: Math.round(progress), passed };
   }
 } 

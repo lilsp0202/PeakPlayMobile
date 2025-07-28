@@ -111,9 +111,6 @@ const StudentProgressModal = dynamic(() => import("@/components/StudentProgressM
   ssr: false
 });
 
-const StudentReportPDF = dynamic(() => import("@/components/StudentReportPDF").catch(() => ({ default: () => null })), {
-  ssr: false
-});
 
 
 
@@ -970,7 +967,7 @@ export default function Dashboard() {
 
   const coachTabs = [
     { id: 'overview', label: 'Overview', icon: <FiGrid className="w-5 h-5" /> },
-    { id: 'students', label: 'Students', icon: <FiUsers className="w-5 h-5" /> },
+    { id: 'students', label: 'Athletes', icon: <FiUsers className="w-5 h-5" /> },
     { id: 'teams', label: 'Teams', icon: <FiUsers className="w-5 h-5" /> },
     { id: 'progress', label: 'Progress', icon: <FiTrendingUp className="w-5 h-5" /> },
     { id: 'badges', label: 'Badges', icon: <FiAward className="w-5 h-5" /> },
@@ -1881,7 +1878,7 @@ export default function Dashboard() {
                   }`}
                 >
                   <FiUsers className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
-                  <span className="text-center leading-tight">Your<br className="sm:hidden" />Students</span>
+                  <span className="text-center leading-tight">Your<br className="sm:hidden" />Athletes</span>
                   {assignedStudents && assignedStudents.length > 0 && (
                     <span className={`ml-0 sm:ml-2 mt-1 sm:mt-0 px-1.5 sm:px-2 py-0.5 rounded-full text-xs ${
                       studentsSubTab === 'assigned' 
@@ -1904,7 +1901,7 @@ export default function Dashboard() {
                   }`}
                 >
                   <FiPlusCircle className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
-                  <span className="text-center leading-tight">Available<br className="sm:hidden" />Students</span>
+                  <span className="text-center leading-tight">Available<br className="sm:hidden" />Athletes</span>
                   {availableStudents && availableStudents.length > 0 && (
                     <span className={`ml-0 sm:ml-2 mt-1 sm:mt-0 px-1.5 sm:px-2 py-0.5 rounded-full text-xs ${
                       studentsSubTab === 'available' 
@@ -1964,7 +1961,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">Your Students</h3>
+                    <h3 className="text-xl font-bold text-gray-900">Your Athletes</h3>
                     <p className="text-sm text-gray-600 font-medium">
                       {assignedStudents?.length ? `Managing ${assignedStudents.length} athletes` : 'No students assigned yet'}
                     </p>
@@ -2093,70 +2090,51 @@ export default function Dashboard() {
                           )}
                         </AnimatePresence>
                         
-                        {/* Modern Action Buttons */}
-                        <div className="space-y-3">
-                          {/* Primary Actions Row */}
-                          <div className="grid grid-cols-2 gap-3">
+                        {/* Mobile-Optimized Action Buttons */}
+                        <div className="space-y-3 sm:space-y-4">
+                          {/* Responsive Button Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                            {/* Skills Button */}
                             <motion.button
                               onClick={() => openStudentModal(student, 'skillsnap')}
                               whileHover={{ scale: 1.02, y: -2 }}
                               whileTap={{ scale: 0.98 }}
-                              className="group relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[64px] flex items-center justify-center"
+                              className="group relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[60px] sm:min-h-[64px] flex items-center justify-center active:scale-95"
                             >
                               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                              <div className="relative flex items-center space-x-2">
-                                <FiActivity className="w-5 h-5" />
-                                <span className="font-bold text-sm">Skills</span>
+                              <div className="relative flex items-center space-x-2 sm:space-x-2">
+                                <FiActivity className="w-6 h-6 sm:w-5 sm:h-5" />
+                                <span className="font-bold text-base sm:text-sm">Skills</span>
                               </div>
                             </motion.button>
                             
+                            {/* Feedback Button */}
                             <motion.button
                               onClick={() => openStudentModal(student, 'feedback')}
                               whileHover={{ scale: 1.02, y: -2 }}
                               whileTap={{ scale: 0.98 }}
-                              className="group relative overflow-hidden bg-gradient-to-br from-green-500 via-green-600 to-emerald-600 text-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[64px] flex items-center justify-center"
+                              className="group relative overflow-hidden bg-gradient-to-br from-green-500 via-green-600 to-emerald-600 text-white rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[60px] sm:min-h-[64px] flex items-center justify-center active:scale-95"
                             >
                               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                              <div className="relative flex items-center space-x-2">
-                                <FiMessageSquare className="w-5 h-5" />
-                                <span className="font-bold text-sm">Feedback</span>
+                              <div className="relative flex items-center space-x-2 sm:space-x-2">
+                                <FiMessageSquare className="w-6 h-6 sm:w-5 sm:h-5" />
+                                <span className="font-bold text-base sm:text-sm">Feedback</span>
                               </div>
                             </motion.button>
-                          </div>
-                          
-                          {/* Secondary Actions Row */}
-                          <div className="grid grid-cols-2 gap-3">
+                            
+                            {/* Actions Button */}
                             <motion.button
                               onClick={() => openStudentModal(student, 'actions')}
                               whileHover={{ scale: 1.02, y: -2 }}
                               whileTap={{ scale: 0.98 }}
-                              className="group relative overflow-hidden bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 text-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[64px] flex items-center justify-center"
+                              className="group relative overflow-hidden bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 text-white rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[60px] sm:min-h-[64px] flex items-center justify-center active:scale-95"
                             >
                               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                              <div className="relative flex items-center space-x-2">
-                                <FiCheckSquare className="w-5 h-5" />
-                                <span className="font-bold text-sm">Actions</span>
+                              <div className="relative flex items-center space-x-2 sm:space-x-2">
+                                <FiCheckSquare className="w-6 h-6 sm:w-5 sm:h-5" />
+                                <span className="font-bold text-base sm:text-sm">Actions</span>
                               </div>
                             </motion.button>
-                            
-                            <div className="relative">
-                              <StudentReportPDF
-                                studentId={student.id}
-                                studentName={student.studentName || student.name}
-                                onGenerateStart={() => {
-                                  setSuccessMessage('Generating comprehensive report...');
-                                  setTimeout(() => setSuccessMessage(null), 2000);
-                                }}
-                                onGenerateComplete={() => {
-                                  setSuccessMessage('Report generated successfully!');
-                                  setTimeout(() => setSuccessMessage(null), 3000);
-                                }}
-                                onGenerateError={(error) => {
-                                  setError(`Failed to generate report: ${error}`);
-                                  setTimeout(() => setError(null), 5000);
-                                }}
-                              />
-                            </div>
                           </div>
                         </div>
                       </motion.div>
@@ -2216,9 +2194,9 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">Available Students</h3>
+                    <h3 className="text-xl font-bold text-gray-900">Available Athletes</h3>
                     <p className="text-sm text-gray-600 font-medium">
-                      {availableStudents?.length ? `${availableStudents.length} students ready to assign` : 'No available students'}
+                                              {availableStudents?.length ? `${availableStudents.length} athletes ready to assign` : 'No available athletes'}
                     </p>
                   </div>
                 </div>
@@ -2257,7 +2235,7 @@ export default function Dashboard() {
                   transition={{ delay: 0.3 }}
                 >
                   <FiPlusCircle className="mx-auto h-16 w-16 sm:h-12 sm:w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg sm:text-base font-medium text-gray-900 mb-2">No available students</h3>
+                  <h3 className="text-lg sm:text-base font-medium text-gray-900 mb-2">No available athletes</h3>
                   <p className="text-base sm:text-sm text-gray-500 mb-2 px-4">
                     No unassigned students found in your academy ({profileData?.academy}).
                   </p>
@@ -2368,7 +2346,7 @@ export default function Dashboard() {
                       >
                         <FiPlusCircle className="w-4 h-4" />
                         <span>
-                          {showAllStudents ? 'Show Less' : `Show All ${availableStudents.length} Available Students`}
+                          {showAllStudents ? 'Show Less' : `Show All ${availableStudents.length} Available Athletes`}
                         </span>
                         <motion.div
                           animate={{ rotate: showAllStudents ? 180 : 0 }}
@@ -2833,38 +2811,67 @@ export default function Dashboard() {
             {/* Teams Header with Sub-Navigation */}
             <div className="card-modern glass bg-gradient-to-r from-purple-50/50 to-blue-50/50 border border-purple-100">
               <div className="p-4 md:p-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 md:mb-6">
-                  <div className="flex items-center">
-                    <motion.div 
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.6 }}
-                      className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 md:mr-4 shadow-lg"
-                    >
-                      <FiUsers className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                    </motion.div>
-                    <div>
-                      <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                        Teams & Roles
-                      </h2>
-                      <p className="text-xs md:text-sm text-gray-600 mt-1 hidden sm:block">
-                        Create and manage athlete teams for group feedback and actions
-                      </p>
+                {/* Header - Mobile Optimized Layout */}
+                <div className="flex flex-col gap-4 mb-4 md:mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <motion.div 
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.6 }}
+                        className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 md:mr-4 shadow-lg"
+                      >
+                        <FiUsers className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                      </motion.div>
+                      <div>
+                        <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                          Teams & Roles
+                        </h2>
+                        <p className="text-xs md:text-sm text-gray-600 mt-1 hidden md:block">
+                          Create and manage athlete teams for group feedback and actions
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Create Team Button - Only show in management view */}
-                  {assignedStudents?.length > 0 && (
+                  {/* Action Buttons - Mobile Optimized */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                    {/* Refresh Button - Mobile Optimized */}
                     <motion.button 
-                      onClick={() => setIsCreateTeamModalOpen(true)}
+                      onClick={() => fetchTeams(true)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex items-center justify-center gap-2 px-4 py-3 md:px-4 md:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg font-medium min-h-[44px] md:min-h-0"
+                      disabled={isLoadingTeams}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 sm:px-3 sm:py-2 rounded-xl sm:rounded-lg transition-all duration-200 shadow-lg font-medium text-sm sm:text-base min-h-[48px] sm:min-h-[40px] w-full sm:w-auto ${
+                        isLoadingTeams 
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                          : 'bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 hover:border-purple-300 active:bg-purple-100'
+                      }`}
+                      title="Refresh teams data"
                     >
-                      <FiPlus className="w-4 h-4" />
-                      <span className="text-sm md:text-base">Create Team</span>
+                      <motion.div
+                        animate={isLoadingTeams ? { rotate: 360 } : { rotate: 0 }}
+                        transition={isLoadingTeams ? { duration: 1, repeat: Infinity, ease: "linear" } : { duration: 0.2 }}
+                      >
+                        <FiRefreshCw className="w-5 h-5 sm:w-4 sm:h-4" />
+                      </motion.div>
+                      <span className="text-sm sm:text-base font-medium">
+                        {isLoadingTeams ? 'Refreshing...' : 'Refresh Teams'}
+                      </span>
                     </motion.button>
-                  )}
+
+                    {/* Create Team Button - Mobile Optimized */}
+                    {assignedStudents?.length > 0 && (
+                      <motion.button 
+                        onClick={() => setIsCreateTeamModalOpen(true)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex items-center justify-center gap-2 px-4 py-3 sm:px-4 sm:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl sm:rounded-lg hover:from-purple-700 hover:to-blue-700 active:from-purple-800 active:to-blue-800 transition-all duration-200 shadow-lg font-medium text-sm sm:text-base min-h-[48px] sm:min-h-[40px] w-full sm:w-auto"
+                      >
+                        <FiPlus className="w-5 h-5 sm:w-4 sm:h-4" />
+                        <span className="font-medium">Create Team</span>
+                      </motion.button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Stats */}
@@ -2956,7 +2963,7 @@ export default function Dashboard() {
                           </span>
                           <span className="flex items-center gap-1">
                             <FiMessageSquare className="w-3 h-3 md:w-4 md:h-4" />
-                            {(team as any)._count?.feedback || 0} feedback
+                            {(team as any)._count?.feedback || 0} messages
                           </span>
                           <span className="flex items-center gap-1">
                             <FiCheckSquare className="w-3 h-3 md:w-4 md:h-4" />
@@ -2982,7 +2989,7 @@ export default function Dashboard() {
                           className="flex-1 sm:flex-none px-4 py-3 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm md:text-base min-h-[44px] md:min-h-0 flex items-center justify-center"
                         >
                           <FiMessageSquare className="w-4 h-4 sm:mr-0 mr-2" />
-                          <span className="sm:hidden">Feedback</span>
+                          <span className="sm:hidden">Message</span>
                         </motion.button>
                         <motion.button
                           onClick={() => handleTeamActions(team)}

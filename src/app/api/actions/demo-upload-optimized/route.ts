@@ -24,10 +24,23 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🎯 DemoUpload - Starting optimized media upload');
     
-    // PERFORMANCE: Fast session check with timing
+    // SESSION FIX: Enhanced session validation with timeout handling
     const sessionStartTime = Date.now();
-    session = await getServerSession(authOptions) as Session | null;
+    try {
+      session = await getServerSession(authOptions) as Session | null;
+    } catch (sessionError) {
+      console.error('❌ Session retrieval failed:', sessionError);
+      return NextResponse.json(
+        { 
+          message: "Session validation failed. Please log in again.",
+          error: "SESSION_RETRIEVAL_ERROR"
+        },
+        { status: 401 }
+      );
+    }
+    
     const sessionTime = Date.now() - sessionStartTime;
+    console.log(`🔐 Session validation completed in ${sessionTime}ms`);
     
     if (!session?.user?.id || session.user.role !== "COACH") {
       return NextResponse.json(
@@ -39,23 +52,100 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Additional session health check for large uploads
+    if (!session.user.email) {
+      console.warn('⚠️ Session missing critical fields, potential corruption');
+      return NextResponse.json(
+        { 
+          message: "Session incomplete. Please log in again.",
+          error: "SESSION_INCOMPLETE"
+        },
+        { status: 401 }
+      );
+    }
+
     // PERFORMANCE: Early form data parsing with size limits
-    // Handle potential Vercel body parsing issues
+    // VERCEL FIX: Enhanced body parsing with size limit detection
     let formData: FormData;
     let file: File | null = null;
     let actionId: string | null = null;
     
     try {
-      formData = await request.formData();
+      // Check Content-Length header before parsing to detect oversized requests
+      const contentLength = request.headers.get('content-length');
+      const isVercel = process.env.VERCEL === '1';
+      const vercelSizeLimit = 50 * 1024 * 1024; // 50MB Vercel Pro limit
+      
+      if (isVercel && contentLength && parseInt(contentLength) > vercelSizeLimit) {
+        console.log(`⚠️ VERCEL SIZE LIMIT: Request size ${Math.round(parseInt(contentLength) / 1024 / 1024)}MB exceeds 50MB limit`);
+        return NextResponse.json(
+          { 
+            message: "File too large for Vercel serverless functions (max 50MB). Please use a smaller file.",
+            error: "VERCEL_SIZE_LIMIT_EXCEEDED",
+            maxSize: "50MB",
+            actualSize: `${Math.round(parseInt(contentLength) / 1024 / 1024)}MB`,
+            suggestion: "Compress your video or use a shorter clip"
+          },
+          { status: 413 }
+        );
+      }
+
+      // FORMDATA FIX: Enhanced parsing with timeout and retry logic
+      const parseTimeout = 30000; // 30 second timeout for parsing
+      const parsePromise = Promise.race([
+        request.formData(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('FormData parsing timeout')), parseTimeout)
+        )
+      ]);
+      
+      formData = await parsePromise as FormData;
       file = formData.get('file') as File;
       actionId = formData.get('actionId') as string;
+      
+      // Validate parsed data integrity
+      if (!file || !(file instanceof File)) {
+        throw new Error('Invalid file data received');
+      }
+      
+      if (file.size === 0) {
+        throw new Error('Received empty file');
+      }
+      
+      console.log(`✅ FormData parsed successfully: ${file.name} (${Math.round(file.size / 1024 / 1024)}MB)`);
+      
+             // Additional file size validation after parsing
+       if (file && isVercel && file.size > vercelSizeLimit) {
+         console.log(`⚠️ VERCEL FILE SIZE: File ${file.name} (${Math.round(file.size / 1024 / 1024)}MB) exceeds Vercel limit`);
+         return NextResponse.json(
+           { 
+             message: "Video file too large for current deployment. Please use a file smaller than 50MB.",
+             error: "FILE_SIZE_LIMIT_EXCEEDED",
+             maxSize: "50MB",
+             fileSize: `${Math.round(file.size / 1024 / 1024)}MB`,
+             fileName: file.name
+           },
+           { status: 413 }
+         );
+       }
+      
     } catch (parseError) {
       console.error('❌ FormData parsing error:', parseError);
+      
+      // Enhanced error detection for common Vercel issues
+      const errorMessage = parseError instanceof Error ? parseError.message : 'Unknown parse error';
+      const isLikelySizeIssue = errorMessage.includes('body') || errorMessage.includes('size') || errorMessage.includes('limit');
+      
       return NextResponse.json(
         { 
-          message: "Failed to parse form data. This may be due to file size limits on Vercel.",
-          error: parseError instanceof Error ? parseError.message : 'Unknown parse error',
-          suggestion: "Try uploading a smaller file (< 4.5MB) or use chunked upload"
+          message: isLikelySizeIssue 
+            ? "File too large for upload. Please use a smaller video file (max 50MB on current deployment)." 
+            : "Failed to process upload. Please try again.",
+          error: errorMessage,
+          isVercel: process.env.VERCEL === '1',
+          suggestion: isLikelySizeIssue 
+            ? "Compress your video or use a shorter clip" 
+            : "Check your internet connection and try again"
         },
         { status: 400 }
       );
@@ -175,20 +265,70 @@ export async function POST(request: NextRequest) {
             console.log('⚠️ Large file on Vercel detected, using direct upload...');
           }
           
-          // Direct upload without any processing for videos
+          // SUPABASE FIX: Enhanced upload with timeout and retry logic
+          console.log(`🔄 Converting file to buffer for Supabase upload...`);
           const bytes = await file.arrayBuffer();
           const buffer = Buffer.from(bytes);
           
-          const { data, error: uploadError } = await supabase!.storage
-            .from('media')
-            .upload(filePath, buffer, {
-              contentType: file.type,
-              upsert: true,
-              cacheControl: '3600'
-            });
-
-          if (uploadError) {
-            throw new Error(`Supabase video upload failed: ${uploadError.message}`);
+          // Upload with retry logic for connection issues
+          let uploadResult = null;
+          let lastError = null;
+          const maxRetries = 3;
+          const baseTimeout = 60000; // 60 seconds base timeout
+          
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+              console.log(`🚀 Supabase upload attempt ${attempt}/${maxRetries} for ${file.name}`);
+              
+              // Create upload promise with timeout
+              const uploadPromise = supabase!.storage
+                .from('media')
+                .upload(filePath, buffer, {
+                  contentType: file.type,
+                  upsert: true,
+                  cacheControl: '3600'
+                });
+              
+              // Race against timeout (increase timeout for larger files)
+              const timeoutMs = baseTimeout + (file.size / 1024 / 1024) * 10000; // +10s per MB
+              const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error(`Supabase upload timeout after ${timeoutMs/1000}s`)), timeoutMs)
+              );
+              
+              const { data, error: uploadError } = await Promise.race([uploadPromise, timeoutPromise]) as any;
+              
+              if (uploadError) {
+                throw new Error(`Supabase upload error: ${uploadError.message}`);
+              }
+              
+              uploadResult = data;
+              console.log(`✅ Supabase upload successful on attempt ${attempt}`);
+              break;
+              
+            } catch (attemptError) {
+              lastError = attemptError;
+              console.log(`❌ Upload attempt ${attempt} failed:`, attemptError instanceof Error ? attemptError.message : attemptError);
+              
+              // Don't retry on certain errors
+              if (attemptError instanceof Error && 
+                  (attemptError.message.includes('authentication') || 
+                   attemptError.message.includes('authorization') ||
+                   attemptError.message.includes('file') && attemptError.message.includes('too large'))) {
+                console.log(`🚫 Non-retryable error detected, aborting retries`);
+                break;
+              }
+              
+              // Wait before retry (exponential backoff)
+              if (attempt < maxRetries) {
+                const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+                console.log(`⏳ Waiting ${waitTime/1000}s before retry...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+              }
+            }
+          }
+          
+          if (!uploadResult && lastError) {
+            throw new Error(`Supabase video upload failed after ${maxRetries} attempts: ${lastError instanceof Error ? lastError.message : 'Unknown error'}`);
           }
 
           const publicUrl = supabase!.storage.from('media').getPublicUrl(filePath).data.publicUrl;

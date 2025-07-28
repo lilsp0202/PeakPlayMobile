@@ -85,8 +85,8 @@ export default function TeamFeedbackModal({
                 <FiMessageSquare className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold">Team Feedback</h2>
-                <p className="text-white/80">Send feedback to {team?.name}</p>
+                <h2 className="text-2xl font-bold">Team Message</h2>
+                <p className="text-white/80">Send message to team {team?.name}</p>
               </div>
             </div>
             <motion.button
@@ -127,13 +127,13 @@ export default function TeamFeedbackModal({
             {/* Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Feedback Title *
+                Message Title *
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter feedback title..."
+                placeholder="Enter message title..."
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                 required
                 disabled={isSubmitting}
@@ -182,12 +182,12 @@ export default function TeamFeedbackModal({
             {/* Content */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Feedback Content *
+                Message Content *
               </label>
               <textarea
                 value={formData.content}
                 onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                placeholder="Write your feedback for the team..."
+                placeholder="Write your message..."
                 rows={6}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none"
                 required

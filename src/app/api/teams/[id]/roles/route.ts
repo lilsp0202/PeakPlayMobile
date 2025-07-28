@@ -18,45 +18,86 @@ export async function GET(
     const resolvedParams = await params;
     const teamId = resolvedParams.id;
     
-    // Get coach info
+    // Check if user is a coach
     const coach = await prisma.coach.findUnique({
       where: { userId: session.user.id }
     });
 
-    if (!coach) {
-      return NextResponse.json({ error: 'Coach not found' }, { status: 404 });
-    }
+    let team = null;
 
-    // Get team with members and their roles
-    const team = await prisma.team.findUnique({
-      where: {
-        id: teamId,
-        coachId: coach.id
-      },
-      include: {
-        members: {
-          include: {
-            student: {
-              select: {
-                id: true,
-                studentName: true,
-                email: true,
-                academy: true,
-                sport: true,
-                user: {
-                  select: {
-                    image: true
+    if (coach) {
+      // Coach can view roles for teams they manage
+      team = await prisma.team.findUnique({
+        where: {
+          id: teamId,
+          coachId: coach.id
+        },
+        include: {
+          members: {
+            include: {
+              student: {
+                select: {
+                  id: true,
+                  studentName: true,
+                  email: true,
+                  academy: true,
+                  sport: true,
+                  user: {
+                    select: {
+                      image: true
+                    }
                   }
                 }
               }
             }
           }
         }
+      });
+    } else {
+      // Check if user is a student and member of this team
+      const student = await prisma.student.findUnique({
+        where: { userId: session.user.id }
+      });
+
+      if (!student) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
-    });
+
+      // Get team if student is a member
+      team = await prisma.team.findFirst({
+        where: {
+          id: teamId,
+          members: {
+            some: {
+              studentId: student.id
+            }
+          }
+        },
+        include: {
+          members: {
+            include: {
+              student: {
+                select: {
+                  id: true,
+                  studentName: true,
+                  email: true,
+                  academy: true,
+                  sport: true,
+                  user: {
+                    select: {
+                      image: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+    }
 
     if (!team) {
-      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Team not found or access denied' }, { status: 404 });
     }
 
     return NextResponse.json({ team });
@@ -86,13 +127,13 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
 
-    // Get coach info
+    // Only coaches can modify roles
     const coach = await prisma.coach.findUnique({
       where: { userId: session.user.id }
     });
 
     if (!coach) {
-      return NextResponse.json({ error: 'Coach not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Only coaches can modify team roles' }, { status: 403 });
     }
 
     // Verify team ownership
@@ -201,13 +242,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid input: roleUpdates must be a non-empty array' }, { status: 400 });
     }
 
-    // Get coach info
+    // Only coaches can modify roles
     const coach = await prisma.coach.findUnique({
       where: { userId: session.user.id }
     });
 
     if (!coach) {
-      return NextResponse.json({ error: 'Coach not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Only coaches can modify team roles' }, { status: 403 });
     }
 
     // Verify team ownership

@@ -58,7 +58,7 @@ export default function CreateActionModal({
     setError('');
 
     try {
-      const actionPayload = {
+      const actionPayload: any = {
         studentId: student.id,
         title: formData.title,
         description: formData.description,
@@ -156,6 +156,81 @@ export default function CreateActionModal({
         fileType: file.type
       });
 
+      // SESSION FIX: Validate session before upload for large files
+      const isLargeFile = file.size > 5 * 1024 * 1024; // 5MB+
+      if (isLargeFile) {
+        try {
+          const sessionCheck = await fetch('/api/test-auth-status', {
+            method: 'GET',
+            credentials: 'include'
+          });
+          
+          if (!sessionCheck.ok) {
+            throw new Error('Session expired. Please log in again before uploading large files.');
+          }
+          
+          console.log('✅ Session validated for large file upload');
+        } catch (sessionError) {
+          console.error('❌ Session validation failed:', sessionError);
+          throw new Error('Please refresh the page and log in again before uploading.');
+        }
+      }
+
+      // VERCEL PRO WORKAROUND: Direct Supabase upload for files > 4MB
+      const isVercelLimited = file.size > 4 * 1024 * 1024; // 4MB+
+      if (isVercelLimited) {
+        try {
+          console.log('🔄 Using direct Supabase upload for large file...');
+          
+          // Get upload URL from backend
+          const uploadUrlResponse = await fetch('/api/actions/demo-upload-direct', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: file.name,
+              fileType: file.type,
+              fileSize: file.size,
+              actionId: 'temp'
+            }),
+            credentials: 'include'
+          });
+
+          if (!uploadUrlResponse.ok) {
+            throw new Error('Failed to get upload URL for large file');
+          }
+
+          const { uploadUrl, mediaUrl } = await uploadUrlResponse.json();
+          
+          // Direct upload to Supabase
+          const directUpload = await fetch(uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+              'Content-Type': file.type,
+              'x-amz-acl': 'public-read'
+            }
+          });
+
+          if (!directUpload.ok) {
+            throw new Error('Direct upload to storage failed');
+          }
+
+          setDemoMedia({
+            file,
+            url: mediaUrl,
+            type: file.type,
+            fileName: file.name
+          });
+
+          console.log('✅ Direct Supabase upload successful');
+          return;
+          
+        } catch (directUploadError) {
+          console.log('❌ Direct upload failed, falling back to Vercel endpoints:', directUploadError);
+          // Fall back to normal Vercel upload
+        }
+      }
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', 'demo');
@@ -191,28 +266,40 @@ export default function CreateActionModal({
           } else {
             console.log(`❌ ${endpoint} failed with status ${response.status}`);
             
-            // Try to get error details
+            // VERCEL FIX: Enhanced error handling for size limits and parsing issues
             try {
               const errorDetails = await response.json();
               console.log('Error details:', errorDetails);
               
-              // Handle specific error cases
+              // Handle specific error cases with better messaging
               if (response.status === 401) {
                 throw new Error('Please log in again to upload media.');
               } else if (response.status === 404) {
                 throw new Error('Upload service not available. Please try again.');
               } else if (response.status === 413) {
-                throw new Error('File too large. Please use a smaller file (max 100MB).');
+                // Handle Vercel-specific size limit errors
+                if (errorDetails.error === 'VERCEL_SIZE_LIMIT_EXCEEDED' || errorDetails.error === 'FILE_SIZE_LIMIT_EXCEEDED') {
+                  throw new Error(`${errorDetails.message} (Current limit: ${errorDetails.maxSize || '50MB'})`);
+                }
+                throw new Error('File too large. Please use a smaller file.');
               } else if (errorDetails.message) {
-                // Use the server's error message if available
-                console.log(`Server error: ${errorDetails.message}`);
+                // Use the server's error message for better user guidance
+                if (errorDetails.suggestion) {
+                  throw new Error(`${errorDetails.message} ${errorDetails.suggestion}`);
+                }
+                throw new Error(errorDetails.message);
               }
             } catch (parseError) {
               console.log('Could not parse error response');
+              // Handle cases where error response cannot be parsed
+              if (response.status === 413) {
+                throw new Error('File too large for upload. Please use a smaller video file.');
+              }
             }
             
+            // Fallback for 413 errors
             if (response.status === 413) {
-              throw new Error('File too large. Please use a smaller file (max 100MB).');
+              throw new Error('File too large. Please use a smaller video file (max 50MB for videos).');
             }
           }
         } catch (endpointError) {
@@ -227,7 +314,9 @@ export default function CreateActionModal({
       }
 
       if (!uploadSuccess) {
-        throw new Error('Upload failed. Please check your connection and try again.');
+        // Enhanced error reporting for debugging
+        console.error('❌ All upload endpoints failed. Last response:', responseData);
+        throw new Error(`Upload failed. Please check your connection and try again. (File size: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       }
 
       // Extract the media data from response - handle both response formats

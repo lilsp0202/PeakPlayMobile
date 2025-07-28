@@ -51,12 +51,12 @@
     }
   ],
   "env": {
-    "PRISMA_GENERATE_DATAPROXY": "true"
+    "VERCEL_PRO": "true"
   },
   "crons": [
     {
-      "path": "/api/badges/evaluate",
-      "schedule": "0 0 * * *"
+      "path": "/api/notifications/generate",
+      "schedule": "0 8 * * *"
     }
   ]
 } 

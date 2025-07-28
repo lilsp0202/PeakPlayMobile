@@ -6,6 +6,161 @@ import { useRouter } from 'next/navigation';
 import CreateBadgeModal from '@/components/CreateBadgeModal';
 import { levelColors, categoryColors } from '@/lib/constants';
 
+// CSS animations for badge effects with level-specific colors
+const badgeStyles = `
+  .glow-bronze {
+    animation: bronze-glow 4s ease-in-out infinite alternate;
+  }
+  
+  .glow-silver {
+    animation: silver-glow 4s ease-in-out infinite alternate;
+  }
+  
+  .glow-gold {
+    animation: gold-glow 4s ease-in-out infinite alternate;
+  }
+  
+  .glow-platinum {
+    animation: platinum-glow 4s ease-in-out infinite alternate;
+  }
+  
+  .glow-diamond {
+    animation: diamond-glow 4s ease-in-out infinite alternate;
+  }
+  
+  @keyframes bronze-glow {
+    0% {
+      filter: brightness(1) drop-shadow(0 0 3px rgba(205, 127, 50, 0.4));
+      box-shadow: 0 0 10px rgba(205, 127, 50, 0.2);
+    }
+    100% {
+      filter: brightness(1.1) drop-shadow(0 0 8px rgba(205, 127, 50, 0.6));
+      box-shadow: 0 0 20px rgba(205, 127, 50, 0.3);
+    }
+  }
+  
+  @keyframes silver-glow {
+    0% {
+      filter: brightness(1) drop-shadow(0 0 3px rgba(192, 192, 192, 0.4));
+      box-shadow: 0 0 10px rgba(192, 192, 192, 0.2);
+    }
+    100% {
+      filter: brightness(1.15) drop-shadow(0 0 8px rgba(192, 192, 192, 0.6));
+      box-shadow: 0 0 20px rgba(192, 192, 192, 0.3);
+    }
+  }
+  
+  @keyframes gold-glow {
+    0% {
+      filter: brightness(1) drop-shadow(0 0 3px rgba(255, 215, 0, 0.4));
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+    100% {
+      filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 215, 0, 0.7));
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.35);
+    }
+  }
+  
+  @keyframes platinum-glow {
+    0% {
+      filter: brightness(1) drop-shadow(0 0 3px rgba(229, 228, 226, 0.4));
+      box-shadow: 0 0 10px rgba(229, 228, 226, 0.2);
+    }
+    100% {
+      filter: brightness(1.2) drop-shadow(0 0 8px rgba(229, 228, 226, 0.7));
+      box-shadow: 0 0 20px rgba(229, 228, 226, 0.35);
+    }
+  }
+  
+  @keyframes diamond-glow {
+    0% {
+      filter: brightness(1) drop-shadow(0 0 3px rgba(185, 242, 255, 0.4));
+      box-shadow: 0 0 10px rgba(185, 242, 255, 0.2);
+    }
+    100% {
+      filter: brightness(1.25) drop-shadow(0 0 10px rgba(185, 242, 255, 0.8));
+      box-shadow: 0 0 25px rgba(185, 242, 255, 0.4);
+    }
+  }
+  
+  .shimmer-animation {
+    animation: shimmer 2s linear infinite;
+  }
+  
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(200%);
+    }
+  }
+  
+  .pulse-progress {
+    animation: pulse-glow 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+`;
+
+// Icon mapping function to convert text icons to emojis
+const getIconEmoji = (iconText: string): string => {
+  const iconMap: Record<string, string> = {
+    // Physical badges
+    'trophy': '🏆',
+    'muscle': '💪',
+    'crown': '👑',
+    'zap': '⚡',
+    'wind': '💨',
+    
+    // Mental badges  
+    'brain': '🧠',
+    'moon': '🌙',
+    'star': '⭐',
+    
+    // Technical badges
+    'target': '🎯',
+    'circle': '🎪',
+    
+    // Default fallbacks
+    'award': '🏅',
+    'medal': '🥇',
+    'gem': '💎',
+    'fire': '🔥',
+    'lightning': '⚡',
+    'rocket': '🚀',
+    'diamond': '💎',
+    'shield': '🛡️',
+    'sword': '⚔️',
+    'bow': '🏹'
+  };
+  
+  return iconMap[iconText.toLowerCase()] || '🏅'; // Default to medal emoji
+};
+
+// Level-specific glow class mapping
+const getLevelGlowClass = (level: string): string => {
+  const levelMap: Record<string, string> = {
+    'BRONZE': 'glow-bronze',
+    'SILVER': 'glow-silver',
+    'GOLD': 'glow-gold',
+    'PLATINUM': 'glow-platinum',
+    'DIAMOND': 'glow-diamond',
+    'ROOKIE': 'glow-bronze',
+    'AMATEUR': 'glow-silver',
+    'PRO': 'glow-gold'
+  };
+  
+  return levelMap[level.toUpperCase()] || 'glow-bronze';
+};
+
 interface BadgeData {
   badgeId?: string;
   badgeName?: string;
@@ -191,6 +346,8 @@ export default function BadgeCentrePage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
+      {/* Inject CSS animations */}
+      <style dangerouslySetInnerHTML={{ __html: badgeStyles }} />
       {/* Header */}
       <header className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 shadow-2xl border-b border-gray-700/50">
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
@@ -279,7 +436,7 @@ export default function BadgeCentrePage() {
             </div>
           ) : (
             <p className="text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-base sm:text-lg font-semibold">
-            🚀 Track your achievements and unlock new badges ✨
+            🚀 Set, Track, and Achieve your goals! ✨
           </p>
           )}
         </div>
@@ -698,7 +855,7 @@ function StudentCard({ studentData, onClick }: {
                 className="flex-1 bg-gray-700 rounded-lg p-2 text-center"
                 title={recentBadge.badge.name}
               >
-                <div className="text-lg mb-1">{recentBadge.badge.icon}</div>
+                <div className="text-lg mb-1">{getIconEmoji(recentBadge.badge.icon)}</div>
                 <div className="text-xs text-gray-400 truncate">
                   {recentBadge.badge.name}
                 </div>
@@ -831,7 +988,7 @@ function StudentDetailModal({ studentData, onClose }: {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {recentBadges.map((recentBadge: any, index: number) => (
                       <div key={index} className="bg-gray-700 rounded-lg p-4 flex items-center space-x-3">
-                        <div className="text-3xl">{recentBadge.badge.icon}</div>
+                        <div className="text-3xl">{getIconEmoji(recentBadge.badge.icon)}</div>
                         <div className="flex-1">
                           <h4 className="text-white font-medium">{recentBadge.badge.name}</h4>
                           <p className="text-sm text-gray-400">{recentBadge.badge.category} • {recentBadge.badge.level}</p>
@@ -870,7 +1027,7 @@ function StudentDetailModal({ studentData, onClose }: {
               {earnedBadges.map((badge: any, index: number) => (
                 <div key={index} className="bg-gray-700 rounded-lg p-4">
                   <div className="flex items-center space-x-3 mb-3">
-                    <div className="text-3xl">{badge.icon}</div>
+                    <div className="text-3xl">{getIconEmoji(badge.icon)}</div>
                     <div className="flex-1">
                       <h4 className="text-white font-medium">{badge.badgeName}</h4>
                       <p className="text-sm text-gray-400">{badge.category} • {badge.level}</p>
@@ -895,10 +1052,12 @@ function StudentDetailModal({ studentData, onClose }: {
           {/* Locked Badges Tab */}
           {activeTab === 'locked' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {lockedBadges.map((badge: any, index: number) => (
+              {lockedBadges.map((badge: any, index: number) => {
+                const badgeLevelColor = levelColors[badge.level as keyof typeof levelColors] || '#6B7280';
+                return (
                 <div key={index} className="bg-gray-700/50 rounded-lg p-4 opacity-75">
                   <div className="flex items-center space-x-3 mb-3">
-                    <div className="text-3xl grayscale">{badge.icon}</div>
+                    <div className="text-3xl grayscale">{getIconEmoji(badge.icon)}</div>
                     <div className="flex-1">
                       <h4 className="text-gray-300 font-medium">{badge.badgeName}</h4>
                       <p className="text-sm text-gray-500">{badge.category} • {badge.level}</p>
@@ -910,19 +1069,27 @@ function StudentDetailModal({ studentData, onClose }: {
                   <div className="mb-3">
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-gray-500">Progress</span>
-                      <span className="text-gray-400">{badge.progress}%</span>
+                      <span className="text-gray-300 font-medium">{badge.progress}%</span>
                     </div>
-                    <div className="w-full bg-gray-600 rounded-full h-2">
+                    <div className="w-full bg-gray-600 rounded-full h-2 relative overflow-hidden">
                       <div
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${badge.progress}%` }}
+                        className="h-2 rounded-full transition-all duration-700 ease-out pulse-progress"
+                        style={{ 
+                          width: `${badge.progress}%`,
+                          background: `linear-gradient(90deg, ${badgeLevelColor}60, ${badgeLevelColor})`
+                        }}
                       />
+                      {/* Animated shimmer effect for progress bar */}
+                      {badge.progress > 0 && (
+                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent shimmer-animation" />
+                      )}
                     </div>
                   </div>
                   
                   <p className="text-xs text-gray-500 italic">{badge.motivationalText}</p>
                 </div>
-              ))}
+                );
+              })}
               {lockedBadges.length === 0 && (
                 <div className="col-span-full text-center py-8">
                   <p className="text-gray-400">All badges have been earned!</p>
@@ -951,13 +1118,15 @@ function BadgeCard({ badge, isCompleted, isCoach = false, isCustom = false }: {
 
   return (
     <div
-      className={`relative rounded-lg transition-all duration-300 cursor-pointer ${
+      className={`relative rounded-lg transition-all duration-300 cursor-pointer border-2 ${
         isCompleted
-          ? 'bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-lg'
-          : 'bg-gray-800 opacity-75'
+          ? `bg-gradient-to-br from-gray-800 to-gray-900 hover:shadow-xl hover:scale-105 ${getLevelGlowClass(badge.level)} border-opacity-80`
+          : 'bg-gray-800/60 opacity-75 hover:opacity-90 grayscale filter'
       } ${isExpanded ? 'col-span-2 md:col-span-1' : ''}`}
       style={{
-        borderTop: isCompleted ? `3px solid ${categoryColor}` : '3px solid #4B5563'
+        borderTop: isCompleted ? `3px solid ${levelColor}` : '3px solid #4B5563',
+        borderColor: isCompleted ? `${levelColor}60` : '#4B5563',
+        boxShadow: isCompleted ? `0 0 20px ${levelColor}20, 0 4px 15px rgba(0,0,0,0.3)` : '0 2px 8px rgba(0,0,0,0.2)'
       }}
       onClick={() => setIsExpanded(!isExpanded)}
     >
@@ -977,7 +1146,7 @@ function BadgeCard({ badge, isCompleted, isCoach = false, isCustom = false }: {
           </div>
 
           {/* Badge Icon */}
-          <div className={`text-3xl mb-2 ${!isCompleted && 'grayscale'}`}>{badge.icon}</div>
+          <div className={`text-3xl mb-2 ${!isCompleted && 'grayscale'}`}>{getIconEmoji(badge.icon)}</div>
 
           {/* Badge Name */}
           <h3 className={`text-sm font-bold mb-1 ${isCompleted ? 'text-white' : 'text-gray-400'}`} style={{ 
@@ -992,13 +1161,20 @@ function BadgeCard({ badge, isCompleted, isCoach = false, isCustom = false }: {
           {/* Progress Bar for locked badges */}
           {!isCompleted && badge.progress !== undefined && (
             <div className="mb-2">
-              <div className="w-full bg-gray-700 rounded-full h-1.5">
+              <div className="w-full bg-gray-700 rounded-full h-2 relative overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-1.5 rounded-full transition-all duration-500"
-                  style={{ width: `${badge.progress}%` }}
+                  className="h-2 rounded-full transition-all duration-700 ease-out"
+                  style={{ 
+                    width: `${badge.progress}%`,
+                    background: `linear-gradient(90deg, ${levelColor}60, ${levelColor})`
+                  }}
                 />
+                {/* Animated shimmer effect for progress bar */}
+                {badge.progress > 0 && (
+                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent shimmer-animation" />
+                )}
               </div>
-              <div className="text-xs text-gray-400 mt-1">{badge.progress}%</div>
+              <div className="text-xs text-gray-300 mt-1 font-medium">{badge.progress}%</div>
             </div>
           )}
           
@@ -1070,7 +1246,7 @@ function BadgeCard({ badge, isCompleted, isCoach = false, isCustom = false }: {
           </div>
 
           {/* Badge Icon */}
-          <div className={`text-5xl mb-4 ${!isCompleted && 'grayscale'}`}>{badge.icon}</div>
+          <div className={`text-5xl mb-4 ${!isCompleted && 'grayscale'}`}>{getIconEmoji(badge.icon)}</div>
 
           {/* Badge Name */}
           <h3 className={`text-lg font-bold mb-2 ${isCompleted ? 'text-white' : 'text-gray-400'}`}>
@@ -1087,13 +1263,20 @@ function BadgeCard({ badge, isCompleted, isCoach = false, isCustom = false }: {
             <div className="mb-3">
               <div className="flex justify-between text-xs mb-1">
                 <span className="text-gray-500">Progress</span>
-                <span className="text-gray-400">{badge.progress}%</span>
+                <span className="text-gray-300 font-medium">{badge.progress}%</span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-gray-700 rounded-full h-3 relative overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${badge.progress}%` }}
+                  className="h-3 rounded-full transition-all duration-700 ease-out pulse-progress"
+                  style={{ 
+                    width: `${badge.progress}%`,
+                    background: `linear-gradient(90deg, ${levelColor}60, ${levelColor})`
+                  }}
                 />
+                {/* Animated shimmer effect for progress bar */}
+                {badge.progress > 0 && (
+                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent shimmer-animation" />
+                )}
               </div>
             </div>
           )}

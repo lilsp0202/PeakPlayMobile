@@ -47,11 +47,11 @@ const skillFields = [
 ];
 
 const operators = [
-  { value: 'gte', label: 'Greater than or equal to' },
-  { value: 'gt', label: 'Greater than' },
-  { value: 'lte', label: 'Less than or equal to' },
-  { value: 'lt', label: 'Less than' },
-  { value: 'eq', label: 'Equal to' },
+  { value: 'GTE', label: 'Greater than or equal to' },
+  { value: 'GT', label: 'Greater than' },
+  { value: 'LTE', label: 'Less than or equal to' },
+  { value: 'LT', label: 'Less than' },
+  { value: 'EQ', label: 'Equal to' },
 ];
 
 const badgeIcons = ['🏆', '⭐', '🎯', '💪', '🔥', '🚀', '🏅', '✨', '🎖️', '🌟', '👑', '💯'];
@@ -126,7 +126,7 @@ export default function CreateBadgeModal({ isOpen, onClose, onBadgeCreated }: Cr
         body: JSON.stringify({
           badge: formData,
           rules: rules.map(rule => ({
-            ruleType: 'SKILL',
+            ruleType: 'SKILLS_METRIC',
             fieldName: rule.fieldName,
             operator: rule.operator.toUpperCase(),
             value: rule.value,

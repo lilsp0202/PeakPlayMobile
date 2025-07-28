@@ -70,9 +70,9 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json(
         { 
-          message: `Failed to parse upload data. File size: ${sizeMB}MB. Vercel has a 4.5MB limit for API routes.`,
+          message: `Failed to parse upload data. File size: ${sizeMB}MB. Vercel Pro has a 50MB limit for API routes.`,
           error: "Request body too large or invalid",
-          suggestion: "Please use a smaller file or enable direct browser uploads"
+          suggestion: "Please use a smaller file or try again"
         },
         { status: 413 }
       );
@@ -221,10 +221,10 @@ export async function GET() {
   return NextResponse.json({
     message: "Vercel-optimized video upload endpoint",
     limits: {
-      maxFileSize: "4.5MB for direct upload, larger files use base64",
+      maxFileSize: "50MB for direct upload, larger files use base64",
       allowedTypes: ["image/jpeg", "image/png", "image/gif", "video/mp4", "video/quicktime", "video/webm"],
       timeout: "60 seconds"
     },
-    note: "For files larger than 4.5MB, consider implementing direct browser-to-Supabase uploads"
+          note: "For files larger than 50MB, consider implementing direct browser-to-Supabase uploads"
   });
 } 

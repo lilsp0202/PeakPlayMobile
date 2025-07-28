@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../../lib/auth";
+import { authOptions } from "../../../lib/auth";
 import type { Session } from "next-auth";
 
 export const config = {
@@ -78,9 +78,9 @@ export async function POST(request: NextRequest) {
           console.log(`📹 File details: ${file.name} (${diagnostics.body.fileSizeMB}MB)`);
           
           // Check if file size exceeds Vercel limits
-          const vercelLimit = 4.5 * 1024 * 1024; // 4.5MB
+          const vercelLimit = 50 * 1024 * 1024; // 50MB Vercel Pro
           if (file.size > vercelLimit) {
-            diagnostics.warning = `File size (${diagnostics.body.fileSizeMB}MB) exceeds Vercel's default 4.5MB limit`;
+                          diagnostics.warning = `File size (${diagnostics.body.fileSizeMB}MB) exceeds Vercel Pro's 50MB limit`;
           }
 
           // Test reading file data
@@ -171,6 +171,6 @@ export async function GET() {
   return NextResponse.json({
     message: "Video upload test endpoint",
     usage: "POST a video file to test upload capabilities on Vercel",
-    maxSize: "100MB configured, but Vercel default is 4.5MB"
+            maxSize: "100MB configured, but Vercel Pro limit is 50MB"
   });
 } 
