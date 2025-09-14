@@ -422,6 +422,56 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
 
   return (
     <div className="space-y-6">
+      {/* Header with Add Match Button */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-800">Recent Match Scores</h2>
+        {session?.user?.role === "ATHLETE" && !isCoachView && (
+          <div className="relative">
+            <button
+              onClick={() => setShowAddDropdown(!showAddDropdown)}
+              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add Match
+              <ChevronDown className="w-4 h-4 ml-2" />
+            </button>
+            
+            {showAddDropdown && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      setIsAddingMatch(true);
+                      setShowAddDropdown(false);
+                    }}
+                    className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Plus className="w-5 h-5 mr-3 text-indigo-500" />
+                    <div>
+                      <div className="font-medium">Manual Entry</div>
+                      <div className="text-sm text-gray-500">Enter match details manually</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsScorecardModalOpen(true);
+                      setShowAddDropdown(false);
+                    }}
+                    className="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                  >
+                    <Camera className="w-5 h-5 mr-3 text-green-500" />
+                    <div>
+                      <div className="font-medium">Upload Scorecard</div>
+                      <div className="text-sm text-gray-500">AI analysis from screenshot</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Add Match Form */}
       <AnimatePresence>
         {isAddingMatch && (
