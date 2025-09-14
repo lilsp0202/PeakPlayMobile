@@ -194,8 +194,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             teamId,
             studentId,
             roles: [] // Start with no roles - coaches must assign manually
-          })),
-          skipDuplicates: true
+          }))
         });
       }
 

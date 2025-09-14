@@ -297,8 +297,7 @@ export async function POST(request: NextRequest) {
             teamId: newTeam.id,
             studentId,
             roles: [] // Start with no roles - coaches must assign manually
-          })),
-          skipDuplicates: true
+          }))
         });
       }
 
