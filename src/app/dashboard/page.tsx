@@ -1,7 +1,7 @@
 "use client";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiMessageCircle, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw, FiEye, FiPlus, FiUpload, FiImage, FiVideo, FiCheck, FiPlay, FiTrash, FiUserPlus, FiUserX, FiCheckCircle } from "react-icons/fi";
 import { Check } from "lucide-react";
@@ -291,6 +291,10 @@ export default function Dashboard() {
   const [openInlineViewers, setOpenInlineViewers] = useState<Set<string>>(new Set());
 
   const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+
+  // Add team details cache
+  const teamDetailsCache = useRef<Map<string, { team: any; timestamp: number }>>(new Map());
+  const CACHE_DURATION = 60000; // 1 minute cache
 
   useEffect(() => {
     console.log('🔍 Dashboard useEffect - Status:', status, 'Session exists:', !!session);
@@ -901,11 +905,17 @@ export default function Dashboard() {
 
   // Team helper functions - PERFORMANCE OPTIMIZED
   const fetchTeams = async (includeDetails = false, skipCache = false) => {
+    if (skipCache) {
+      // Clear team details cache when force refreshing
+      teamDetailsCache.current.clear();
+      console.log('🧹 Cleared team details cache');
+    }
     setIsLoadingTeams(true);
     try {
       console.log('🏈 Fetching teams with stats and member data...');
       // Always include stats for accurate counts - they're lightweight
-      const url = `/api/teams?includeStats=true${includeDetails ? '&includeMembers=true' : ''}${skipCache ? '&skipCache=true' : ''}`;
+      // Include members by default for better performance (avoids extra API calls)
+      const url = `/api/teams?includeStats=true&includeMembers=true${skipCache ? '&skipCache=true' : ''}`;
       console.log('🔗 Teams API URL:', url);
       
       const response = await fetch(url, {
@@ -948,31 +958,59 @@ export default function Dashboard() {
     }
   };
 
-  // PERFORMANCE: Separate function to load detailed team data when needed
+  // Helper to fetch team details with caching
+  const fetchTeamDetailsWithCache = async (teamId: string) => {
+    // Check cache first
+    const cached = teamDetailsCache.current.get(teamId);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log('📦 Using cached team details for:', teamId);
+      return cached.team;
+    }
+
+    console.log('🔍 Fetching fresh team details for:', teamId);
+    const response = await fetch(`/api/teams/${teamId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch team details: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Cache the result
+    if (data.team) {
+      teamDetailsCache.current.set(teamId, {
+        team: data.team,
+        timestamp: Date.now()
+      });
+    }
+
+    return data.team;
+  };
+
+  // Update fetchTeamDetails to use cache
   const fetchTeamDetails = async (teamId: string) => {
     try {
       console.log('🔄 Fetching detailed data for team:', teamId);
       
-      const response = await fetch(`/api/teams/${teamId}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const team = await fetchTeamDetailsWithCache(teamId);
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Team details loaded:', data.team);
+      if (team) {
+        console.log('✅ Team details loaded:', team);
         
         setTeamDetailsData({
-          feedback: data.team.feedback || [],
-          actions: data.team.actions || []
+          feedback: team.feedback || [],
+          actions: team.actions || []
         });
         
-        return data.team;
+        return team;
       } else {
-        console.error('❌ Failed to fetch team details:', response.status);
+        console.error('❌ No team data returned');
       }
     } catch (error) {
       console.error('❌ Error fetching team details:', error);
@@ -1223,47 +1261,28 @@ export default function Dashboard() {
       return;
     }
     
-    // First, fetch the complete team data including members
+    // If team already has member data, use it directly
+    if (team.members && Array.isArray(team.members)) {
+      console.log('✅ Using existing team member data for roles');
+      setSelectedTeamForRoles(team);
+      setIsTeamRolesModalOpen(true);
+      return;
+    }
+    
+    // Otherwise fetch the complete team data
     try {
-      console.log('🔍 Fetching team details from API:', `/api/teams/${team.id}`);
+      const teamWithDetails = await fetchTeamDetailsWithCache(team.id);
       
-      const response = await fetch(`/api/teams/${team.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      console.log('📡 Response status:', response.status, response.statusText);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Team data with members loaded:', data);
-        
-        if (data.team) {
-          setSelectedTeamForRoles(data.team);
-          setIsTeamRolesModalOpen(true);
-        } else {
-          console.error('❌ No team data in response:', data);
-          alert('Team data is incomplete. Please try refreshing the teams list.');
-        }
+      if (teamWithDetails) {
+        setSelectedTeamForRoles(teamWithDetails);
+        setIsTeamRolesModalOpen(true);
       } else {
-        // Try to get error details from response
-        let errorMessage = 'Failed to load team data';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          console.error('❌ Could not parse error response:', e);
-        }
-        
-        console.error('❌ Failed to fetch team data:', response.status, response.statusText, errorMessage);
-        alert(`Failed to load team data: ${errorMessage}. Please try again.`);
+        console.error('❌ No team data returned');
+        alert('Team data is incomplete. Please try refreshing the teams list.');
       }
     } catch (error) {
-      console.error('❌ Network error fetching team data:', error);
-      alert('Network error. Please check your connection and try again.');
+      console.error('❌ Error loading team data:', error);
+      alert(`Failed to load team data: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     }
   };
 
@@ -1278,47 +1297,28 @@ export default function Dashboard() {
       return;
     }
     
-    // Fetch the complete team data including members
+    // If team already has member data, use it directly
+    if (team.members && Array.isArray(team.members)) {
+      console.log('✅ Using existing team member data');
+      setSelectedTeamForMembers(team);
+      setIsTeamMemberModalOpen(true);
+      return;
+    }
+    
+    // Otherwise fetch the complete team data
     try {
-      console.log('🔍 Fetching team details from API:', `/api/teams/${team.id}`);
+      const teamWithDetails = await fetchTeamDetailsWithCache(team.id);
       
-      const response = await fetch(`/api/teams/${team.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      console.log('📡 Response status:', response.status, response.statusText);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Team data with members loaded:', data);
-        
-        if (data.team) {
-          setSelectedTeamForMembers(data.team);
-          setIsTeamMemberModalOpen(true);
-        } else {
-          console.error('❌ No team data in response:', data);
-          alert('Team data is incomplete. Please try refreshing the teams list.');
-        }
+      if (teamWithDetails) {
+        setSelectedTeamForMembers(teamWithDetails);
+        setIsTeamMemberModalOpen(true);
       } else {
-        // Try to get error details from response
-        let errorMessage = 'Failed to load team data';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          console.error('❌ Could not parse error response:', e);
-        }
-        
-        console.error('❌ Failed to fetch team data:', response.status, response.statusText, errorMessage);
-        alert(`Failed to load team data: ${errorMessage}. Please try again.`);
+        console.error('❌ No team data returned');
+        alert('Team data is incomplete. Please try refreshing the teams list.');
       }
     } catch (error) {
-      console.error('❌ Network error fetching team data:', error);
-      alert('Network error. Please check your connection and try again.');
+      console.error('❌ Error loading team data:', error);
+      alert(`Failed to load team data: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     }
   };
 
