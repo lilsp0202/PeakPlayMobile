@@ -3,14 +3,15 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw, FiEye, FiPlus, FiUpload, FiImage, FiVideo, FiCheck } from "react-icons/fi";
+import { FiGrid, FiUser, FiAward, FiLogOut, FiCheckSquare, FiMessageSquare, FiMessageCircle, FiTrendingUp, FiUsers, FiPlusCircle, FiActivity, FiTarget, FiX, FiCalendar, FiBarChart, FiChevronRight, FiBell, FiClock, FiZap, FiRefreshCw, FiEye, FiPlus, FiUpload, FiImage, FiVideo, FiCheck, FiPlay, FiTrash, FiUserPlus, FiUserX, FiCheckCircle } from "react-icons/fi";
 import { Check } from "lucide-react";
 import dynamic from 'next/dynamic';
 import PeakPlayLogo from "@/components/PeakPlayLogo";
 import Portal from '../../components/Portal';
-import StudentFeedbackActionsModal from '@/components/StudentFeedbackActionsModal';
+import AttendanceModal from '@/components/AttendanceModal';
 import type { Session } from "next-auth";
 import { Team, TeamMember, TeamRole } from "@/types/team";
+import CricketMatchList from "@/components/cricket/CricketMatchList";
 
 // Enhanced dynamic imports with better error handling and loading states
 const SkillSnap = dynamic(() => import("@/components/SkillSnap").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Component temporarily unavailable</div> })), { 
@@ -31,6 +32,11 @@ const AthleteTeams = dynamic(() => import("@/components/AthleteTeams").catch(() 
 const TeamManagement = dynamic(() => import("@/components/TeamManagement").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Team Management temporarily unavailable</div> })), { 
   ssr: false,
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-64 flex items-center justify-center"><div className="text-gray-500">Loading Team Management...</div></div>
+});
+
+const TeamMemberManagement = dynamic(() => import("@/components/TeamMemberManagement").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Member Management temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-32 flex items-center justify-center"><div className="text-gray-500">Loading Member Management...</div></div>
 });
 
 const SessionTodoStudent = dynamic(() => import("@/components/SessionTodoStudent").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Session todos temporarily unavailable</div> })), { 
@@ -58,17 +64,26 @@ const FeedbackActions = dynamic(() => import("@/components/FeedbackActions").cat
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-48"></div>
 });
 
+const ChatPanel = dynamic(() => import("@/components/chat/ChatPanel"), { ssr: false });
+// // const CoachCard = dynamic(() => import("@/components/CoachCard"), { ssr: false });
+const DirectChatPanel = dynamic(() => import("@/components/chat/DirectChatPanel"), { ssr: false });
+
 const CreateFeedbackModal = dynamic(() => import("@/components/CreateFeedbackModal").catch(() => ({ default: () => null })), { 
   ssr: false
 });
 
-const CreateFeedbackActionModal = dynamic(() => import("@/components/CreateFeedbackActionModal").catch(() => ({ default: () => null })), { 
+const CreateActionModal = dynamic(() => import("@/components/CreateActionModal").catch(() => ({ default: () => null })), { 
   ssr: false
 });
 
 const OverallStats = dynamic(() => import("@/components/OverallStats").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Stats temporarily unavailable</div> })), { 
   ssr: false,
   loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-32"></div>
+});
+
+const InlineMediaViewer = dynamic(() => import("@/components/InlineMediaViewer").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Media viewer temporarily unavailable</div> })), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-32 flex items-center justify-center"><div className="text-gray-500">Loading media viewer...</div></div>
 });
 
 // New coach components
@@ -107,9 +122,6 @@ const StudentProgressModal = dynamic(() => import("@/components/StudentProgressM
   ssr: false
 });
 
-const StudentReportPDF = dynamic(() => import("@/components/StudentReportPDF").catch(() => ({ default: () => null })), {
-  ssr: false
-});
 
 
 
@@ -183,6 +195,13 @@ const TabButton = ({ text, icon, active, onClick }: { text: string, icon: React.
 );
 
 export default function Dashboard() {
+  const [showDirectChat, setShowDirectChat] = useState(false);
+  const [directThreadId, setDirectThreadId] = useState<string | null>(null);
+  useEffect(() => {
+    function onOpen(e: any) { setDirectThreadId(e.detail?.threadId ?? null); setShowDirectChat(true); }
+    window.addEventListener('open-direct-chat', onOpen as any);
+    return () => window.removeEventListener('open-direct-chat', onOpen as any);
+  }, []);
   const { data: session, status } = useSession();
   const router = useRouter();
   
@@ -198,13 +217,13 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [isUnassigning, setIsUnassigning] = useState<string | null>(null); // Track which student is being unassigned
   
   // Modal states for student features
   const [selectedStudentModal, setSelectedStudentModal] = useState<any>(null);
-  const [activeModal, setActiveModal] = useState<'skillsnap' | 'badges' | 'feedback' | 'progress' | 'actions' | 'view' | null>(null);
+  const [activeModal, setActiveModal] = useState<'skillsnap' | 'badges' | 'feedback' | 'actions' | 'progress' | null>(null);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
-  const [actionsModalOpen, setActionsModalOpen] = useState(false);
-  const [viewStudentModalOpen, setViewStudentModalOpen] = useState(false);
+  const [actionModalOpen, setActionModalOpen] = useState(false);
   const [isSkillSnapModalOpen, setIsSkillSnapModalOpen] = useState(false);
   const [multiStudentFeedbackOpen, setMultiStudentFeedbackOpen] = useState(false);
   const [studentDetailModalOpen, setStudentDetailModalOpen] = useState(false);
@@ -217,6 +236,7 @@ export default function Dashboard() {
   const [progressModalOpen, setProgressModalOpen] = useState(false);
   const [selectedStudentForProgress, setSelectedStudentForProgress] = useState<any>(null);
   const [isRefreshingSkills, setIsRefreshingSkills] = useState(false);
+  const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
 
   // Track tab state variables
   const [trackViewType, setTrackViewType] = useState<'feedback' | 'actions'>('feedback');
@@ -227,8 +247,17 @@ export default function Dashboard() {
     category: 'all',
     priority: 'all',
     dateRange: 'week',
-    status: 'all'
+    status: 'all',
+    feedbackType: 'all' // 'all', 'individual', 'team'
   });
+
+  // Chat state (local-only)
+  const [chatState, setChatState] = useState<{
+    open: boolean;
+    type: "FEEDBACK" | "ACTION";
+    itemId: string;
+    title: string;
+  } | null>(null);
 
   // Teams state variables
   const [teams, setTeams] = useState<Team[]>([]);
@@ -247,6 +276,21 @@ export default function Dashboard() {
   const [isLoadingTeamDetails, setIsLoadingTeamDetails] = useState(false);
   const [teamDetailsViewType, setTeamDetailsViewType] = useState<'feedback' | 'actions'>('feedback');
   const [expandedTeamItems, setExpandedTeamItems] = useState<string[]>([]);
+  
+  // Team member management state
+  const [isTeamMemberModalOpen, setIsTeamMemberModalOpen] = useState(false);
+  const [selectedTeamForMembers, setSelectedTeamForMembers] = useState<Team | null>(null);
+  const [isManagingMembers, setIsManagingMembers] = useState(false);
+  
+  // Team deletion state
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [selectedTeamForDeletion, setSelectedTeamForDeletion] = useState<Team | null>(null);
+  const [isDeletingTeam, setIsDeletingTeam] = useState(false);
+
+  // Inline media viewer state for Coach Dashboard
+  const [openInlineViewers, setOpenInlineViewers] = useState<Set<string>>(new Set());
+
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
 
   useEffect(() => {
     console.log('🔍 Dashboard useEffect - Status:', status, 'Session exists:', !!session);
@@ -295,30 +339,88 @@ export default function Dashboard() {
         ? "/api/coach/profile"
         : "/api/student/profile";
 
-      const response = await fetch(endpoint);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(endpoint, {
+        signal: controller.signal,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         if (response.status === 404) {
-          // Profile doesn't exist, redirect to onboarding
-          const onboardingPath = (session as unknown as Session)?.user?.role === "COACH"
-            ? "/onboarding/coach"
-            : "/onboarding/athlete";
-          router.push(onboardingPath);
+          // Only redirect to onboarding if we're certain the user is authenticated
+          // but their profile doesn't exist
+          if ((session as unknown as Session)?.user?.id) {
+            const onboardingPath = (session as unknown as Session)?.user?.role === "COACH"
+              ? "/onboarding/coach"
+              : "/onboarding/athlete";
+            router.push(onboardingPath);
+            return;
+          } else {
+            // If no session, it's an auth issue, not missing profile
+            throw new Error("Please log in to access your profile.");
+          }
+        } else if (response.status === 503) {
+          // FIXED: Don't redirect to onboarding for service errors - show error and retry
+          console.error("Service temporarily unavailable - will retry");
+          setError("Service temporarily unavailable. Please refresh the page.");
+          return; // Don't redirect to onboarding
+        } else if (response.status >= 500) {
+          console.error("Server error encountered - likely from action creation issues");
+          setError("Temporary server issue. Please refresh the page and try again.");
+          return; // Don't redirect to onboarding
+        } else if (response.status === 401) {
+          console.error("Authentication expired");
+          setError("Session expired. Please log in again.");
+          // Only redirect to signin for auth errors
+          setTimeout(() => router.replace("/auth/signin"), 2000);
+          return;
+        } else {
+          console.error("Profile load failed with status:", response.status);
+          setError("Failed to load your profile. Please try again.");
           return;
         }
-        throw new Error(`Failed to fetch profile: ${response.status}`);
       }
 
       const data = await response.json();
+      
+      // Validate that we have the expected data structure
+      if (!data || typeof data !== 'object') {
+        throw new Error("Invalid profile data received.");
+      }
+      
       setProfileData(data);
 
+      // Only fetch additional data if we have a valid coach profile with academy
       if (data.role === "COACH" && data.academy) {
-        fetchAvailableStudents(data.academy);
-        fetchAssignedStudents();
+        try {
+          // PERFORMANCE: Load coach data in parallel instead of sequentially
+          Promise.all([
+            fetchAvailableStudents(data.academy),
+            fetchAssignedStudents()
+          ]).catch(fetchError => {
+            console.error("Error fetching additional coach data:", fetchError);
+            // Don't fail the entire profile load for secondary data
+          });
+        } catch (fetchError) {
+          console.error("Error fetching additional coach data:", fetchError);
+          // Don't fail the entire profile load for secondary data
+        }
       }
     } catch (err) {
       console.error("Dashboard - Profile fetch error:", err);
-      setError(err instanceof Error ? err.message : "An error occurred loading your profile");
+      
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError("Request timeout. Please check your connection and try again.");
+      } else {
+        setError(err instanceof Error ? err.message : "An error occurred loading your profile");
+      }
     } finally {
       setLoading(false);
     }
@@ -326,19 +428,61 @@ export default function Dashboard() {
 
   const fetchResource = async (setter: Function, endpoint: string) => {
     try {
-      const response = await fetch(endpoint);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
+      const response = await fetch(endpoint, {
+        signal: controller.signal,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Handle different HTTP status codes gracefully
+        if (response.status === 401) {
+          console.warn(`Unauthorized access to ${endpoint} - skipping`);
+          setter([]);
+          return;
+        } else if (response.status === 403) {
+          console.warn(`Forbidden access to ${endpoint} - skipping`);
+          setter([]);
+          return;
+        } else if (response.status === 404) {
+          console.warn(`Resource not found: ${endpoint} - setting empty data`);
+          setter([]);
+          return;
+        } else if (response.status === 503) {
+          console.warn(`Service temporarily unavailable: ${endpoint}`);
+          setter([]);
+          return;
+        } else if (response.status >= 500) {
+          console.error(`Server error on ${endpoint}: ${response.status}`);
+          setter([]);
+          return;
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       }
       
       const data = await response.json();
       
+      // Validate data structure before setting
+      if (!data || typeof data !== 'object') {
+        console.warn(`Invalid data received from ${endpoint}`);
+        setter([]);
+        return;
+      }
+      
       // Handle different response structures
       if (endpoint.includes('/api/students/by-academy')) {
-        setter(data.students || []);
+        setter(Array.isArray(data.students) ? data.students : []);
       } else if (endpoint.includes('/api/badges')) {
-        setter(data.badges || data || []);
+        const badges = data.badges || data || [];
+        setter(Array.isArray(badges) ? badges : []);
       } else if (Array.isArray(data)) {
         setter(data);
       } else {
@@ -346,7 +490,12 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error(`Error fetching ${endpoint}:`, error);
-      // Set empty array for failed requests to prevent null errors
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.warn(`Request timeout for ${endpoint}`);
+      }
+      
+      // Set safe fallback data to prevent null errors
       setter([]);
     }
   };
@@ -471,26 +620,74 @@ export default function Dashboard() {
     }
   };
 
+  // UNASSIGN ATHLETE FEATURE: Handle unassigning a single student from coach
+  const handleUnassignStudent = async (studentId: string, studentName: string) => {
+    setIsUnassigning(studentId);
+    try {
+      const response = await fetch('/api/coach/unassign-student', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to unassign student');
+      }
+      
+      const result = await response.json();
+      
+      // Refresh both lists immediately
+      await Promise.all([
+        fetchAssignedStudents(),
+        profileData?.academy ? fetchAvailableStudents(profileData.academy) : Promise.resolve()
+      ]);
+      
+      // Show success message
+      setSuccessMessage(`Successfully unassigned ${studentName}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+      
+    } catch (error) {
+      console.error('Error unassigning student:', error);
+      setError(error instanceof Error ? error.message : 'Failed to unassign student');
+      // Clear error after 5 seconds
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setIsUnassigning(null);
+    }
+  };
+
   // Modal handler functions
-  const openStudentModal = (student: any, modalType: 'skillsnap' | 'badges' | 'feedback' | 'progress' | 'actions' | 'view') => {
+  const openStudentModal = (student: any, modalType: 'skillsnap' | 'badges' | 'feedback' | 'actions' | 'progress') => {
+    // Close all modals first
+    closeModal();
+    
     setSelectedStudentModal(student);
     setActiveModal(modalType);
+    
     if (modalType === 'feedback') {
       setFeedbackModalOpen(true);
+      setActionModalOpen(false); // Ensure action modal is closed
     } else if (modalType === 'actions') {
-      setActionsModalOpen(true);
-    } else if (modalType === 'view') {
-      setViewStudentModalOpen(true);
+      setActionModalOpen(true);
+      setFeedbackModalOpen(false); // Ensure feedback modal is closed
     } else if (modalType === 'skillsnap') {
       // For SkillSnap, open the inline modal directly
       // Don't open StudentDetailModal for SkillSnap
+      setFeedbackModalOpen(false);
+      setActionModalOpen(false);
     } else if (modalType === 'badges') {
       setStudentDetailView(modalType);
       setStudentDetailModalOpen(true);
+      setFeedbackModalOpen(false);
+      setActionModalOpen(false);
     } else if (modalType === 'progress') {
       setSelectedStudentForProgress(student);
       setProgressModalOpen(true);
+      setFeedbackModalOpen(false);
+      setActionModalOpen(false);
     }
+    
     // Prevent body scroll when modal is open
     if (typeof document !== 'undefined') {
       document.body.style.overflow = 'hidden';
@@ -501,8 +698,7 @@ export default function Dashboard() {
     setSelectedStudentModal(null);
     setActiveModal(null);
     setFeedbackModalOpen(false);
-    setActionsModalOpen(false);
-    setViewStudentModalOpen(false);
+    setActionModalOpen(false);
     setStudentDetailModalOpen(false);
     setMultiStudentFeedbackOpen(false);
     setProgressModalOpen(false);
@@ -548,14 +744,23 @@ export default function Dashboard() {
         category: trackFilters.category,
         priority: trackFilters.priority,
         status: trackFilters.status,
-        dateRange: trackFilters.dateRange
+        dateRange: trackFilters.dateRange,
+        feedbackType: trackFilters.feedbackType
       });
 
       const response = await fetch(`/api/track?${params}`);
       
       if (response.ok) {
         const result = await response.json();
-        console.log(`✅ Track data loaded in ${result.totalTime}ms - ${result.count} items`);
+        
+        // Check if the API returned an error message (graceful error handling)
+        if (result.message && result.message.includes('error')) {
+          console.error('❌ Track API returned error:', result.message);
+          setTrackData([]);
+          return;
+        }
+        
+        console.log(`✅ Track data loaded in ${result.totalTime}ms - ${result.data?.length || 0} items`);
         setTrackData(result.data || []);
       } else {
         throw new Error(`Track API error: ${response.status}`);
@@ -610,7 +815,82 @@ export default function Dashboard() {
         </html>
       `);
     }
-  };;
+  };
+
+  // Media viewer for lazy-loaded media (proof/demo)
+  const viewProofMedia = async (actionId: string, mediaType: 'demo' | 'proof', fileName?: string) => {
+    try {
+      console.log(`🎥 Fetching ${mediaType} media URL for action:`, actionId);
+      
+      const response = await fetch(`/api/actions/${actionId}/media`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=300',
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          alert('❌ Please log in again to view media.');
+          return;
+        }
+        if (response.status === 403) {
+          alert('❌ You do not have permission to view this media.');
+          return;
+        }
+        if (response.status === 404) {
+          alert(`❌ ${mediaType === 'demo' ? 'Demo video not available.' : 'Proof media not uploaded yet.'}`);
+          return;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const mediaData = await response.json();
+      
+      // Check if the API returned an error message (graceful error handling)
+      if (mediaData.message && mediaData.message.includes('error')) {
+        console.error('❌ Media API returned error:', mediaData.message);
+        alert(`❌ ${mediaData.message}`);
+        return;
+      }
+      
+      const mediaInfo = mediaType === 'demo' ? mediaData.demoMedia : mediaData.proofMedia;
+      
+      if (!mediaInfo || !mediaInfo.url) {
+        alert(`❌ ${mediaType === 'demo' ? 'Demo video not available from coach.' : 'Please upload your proof media.'}`);
+        return;
+      }
+
+      // Open media in new window
+      viewMedia(mediaInfo.url, mediaInfo.fileName || fileName);
+      
+    } catch (error) {
+      console.error(`❌ Error viewing ${mediaType} media:`, error);
+      alert(`Failed to load ${mediaType} media. Please try again.`);
+    }
+  };
+
+  // Inline media viewer handlers for Coach Dashboard - optimized for performance
+  const openInlineViewer = (actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    setOpenInlineViewers(prev => new Set(prev).add(viewerId));
+  };
+
+  const closeInlineViewer = (actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    setOpenInlineViewers(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(viewerId);
+      return newSet;
+    });
+  };
+
+  const isInlineViewerOpen = (actionId: string, mediaType: 'demo' | 'proof') => {
+    const viewerId = `${actionId}-${mediaType}`;
+    return openInlineViewers.has(viewerId);
+  };
 
   // Fetch track data when view type or filters change
   useEffect(() => {
@@ -620,19 +900,48 @@ export default function Dashboard() {
   }, [trackViewType, trackFilters, assignedStudents, studentsSubTab]);
 
   // Team helper functions - PERFORMANCE OPTIMIZED
-  const fetchTeams = async (includeDetails = false) => {
+  const fetchTeams = async (includeDetails = false, skipCache = false) => {
     setIsLoadingTeams(true);
     try {
-      console.log('🏈 Fetching teams (lightweight load)...');
-      // PERFORMANCE: Initial load without heavy data - much faster
-      const response = await fetch(`/api/teams${includeDetails ? '?includeMembers=true&includeStats=true' : ''}`);
+      console.log('🏈 Fetching teams with stats and member data...');
+      // Always include stats for accurate counts - they're lightweight
+      const url = `/api/teams?includeStats=true${includeDetails ? '&includeMembers=true' : ''}${skipCache ? '&skipCache=true' : ''}`;
+      console.log('🔗 Teams API URL:', url);
+      
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('📡 Teams API response status:', response.status, response.statusText);
+      
       if (response.ok) {
         const data = await response.json();
-        setTeams(data.teams || []);
-        console.log(`✅ Teams loaded: ${data.teams?.length || 0} teams`);
+        console.log('📊 Raw teams data from API:', data);
+        
+        if (data.teams && Array.isArray(data.teams)) {
+          setTeams(data.teams);
+          console.log(`✅ Teams loaded: ${data.teams.length} teams with data:`, data.teams.map(t => ({ 
+            id: t.id, 
+            name: t.name, 
+            memberCount: t._count?.members,
+            feedbackCount: t._count?.feedback,
+            actionsCount: t._count?.actions
+          })));
+        } else {
+          console.error('❌ Invalid teams data structure:', data);
+          setTeams([]);
+        }
+      } else {
+        console.error('❌ Failed to fetch teams:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('❌ Error response body:', errorText);
+        setTeams([]);
       }
     } catch (error) {
-      console.error('Error fetching teams:', error);
+      console.error('❌ Error fetching teams:', error);
       setTeams([]);
     } finally {
       setIsLoadingTeams(false);
@@ -646,10 +955,10 @@ export default function Dashboard() {
       
       const response = await fetch(`/api/teams/${teamId}`, {
         method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       
       if (response.ok) {
@@ -672,34 +981,57 @@ export default function Dashboard() {
   };
 
   const handleCreateTeam = async (teamData: any) => {
+    console.log('🏈 Creating team with data:', teamData);
+    
     try {
       const response = await fetch('/api/teams', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(teamData),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create team');
+      // Handle both 200 and 201 as success (201 is more semantically correct for creation)
+      if (!response.ok && response.status !== 201) {
+        // Get the error message from the response
+        let errorMessage = 'Failed to create team';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If parsing JSON fails, use the status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       
-      // Refresh teams list
-      await fetchTeams();
+      console.log('✅ Team created successfully:', result);
+      
+      // Show success message (you can add a toast notification here)
+      alert(`Team "${result.name}" created successfully with ${result._count?.members || 0} members!`);
+      
+      // Refresh teams list - no need to include heavy member data in list view
+      await fetchTeams(false);
       
       return result;
     } catch (error) {
-      console.error('Error creating team:', error);
+      console.error('❌ Error creating team:', error);
       throw error;
     }
   };
 
   const handleTeamSelect = async (teamId: string) => {
     try {
-      const response = await fetch(`/api/teams/${teamId}`);
+      const response = await fetch(`/api/teams/${teamId}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setSelectedTeam(data.team);
@@ -720,7 +1052,14 @@ export default function Dashboard() {
 
   // Enhanced team details functionality with better error handling
   const handleViewTeamDetails = async (team: any) => {
-    console.log('🏈 Loading team details for:', team.name);
+    console.log('🏈 Loading team details for:', team.name, team.id);
+    
+    // Ensure we have a valid team
+    if (!team || !team.id) {
+      console.error('❌ Invalid team data:', team);
+      alert('Unable to load team details. Invalid team data.');
+      return;
+    }
     
     setSelectedTeamForDetails(team);
     setIsLoadingTeamDetails(true);
@@ -757,8 +1096,8 @@ export default function Dashboard() {
         actions: []
       });
       
-      // You could also show a toast notification here
-      alert(`Failed to load team details: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // Simple error message like the original version
+      alert(`Failed to load team details. Please try again.`);
     } finally {
       setIsLoadingTeamDetails(false);
     }
@@ -871,13 +1210,162 @@ export default function Dashboard() {
   };
 
   // Team roles functionality
-  const handleTeamRoles = (team: Team) => {
-    setSelectedTeamForRoles(team);
-    setIsTeamRolesModalOpen(true);
+  const handleTeamRoles = async (team: Team) => {
+    console.log('🎯 Loading team roles for:', team.name, team.id);
+    
+    // Validate team data first
+    if (!team || !team.id) {
+      console.error('❌ Invalid team data:', team);
+      alert('Invalid team data. Please refresh the page and try again.');
+      return;
+    }
+    
+    // First, fetch the complete team data including members
+    try {
+      console.log('🔍 Fetching team details from API:', `/api/teams/${team.id}`);
+      
+      const response = await fetch(`/api/teams/${team.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      console.log('📡 Response status:', response.status, response.statusText);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Team data with members loaded:', data);
+        
+        if (data.team) {
+          setSelectedTeamForRoles(data.team);
+          setIsTeamRolesModalOpen(true);
+        } else {
+          console.error('❌ No team data in response:', data);
+          alert('Team data is incomplete. Please try refreshing the teams list.');
+        }
+      } else {
+        // Try to get error details from response
+        let errorMessage = 'Failed to load team data';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.error('❌ Could not parse error response:', e);
+        }
+        
+        console.error('❌ Failed to fetch team data:', response.status, response.statusText, errorMessage);
+        alert(`Failed to load team data: ${errorMessage}. Please try again.`);
+      }
+    } catch (error) {
+      console.error('❌ Network error fetching team data:', error);
+      alert('Network error. Please check your connection and try again.');
+    }
+  };
+
+  // Enhanced team member management functionality
+  const handleTeamMembers = async (team: Team) => {
+    console.log('👥 Opening team member management for:', team.name, team.id);
+    
+    // Ensure we have a valid team
+    if (!team || !team.id) {
+      console.error('❌ Invalid team data:', team);
+      alert('Unable to manage team members. Invalid team data.');
+      return;
+    }
+    
+    // Fetch the complete team data including members
+    try {
+      console.log('🔍 Fetching team details from API:', `/api/teams/${team.id}`);
+      
+      const response = await fetch(`/api/teams/${team.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      console.log('📡 Response status:', response.status, response.statusText);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Team data with members loaded:', data);
+        
+        if (data.team) {
+          setSelectedTeamForMembers(data.team);
+          setIsTeamMemberModalOpen(true);
+        } else {
+          console.error('❌ No team data in response:', data);
+          alert('Team data is incomplete. Please try refreshing the teams list.');
+        }
+      } else {
+        // Try to get error details from response
+        let errorMessage = 'Failed to load team data';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.error('❌ Could not parse error response:', e);
+        }
+        
+        console.error('❌ Failed to fetch team data:', response.status, response.statusText, errorMessage);
+        alert(`Failed to load team data: ${errorMessage}. Please try again.`);
+      }
+    } catch (error) {
+      console.error('❌ Network error fetching team data:', error);
+      alert('Network error. Please check your connection and try again.');
+    }
+  };
+
+  // Team deletion handlers
+  const handleDeleteTeam = (team: Team) => {
+    setSelectedTeamForDeletion(team);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteTeam = async () => {
+    if (!selectedTeamForDeletion) return;
+
+    setIsDeletingTeam(true);
+    try {
+      const response = await fetch(`/api/teams/${selectedTeamForDeletion.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSuccessMessage(`Team "${selectedTeamForDeletion.name}" deleted successfully`);
+        
+        // Remove the deleted team from the teams list
+        setTeams(prevTeams => prevTeams.filter(team => team.id !== selectedTeamForDeletion.id));
+        
+        // Close the confirmation dialog
+        setIsDeleteConfirmOpen(false);
+        setSelectedTeamForDeletion(null);
+        
+        console.log(`✅ Team deleted: ${data.deletedTeam.name} (${data.deletedTeam.membersCount} members affected)`);
+      } else {
+        const error = await response.json();
+        setError(error.error || 'Failed to delete team');
+      }
+    } catch (error) {
+      console.error('Error deleting team:', error);
+              setError('Failed to delete team. Please try again.');
+    } finally {
+      setIsDeletingTeam(false);
+    }
+  };
+
+  const cancelDeleteTeam = () => {
+    setIsDeleteConfirmOpen(false);
+    setSelectedTeamForDeletion(null);
   };
 
   const athleteTabs = [
     { id: 'skillsnap', label: 'SkillSnap', icon: <FiActivity className="w-5 h-5" /> },
+    { id: 'scorecard', label: 'Scorecard', icon: <FiTarget className="w-5 h-5" /> },
     { id: 'matches', label: 'Matches', icon: <FiTarget className="w-5 h-5" /> },
     { id: 'badges', label: 'Badges', icon: <FiAward className="w-5 h-5" /> },
     { id: 'feedback', label: 'Feedback', icon: <FiMessageSquare className="w-5 h-5" /> },
@@ -887,7 +1375,7 @@ export default function Dashboard() {
 
   const coachTabs = [
     { id: 'overview', label: 'Overview', icon: <FiGrid className="w-5 h-5" /> },
-    { id: 'students', label: 'Students', icon: <FiUsers className="w-5 h-5" /> },
+    { id: 'students', label: 'Athletes', icon: <FiUsers className="w-5 h-5" /> },
     { id: 'teams', label: 'Teams', icon: <FiUsers className="w-5 h-5" /> },
     { id: 'progress', label: 'Progress', icon: <FiTrendingUp className="w-5 h-5" /> },
     { id: 'badges', label: 'Badges', icon: <FiAward className="w-5 h-5" /> },
@@ -899,15 +1387,19 @@ export default function Dashboard() {
   useEffect(() => {
     // Set default tab - coaches start on 'overview' tab, athletes on first tab
     const defaultTab = (session as unknown as Session)?.user?.role === 'COACH' ? 'overview' : tabs[0]?.id;
-    if (defaultTab) {
+    const tabFromQuery = searchParams?.get('tab');
+    if (tabFromQuery && tabs.some(t => t.id === tabFromQuery)) {
+      setActiveTab(tabFromQuery);
+    } else if (defaultTab) {
       setActiveTab(defaultTab);
     }
   }, [tabs, (session as unknown as Session)?.user?.role]);
 
-  // Fetch teams when teams tab is active
+  // Fetch teams when teams tab is active - OPTIMIZED for performance
   useEffect(() => {
     if (activeTab === 'teams' && (session as unknown as Session)?.user?.role === 'COACH') {
-      fetchTeams();
+      // PERFORMANCE: Load teams without heavy details initially
+      fetchTeams(false); // Lightweight load first
     }
   }, [activeTab, (session as unknown as Session)?.user?.role]);
 
@@ -923,9 +1415,13 @@ export default function Dashboard() {
   }
 
   // Check if profile is incomplete - different criteria for coaches vs athletes
-  const isProfileIncomplete = (session as unknown as Session)?.user?.role === 'COACH' 
-    ? !profileData?.name || !profileData?.academy
-    : !profileData?.sport || !profileData?.academy;
+  // FIXED: Only check for incomplete profile if we have successfully fetched profile data
+  // Don't show onboarding screen for API errors (when profileData is null due to errors)
+  const isProfileIncomplete = profileData && (
+    (session as unknown as Session)?.user?.role === 'COACH' 
+      ? !profileData?.name || !profileData?.academy
+      : !profileData?.sport || !profileData?.academy
+  );
 
   if (isProfileIncomplete) {
     return (
@@ -1124,6 +1620,42 @@ export default function Dashboard() {
                     onRefresh={handleRefreshSkills}
                     isRefreshing={isRefreshingSkills}
                   />
+                </motion.div>
+              );
+
+            case 'scorecard':
+              return (
+                <motion.div 
+                  className="space-y-6"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div className="card-modern glass">
+                    <div className="p-6 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <FiTarget className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Scorecard</h2>
+                          <p className="text-sm text-gray-600 mt-1">Create, resume, or review scored matches</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => router.push('/scorecard/new')}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 active:scale-95"
+                        >Start New Match</button>
+                        <button
+                          onClick={() => setActiveTab('matches')}
+                          className="px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 active:scale-95"
+                        >Open Match Centre</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Removed embedded Cricket matches list; use Match Centre instead */}
                 </motion.div>
               );
 
@@ -1581,6 +2113,8 @@ export default function Dashboard() {
             </div>
 
             {/* Quick Actions */}
+
+
             <motion.div 
               className="card-modern p-6"
               initial={{ opacity: 0, y: 20 }}
@@ -1798,7 +2332,7 @@ export default function Dashboard() {
                   }`}
                 >
                   <FiUsers className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
-                  <span className="text-center leading-tight">Your<br className="sm:hidden" />Students</span>
+                  <span className="text-center leading-tight">Your<br className="sm:hidden" />Athletes</span>
                   {assignedStudents && assignedStudents.length > 0 && (
                     <span className={`ml-0 sm:ml-2 mt-1 sm:mt-0 px-1.5 sm:px-2 py-0.5 rounded-full text-xs ${
                       studentsSubTab === 'assigned' 
@@ -1821,7 +2355,7 @@ export default function Dashboard() {
                   }`}
                 >
                   <FiPlusCircle className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
-                  <span className="text-center leading-tight">Available<br className="sm:hidden" />Students</span>
+                  <span className="text-center leading-tight">Available<br className="sm:hidden" />Athletes</span>
                   {availableStudents && availableStudents.length > 0 && (
                     <span className={`ml-0 sm:ml-2 mt-1 sm:mt-0 px-1.5 sm:px-2 py-0.5 rounded-full text-xs ${
                       studentsSubTab === 'available' 
@@ -1869,44 +2403,60 @@ export default function Dashboard() {
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3 }}
                 >
-              {/* Action Buttons Header */}
-              <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-6 space-y-3 sm:space-y-0">
-                <div className="flex items-center">
-                  <div className="flex items-center mr-4 sm:mr-6">
-                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-2">
-                      <FiUsers className="w-4 h-4 text-white" />
+              {/* Modern Header Section */}
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 space-y-4 lg:space-y-0">
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <FiUsers className="w-6 h-6 text-white" />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">Your Students</h3>
-                      <p className="text-xs text-gray-600 sm:hidden">Manage assigned students</p>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-white">{assignedStudents?.length || 0}</span>
                     </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Your Athletes</h3>
+                    <p className="text-sm text-gray-600 font-medium">
+                      {assignedStudents?.length ? `Managing ${assignedStudents.length} athletes` : 'No students assigned yet'}
+                    </p>
                   </div>
                 </div>
                 
-                {/* Mobile-Optimized Action Buttons */}
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  {/* Create Team Button */}
+                {/* Modern Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3">
                   {assignedStudents?.length > 0 && (
-                    <motion.button 
-                      onClick={() => setIsCreateTeamModalOpen(true)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex-1 sm:flex-none px-3 py-2 sm:py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm flex items-center justify-center gap-1 min-h-[44px] sm:min-h-0"
-                    >
-                      <FiUsers className="w-4 h-4" />
-                      <span className="sm:inline">Create Team</span>
-                    </motion.button>
+                    <>
+                      <motion.button 
+                        onClick={() => setIsAttendanceModalOpen(true)}
+                        whileHover={{ scale: 1.02, y: -1 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-600 hover:to-emerald-700 min-h-[48px]"
+                      >
+                        <FiCheckCircle className="w-4 h-4" />
+                        <span>Attendance</span>
+                      </motion.button>
+                      <motion.button 
+                        onClick={() => setIsCreateTeamModalOpen(true)}
+                        whileHover={{ scale: 1.02, y: -1 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:from-purple-600 hover:to-purple-700 min-h-[48px]"
+                      >
+                        <FiUsers className="w-4 h-4" />
+                        <span>Create Team</span>
+                      </motion.button>
+                    </>
                   )}
                   <motion.button 
                     onClick={() => {
                       console.log('🔄 Manual refresh triggered');
                       fetchAssignedStudents();
                     }}
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.02, y: -1 }}
                     whileTap={{ scale: 0.98 }}
-                    className="flex-1 sm:flex-none px-3 py-2 sm:py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm min-h-[44px] sm:min-h-0"
+                    className="flex items-center justify-center gap-2 px-5 py-3 bg-white text-gray-700 border border-gray-200 rounded-xl font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 hover:bg-gray-50 hover:border-gray-300 min-h-[48px]"
                   >
-                    Refresh
+                    <FiRefreshCw className="w-4 h-4" />
+                    <span>Refresh</span>
                   </motion.button>
                 </div>
               </div>
@@ -1924,139 +2474,185 @@ export default function Dashboard() {
                 </motion.div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {(showAllStudents ? assignedStudents : assignedStudents?.slice(0, 6))?.map((student: any, index: number) => (
                       <motion.div 
                         key={student.id} 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 + index * 0.05 }}
-                        className="bg-gray-50 rounded-xl p-5 sm:p-4 hover:bg-gray-100 transition-all duration-200 border border-gray-200 shadow-sm hover:shadow-md"
+                        className="bg-white rounded-2xl p-6 hover:bg-gray-50/50 transition-all duration-300 border border-gray-100 shadow-lg hover:shadow-xl hover:border-gray-200 group"
                       >
-                        {/* Student Info - Mobile Optimized */}
-                        <div className="flex items-center space-x-4 sm:space-x-3 mb-4 sm:mb-3">
-                        <div className="flex-shrink-0">
-                            <div className="w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                              <FiUser className="w-7 h-7 sm:w-6 sm:h-6 text-white" />
+                        {/* Modern Student Info */}
+                        <div className="flex items-center space-x-4 mb-5">
+                          <div className="relative flex-shrink-0">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                              <FiUser className="w-8 h-8 text-white" />
                             </div>
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
+                              <div className="w-2 h-2 bg-white rounded-full"></div>
                             </div>
+                          </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-start justify-between">
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-lg sm:text-base font-semibold text-gray-800 truncate">{student.studentName || student.name}</h3>
-                                <p className="text-base sm:text-sm text-gray-600 flex items-center">
-                                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                                  {student.sport || 'No sport selected'}
-                                </p>
+                                <h3 className="text-lg font-bold text-gray-900 truncate mb-1">{student.studentName || student.name}</h3>
+                                <div className="flex items-center space-x-2">
+                                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {student.sport || 'No sport'}
+                                  </span>
+                                  {student.age && (
+                                    <span className="text-sm text-gray-500 font-medium">{student.age}y</span>
+                                  )}
+                                </div>
                               </div>
                               <motion.button
                                 onClick={() => toggleStudentExpanded(student.id)}
-                                whileHover={{ scale: 1.05 }}
+                                whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200"
                               >
                                 <motion.div
                                   animate={{ rotate: isStudentExpanded(student.id) ? 180 : 0 }}
-                                  transition={{ duration: 0.2 }}
+                                  transition={{ duration: 0.3, ease: "easeInOut" }}
                                 >
-                                  <FiChevronRight className="w-4 h-4" />
+                                  <FiChevronRight className="w-5 h-5" />
                                 </motion.div>
                               </motion.button>
                             </div>
                           </div>
-                      </div>
+                        </div>
                       
-                        {/* Student Details - Expandable */}
+                        {/* Modern Student Details - Expandable */}
                         <AnimatePresence>
                           {isStudentExpanded(student.id) && (
                             <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.3 }}
-                              className="mb-4 p-3 bg-white rounded-lg border border-gray-200"
+                              initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, height: "auto", scale: 1 }}
+                              exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                              transition={{ duration: 0.4, ease: "easeInOut" }}
+                              className="mb-5 p-4 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200/50"
                             >
-                              <div className="grid grid-cols-2 gap-3 text-sm">
-                                <div>
-                                  <span className="text-gray-500">Age:</span>
-                                  <span className="ml-2 font-medium">{student.age || 'N/A'}</span>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="flex flex-col space-y-1">
+                                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Age</span>
+                                  <span className="text-sm font-bold text-gray-900">{student.age || 'N/A'}</span>
                                 </div>
-                                <div>
-                                  <span className="text-gray-500">Email:</span>
-                                  <span className="ml-2 font-medium text-xs truncate">{student.email || 'N/A'}</span>
+                                <div className="flex flex-col space-y-1">
+                                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</span>
+                                  <span className="text-sm font-bold text-gray-900 truncate">{student.email || 'N/A'}</span>
                                 </div>
-                                <div>
-                                  <span className="text-gray-500">Height:</span>
-                                  <span className="ml-2 font-medium">{student.height ? `${student.height}cm` : 'N/A'}</span>
+                                <div className="flex flex-col space-y-1">
+                                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Height</span>
+                                  <span className="text-sm font-bold text-gray-900">{student.height ? `${student.height}cm` : 'N/A'}</span>
                                 </div>
-                                <div>
-                                  <span className="text-gray-500">Weight:</span>
-                                  <span className="ml-2 font-medium">{student.weight ? `${student.weight}kg` : 'N/A'}</span>
+                                <div className="flex flex-col space-y-1">
+                                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Weight</span>
+                                  <span className="text-sm font-bold text-gray-900">{student.weight ? `${student.weight}kg` : 'N/A'}</span>
                                 </div>
                               </div>
                             </motion.div>
                           )}
                         </AnimatePresence>
                         
-                        {/* Mobile-Optimized Action Buttons - Compact 2x2 Grid */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <motion.button
-                          onClick={() => openStudentModal(student, 'skillsnap')}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="px-2 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[36px] shadow-sm"
-                          >
-                              <FiActivity className="w-3 h-3" />
-                            <span className="truncate">Skills</span>
+                        {/* Mobile-Optimized Action Buttons */}
+                        <div className="space-y-3 sm:space-y-4">
+                          {/* Responsive Button Grid - Updated to 2x2 for unassign button */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            {/* Direct Chat Button */}
+                            <motion.button
+                              onClick={async () => {
+                                try {
+                                  const res = await fetch('/api/chat/direct/init', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'include',
+                                    body: JSON.stringify({ athleteId: student.id }),
+                                  });
+                                  if (!res.ok) return;
+                                  const data = await res.json();
+                                  // Fire a custom event to open page-level DirectChatPanel
+                                  window.dispatchEvent(new CustomEvent('open-direct-chat', { detail: { threadId: data.thread.id } }));
+                                } catch {}
+                              }}
+                              whileHover={{ scale: 1.02, y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                              className="group relative overflow-hidden bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[60px] sm:min-h-[64px] flex items-center justify-center active:scale-95"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                              <div className="relative flex items-center space-x-2 sm:space-x-2">
+                                <FiMessageSquare className="w-6 h-6 sm:w-5 sm:h-5" />
+                                <span className="font-bold text-base sm:text-sm">Chat</span>
+                              </div>
                             </motion.button>
-                          
-                          <motion.button
-                          onClick={() => openStudentModal(student, 'feedback')}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="px-2 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[36px] shadow-sm"
-                        >
-                              <FiMessageSquare className="w-3 h-3" />
-                          <span className="truncate">Feedback</span>
+                            {/* Skills Button */}
+                            <motion.button
+                              onClick={() => openStudentModal(student, 'skillsnap')}
+                              whileHover={{ scale: 1.02, y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                              className="group relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[60px] sm:min-h-[64px] flex items-center justify-center active:scale-95"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                              <div className="relative flex items-center space-x-2 sm:space-x-2">
+                                <FiActivity className="w-6 h-6 sm:w-5 sm:h-5" />
+                                <span className="font-bold text-base sm:text-sm">Skills</span>
+                              </div>
                             </motion.button>
-
-                          <motion.button
-                          onClick={() => openStudentModal(student, 'actions')}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="px-2 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs font-medium rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[36px] shadow-sm"
-                        >
-                              <FiCheckSquare className="w-3 h-3" />
-                          <span className="truncate">Actions</span>
+                            
+                            {/* Feedback Button */}
+                            <motion.button
+                              onClick={() => openStudentModal(student, 'feedback')}
+                              whileHover={{ scale: 1.02, y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                              className="group relative overflow-hidden bg-gradient-to-br from-green-500 via-green-600 to-emerald-600 text-white rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[60px] sm:min-h-[64px] flex items-center justify-center active:scale-95"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                              <div className="relative flex items-center space-x-2 sm:space-x-2">
+                                <FiMessageSquare className="w-6 h-6 sm:w-5 sm:h-5" />
+                                <span className="font-bold text-base sm:text-sm">Feedback</span>
+                              </div>
                             </motion.button>
-
-                          <motion.button
-                          onClick={() => openStudentModal(student, 'view')}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="px-2 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-1 min-h-[36px] shadow-sm"
-                        >
-                              <FiEye className="w-3 h-3" />
-                          <span className="truncate">View</span>
+                            
+                            {/* Actions Button */}
+                            <motion.button
+                              onClick={() => openStudentModal(student, 'actions')}
+                              whileHover={{ scale: 1.02, y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                              className="group relative overflow-hidden bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 text-white rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[60px] sm:min-h-[64px] flex items-center justify-center active:scale-95"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                              <div className="relative flex items-center space-x-2 sm:space-x-2">
+                                <FiCheckSquare className="w-6 h-6 sm:w-5 sm:h-5" />
+                                <span className="font-bold text-base sm:text-sm">Actions</span>
+                              </div>
                             </motion.button>
-
-                          <StudentReportPDF
-                            studentId={student.id}
-                            studentName={student.studentName || student.name}
-                            onGenerateStart={() => {
-                              setSuccessMessage('Generating comprehensive report...');
-                              setTimeout(() => setSuccessMessage(null), 2000);
-                            }}
-                            onGenerateComplete={() => {
-                              setSuccessMessage('Report generated successfully!');
-                              setTimeout(() => setSuccessMessage(null), 3000);
-                            }}
-                            onGenerateError={(error) => {
-                              setError(`Failed to generate report: ${error}`);
-                              setTimeout(() => setError(null), 5000);
-                            }}
-                          />
+                            
+                            {/* UNASSIGN ATHLETE FEATURE: Unassign Button */}
+                            <motion.button
+                              onClick={() => handleUnassignStudent(student.id, student.studentName || student.name)}
+                              disabled={isUnassigning === student.id}
+                              whileHover={{ scale: isUnassigning === student.id ? 1 : 1.02, y: isUnassigning === student.id ? 0 : -2 }}
+                              whileTap={{ scale: isUnassigning === student.id ? 1 : 0.98 }}
+                              className="group relative overflow-hidden bg-gradient-to-br from-red-500 via-red-600 to-pink-600 text-white rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[60px] sm:min-h-[64px] flex items-center justify-center active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                              <div className="relative flex items-center space-x-2 sm:space-x-2">
+                                {isUnassigning === student.id ? (
+                                  <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    className="w-6 h-6 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full"
+                                  />
+                                ) : (
+                                  <FiUserX className="w-6 h-6 sm:w-5 sm:h-5" />
+                                )}
+                                <span className="font-bold text-base sm:text-sm">
+                                  {isUnassigning === student.id ? 'Unassigning...' : 'Unassign'}
+                                </span>
+                              </div>
+                            </motion.button>
                           </div>
+                        </div>
                       </motion.div>
                       ))}
                         </div>
@@ -2102,44 +2698,50 @@ export default function Dashboard() {
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
                 >
-              {/* Action Buttons Header */}
-              <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-6 space-y-3 sm:space-y-0">
-                <div className="flex items-center">
-                  <div className="flex items-center mr-4 sm:mr-6">
-                    <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-2">
-                      <FiPlusCircle className="w-4 h-4 text-white" />
+              {/* Modern Header Section */}
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 space-y-4 lg:space-y-0">
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 via-green-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <FiPlusCircle className="w-6 h-6 text-white" />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">Available Students</h3>
-                      <p className="text-xs md:text-sm text-gray-600 mt-1 hidden sm:block">
-                        Select to assign
-                      </p>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-white">{availableStudents?.length || 0}</span>
                     </div>
                   </div>
-            </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Available Athletes</h3>
+                    <p className="text-sm text-gray-600 font-medium">
+                                              {availableStudents?.length ? `${availableStudents.length} athletes ready to assign` : 'No available athletes'}
+                    </p>
+                  </div>
+                </div>
 
                 {selectedStudents.length > 0 && (
                   <motion.button
                     onClick={handleAssignStudents}
                     disabled={isAssigning}
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.02, y: -1 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto px-6 py-3 sm:px-4 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[48px] sm:min-h-0 shadow-md font-medium"
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] relative overflow-hidden group"
                   >
-                    {isAssigning ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Assigning...</span>
-                      </>
-                    ) : (
-                      <>
-                        <FiUsers className="w-4 h-4" />
-                        <span>Assign Selected ({selectedStudents.length})</span>
-                      </>
-                    )}
-                  </motion.button>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    <div className="relative flex items-center gap-2">
+                      {isAssigning ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Assigning...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FiUsers className="w-5 h-5" />
+                          <span>Assign Selected ({selectedStudents.length})</span>
+                        </>
                       )}
                     </div>
+                  </motion.button>
+                )}
+              </div>
               
               {availableStudents?.length === 0 ? (
                 <motion.div 
@@ -2149,7 +2751,7 @@ export default function Dashboard() {
                   transition={{ delay: 0.3 }}
                 >
                   <FiPlusCircle className="mx-auto h-16 w-16 sm:h-12 sm:w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg sm:text-base font-medium text-gray-900 mb-2">No available students</h3>
+                  <h3 className="text-lg sm:text-base font-medium text-gray-900 mb-2">No available athletes</h3>
                   <p className="text-base sm:text-sm text-gray-500 mb-2 px-4">
                     No unassigned students found in your academy ({profileData?.academy}).
                   </p>
@@ -2178,64 +2780,71 @@ export default function Dashboard() {
                 </motion.div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {(showAllStudents ? availableStudents : availableStudents?.slice(0, 6))?.map((student: any, index: number) => (
-                    <motion.div 
-                      key={student.id} 
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 + index * 0.05 }}
-                      onClick={() => handleStudentSelection(student.id)}
-                      className={`rounded-xl p-5 sm:p-4 cursor-pointer transition-all duration-200 border-2 active:scale-95 touch-manipulation ${
-                        selectedStudents.includes(student.id) 
-                          ? 'ring-2 ring-green-600 bg-green-50 border-green-200 shadow-md' 
-                          : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300 shadow-sm hover:shadow-md'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4 sm:space-x-3 flex-1 min-w-0">
-                          <div className="flex-shrink-0">
-                            <div className={`w-12 h-12 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${
-                              selectedStudents.includes(student.id) 
-                                ? 'bg-green-100' 
-                                : 'bg-gray-200'
-                            }`}>
-                              <FiUser className={`w-6 h-6 sm:w-5 sm:h-5 ${
+                      <motion.div 
+                        key={student.id} 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 + index * 0.05 }}
+                        onClick={() => handleStudentSelection(student.id)}
+                        className={`rounded-2xl p-6 cursor-pointer transition-all duration-300 border-2 active:scale-95 touch-manipulation shadow-lg hover:shadow-xl group ${
+                          selectedStudents.includes(student.id) 
+                            ? 'ring-2 ring-green-500 bg-gradient-to-br from-green-50 to-emerald-50 border-green-300 transform scale-105' 
+                            : 'bg-white border-gray-100 hover:bg-gray-50/50 hover:border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4 flex-1 min-w-0">
+                            <div className="relative flex-shrink-0">
+                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
                                 selectedStudents.includes(student.id) 
-                                  ? 'text-green-600' 
-                                  : 'text-gray-600'
-                              }`} />
-                            </div>
-                                </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-lg sm:text-base font-semibold text-gray-800 truncate">{student.studentName || student.name}</h3>
-                            <p className="text-base sm:text-sm text-gray-600 flex items-center">
-                              <span className={`w-2 h-2 rounded-full mr-2 ${
-                                selectedStudents.includes(student.id) ? 'bg-green-500' : 'bg-gray-400'
-                              }`}></span>
-                              {student.sport || 'No sport selected'}
-                            </p>
-                                </div>
+                                  ? 'bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg' 
+                                  : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-blue-400 group-hover:to-indigo-500'
+                              }`}>
+                                <FiUser className="w-7 h-7 text-white" />
                               </div>
-                        <div className="flex-shrink-0 ml-3">
-                          {selectedStudents.includes(student.id) ? (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center"
-                            >
-                              <Check className="w-5 h-5 text-white" />
-                            </motion.div>
-                          ) : (
-                            <div className="w-8 h-8 border-2 border-gray-300 rounded-full flex items-center justify-center">
-                              <div className="w-3 h-3 border border-gray-400 rounded-full"></div>
-                            </div>
-                        )}
-                            </div>
+                              {selectedStudents.includes(student.id) && (
+                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-600 rounded-full border-2 border-white flex items-center justify-center">
+                                  <Check className="w-3 h-3 text-white" />
                                 </div>
-                    </motion.div>
-                  ))}
-                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-bold text-gray-900 truncate mb-1">{student.studentName || student.name}</h3>
+                              <div className="flex items-center space-x-2">
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                                  selectedStudents.includes(student.id) 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {student.sport || 'No sport'}
+                                </span>
+                                {student.age && (
+                                  <span className="text-sm text-gray-500 font-medium">{student.age}y</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0 ml-3">
+                            {selectedStudents.includes(student.id) ? (
+                              <motion.div
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg"
+                              >
+                                <Check className="w-5 h-5 text-white" />
+                              </motion.div>
+                            ) : (
+                              <div className="w-8 h-8 border-2 border-gray-300 rounded-full flex items-center justify-center group-hover:border-blue-400 transition-colors duration-300">
+                                <div className="w-3 h-3 border border-gray-400 rounded-full group-hover:border-blue-400 transition-colors duration-300"></div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
                   
                   {/* Show More Available Students Button */}
                   {availableStudents && availableStudents.length > 6 && (
@@ -2253,7 +2862,7 @@ export default function Dashboard() {
                       >
                         <FiPlusCircle className="w-4 h-4" />
                         <span>
-                          {showAllStudents ? 'Show Less' : `Show All ${availableStudents.length} Available Students`}
+                          {showAllStudents ? 'Show Less' : `Show All ${availableStudents.length} Available Athletes`}
                         </span>
                         <motion.div
                           animate={{ rotate: showAllStudents ? 180 : 0 }}
@@ -2430,6 +3039,26 @@ export default function Dashboard() {
                           )}
                         </select>
                       </div>
+
+                      {/* Feedback/Action Type Filter */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+                        <select
+                          value={trackFilters.feedbackType}
+                          onChange={(e) => setTrackFilters(prev => ({ ...prev, feedbackType: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="all">
+                            {trackViewType === 'feedback' ? 'All Feedbacks' : 'All Actions'}
+                          </option>
+                          <option value="individual">
+                            👤 Individual {trackViewType === 'feedback' ? 'Feedback' : 'Actions'}
+                          </option>
+                          <option value="team">
+                            👥 Team {trackViewType === 'feedback' ? 'Feedback' : 'Actions'}
+                          </option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 
@@ -2474,8 +3103,15 @@ export default function Dashboard() {
                             <div className="p-4 sm:p-6">
                               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                                 <div className="flex-1">
-                                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                                     <h3 className="text-lg font-bold text-gray-900">{item.title}</h3>
+                                    <div className="flex items-center gap-2 text-sm font-medium text-purple-700 bg-purple-50 px-2 py-1 rounded-md border border-purple-200">
+                                      <FiUser className="w-4 h-4" />
+                                      <span>{item.student?.studentName || item.studentName || 'Unknown Student'}</span>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex flex-wrap items-center gap-2 mb-3">
                                     <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getPriorityColor(item.priority)}`}>
                                       {item.priority}
                                     </span>
@@ -2486,12 +3122,8 @@ export default function Dashboard() {
                                   
                                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                                     <div className="flex items-center gap-1">
-                                      <FiUser className="w-4 h-4" />
-                                      <span><strong>Student:</strong> {item.studentName}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
                                       <FiCalendar className="w-4 h-4" />
-                                      <span>{formatDate(item.createdAt)}</span>
+                                      <span>Created: {formatDate(item.createdAt)}</span>
                                     </div>
                                     {trackViewType === 'actions' && item.dueDate && (
                                       <div className="flex items-center gap-1">
@@ -2535,48 +3167,50 @@ export default function Dashboard() {
                                 </div>
                               </div>
 
-                              {/* Demo Media (Coach provided) - IN-PAGE PREVIEW */}
-                              {trackViewType === 'actions' && item.demoMediaUrl && (
+                              {/* Demo Media (Coach provided) - INLINE VIEWER */}
+                              {trackViewType === 'actions' && item.demoMediaType && item.demoFileName && (
                                 <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                                   <div className="flex items-center gap-2 mb-3">
                                     {item.demoMediaType === 'image' ? <FiImage className="w-5 h-5 text-blue-600" /> : <FiVideo className="w-5 h-5 text-blue-600" />}
                                     <h4 className="text-sm font-semibold text-blue-900">Coach Demo Media</h4>
                                   </div>
                                   
-                                  {item.demoMediaType === 'image' ? (
-                                    <div className="relative">
-                                      <img 
-                                        src={item.demoMediaUrl} 
-                                        alt="Coach demo"
-                                        className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-                                        style={{ maxHeight: '200px', objectFit: 'cover' }}
-                                        onClick={() => viewMedia(item.demoMediaUrl, item.demoFileName)}
-                                      />
-                                      <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                                        Click to enlarge
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <video 
-                                      src={item.demoMediaUrl}
-                                      controls
-                                      className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md"
-                                      preload="metadata"
-                                      style={{ maxHeight: '200px' }}
+                                  <div className="flex flex-col sm:flex-row gap-3">
+                                    <button
+                                      onClick={() => openInlineViewer(item.id, 'demo')}
+                                      className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-xs"
                                     >
-                                      Your browser does not support video.
-                                    </video>
-                                  )}
+                                      <FiPlay className="w-3 h-3" />
+                                      {isInlineViewerOpen(item.id, 'demo') ? 'Hide Demo' : 'View Demo'}
+                                      {item.demoFileSize && (
+                                        <span className="text-xs opacity-75">
+                                          ({Math.round(item.demoFileSize / 1024)}KB)
+                                        </span>
+                                      )}
+                                    </button>
+                                    <div className="text-xs text-blue-700 flex items-center">
+                                      <span><strong>Type:</strong> {item.demoMediaType} | <strong>Uploaded:</strong> {item.demoUploadedAt ? formatDate(item.demoUploadedAt) : 'N/A'}</span>
+                                    </div>
+                                  </div>
                                   
-                                  <p className="text-xs text-blue-700 mt-2">
-                                    <strong>File:</strong> {item.demoFileName} • 
-                                    <strong> Uploaded:</strong> {item.demoUploadedAt ? formatDate(item.demoUploadedAt) : 'N/A'}
-                                  </p>
+                                  {/* Inline Demo Media Viewer */}
+                                  {item.demoMediaType && item.demoFileName && (
+                                    <InlineMediaViewer
+                                      actionId={item.id}
+                                      mediaType="demo"
+                                      fileName={item.demoFileName}
+                                      fileSize={item.demoFileSize}
+                                      mediaFileType={item.demoMediaType}
+                                      isOpen={isInlineViewerOpen(item.id, 'demo')}
+                                      onClose={() => closeInlineViewer(item.id, 'demo')}
+                                      className="mt-4"
+                                    />
+                                  )}
                                 </div>
                               )}
 
-                              {/* Student Proof (Athlete uploaded) - COACH CAN VIEW */}
-                              {trackViewType === 'actions' && item.proofMediaUrl && (
+                              {/* Student Proof (Athlete uploaded) - INLINE VIEWER */}
+                              {trackViewType === 'actions' && item.proofMediaType && item.proofFileName && (
                                 <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
                                   <div className="flex items-center gap-2 mb-3">
                                     <FiUpload className="w-5 h-5 text-green-600" />
@@ -2584,47 +3218,37 @@ export default function Dashboard() {
                                     {item.isCompleted && <FiCheck className="w-4 h-4 text-green-600" />}
                                   </div>
                                   
-                                  {item.proofMediaType?.startsWith('image') ? (
-                                    <div className="relative">
-                                      <img 
-                                        src={item.proofMediaUrl} 
-                                        alt="Student proof"
-                                        className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-                                        style={{ maxHeight: '200px', objectFit: 'cover' }}
-                                        onClick={() => viewMedia(item.proofMediaUrl, item.proofFileName)}
-                                      />
-                                      <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                                        Click to enlarge
-                                      </div>
-                                    </div>
-                                  ) : item.proofMediaType?.startsWith('video') ? (
-                                    <video 
-                                      src={item.proofMediaUrl}
-                                      controls
-                                      className="w-full max-w-xs sm:max-w-sm rounded-lg shadow-md"
-                                      preload="metadata"
-                                      style={{ maxHeight: '200px' }}
-                                    >
-                                      Your browser does not support video.
-                                    </video>
-                                  ) : (
+                                  <div className="flex flex-col sm:flex-row gap-3">
                                     <button
-                                      onClick={() => viewMedia(item.proofMediaUrl, item.proofFileName)}
-                                      className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                      onClick={() => openInlineViewer(item.id, 'proof')}
+                                      className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs"
                                     >
-                                      <FiEye className="w-4 h-4" />
-                                      View proof ({item.proofFileName})
+                                      <FiEye className="w-3 h-3" />
+                                      {isInlineViewerOpen(item.id, 'proof') ? 'Hide Proof' : 'View Proof'}
+                                      {item.proofFileSize && (
+                                        <span className="text-xs opacity-75">
+                                          ({Math.round(item.proofFileSize / 1024)}KB)
+                                        </span>
+                                      )}
                                     </button>
-                                  )}
-                                  
-                                  <div className="flex justify-between items-center mt-3">
-                                    <p className="text-xs text-green-700">
-                                      <strong>File:</strong> {item.proofFileName}
-                                    </p>
-                                    <p className="text-xs text-green-700">
-                                      <strong>Submitted:</strong> {item.proofUploadedAt ? formatDate(item.proofUploadedAt) : 'N/A'}
-                                    </p>
+                                    <div className="text-xs text-green-700 flex items-center">
+                                      <span><strong>Type:</strong> {item.proofMediaType} | <strong>Submitted:</strong> {item.proofUploadedAt ? formatDate(item.proofUploadedAt) : 'N/A'}</span>
+                                    </div>
                                   </div>
+                                  
+                                  {/* Inline Proof Media Viewer */}
+                                  {item.proofMediaType && item.proofFileName && (
+                                    <InlineMediaViewer
+                                      actionId={item.id}
+                                      mediaType="proof"
+                                      fileName={item.proofFileName}
+                                      fileSize={item.proofFileSize}
+                                      mediaFileType={item.proofMediaType}
+                                      isOpen={isInlineViewerOpen(item.id, 'proof')}
+                                      onClose={() => closeInlineViewer(item.id, 'proof')}
+                                      className="mt-4"
+                                    />
+                                  )}
                                 </div>
                               )}
 
@@ -2643,6 +3267,48 @@ export default function Dashboard() {
                                   <span><strong>Team:</strong> {item.team.name}</span>
                                 </div>
                               )}
+
+                              {/* Chat Button */}
+                              <div className="mt-4 pt-4 border-t border-gray-100">
+                                <div className="flex items-center justify-end">
+                                  <button
+                                    onClick={() =>
+                                      setChatState({
+                                        open: true,
+                                        type: trackViewType === 'feedback' ? 'FEEDBACK' : 'ACTION',
+                                        itemId: item.id,
+                                        title: item.title,
+                                      })
+                                    }
+                                    className="inline-flex items-center gap-2 px-4 py-2 text-sm rounded-full bg-green-600 text-white shadow-sm hover:bg-green-700 hover:shadow-md active:scale-[0.98] transition-all duration-200"
+                                  >
+                                    <FiMessageCircle className="w-4 h-4" />
+                                    <span>Chat</span>
+                                  </button>
+
+                                  {(session?.user as any)?.role === 'COACH' && (
+                                    <button
+                                      onClick={async () => {
+                                        const confirmed = window.confirm(`Delete this ${trackViewType === 'feedback' ? 'feedback' : 'action'}? You can restore it later.`);
+                                        if (!confirmed) return;
+                                        try {
+                                          // Optimistic remove from track list
+                                          setTrackData(prev => prev.filter((d: any) => d.id !== item.id));
+                                          const url = trackViewType === 'feedback' ? `/api/feedback/${item.id}/delete` : `/api/actions/${item.id}/delete`;
+                                          await fetch(url, { method: 'PATCH' });
+                                        } catch (e) {
+                                          console.error('Delete failed', e);
+                                        }
+                                      }}
+                                      className="ml-2 inline-flex items-center gap-2 px-3 py-2 text-sm rounded-full bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition"
+                                      title="Delete"
+                                    >
+                                      <FiTrash className="w-4 h-4" />
+                                      <span className="hidden sm:inline">Delete</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </motion.div>
                         ))}
@@ -2658,43 +3324,58 @@ export default function Dashboard() {
       case 'progress':
         return (
           <motion.div 
-            className="space-y-6"
+            className="min-h-[calc(100vh-12rem)] lg:min-h-[calc(100vh-8rem)]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            {/* Smart Notifications Button */}
-            <div className="flex justify-end">
-              <motion.button
-                onClick={() => setSmartNotificationsOpen(true)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            {assignedStudents && assignedStudents.length > 0 ? (
+              <div className="w-full">
+                <AthleteProgressTracker 
+                  athletes={assignedStudents.map((student: any) => ({
+                    id: student.id,
+                    name: student.studentName || student.name,
+                    sport: student.sport || 'Basketball'
+                  }))}
+                />
+              </div>
+            ) : (
+              <motion.div 
+                className="flex items-center justify-center min-h-[60vh] bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <FiBell className="w-5 h-5" />
-                <span className="font-medium">Smart Notifications</span>
-              </motion.button>
-            </div>
-            
-            <div className="h-[calc(100vh-20rem)] bg-white rounded-xl shadow-lg overflow-hidden">
-              {assignedStudents && assignedStudents.length > 0 ? (
-              <AthleteProgressTracker 
-                athletes={assignedStudents.map((student: any) => ({
-                  id: student.id,
-                  name: student.studentName || student.name,
-                  sport: student.sport || 'Basketball'
-                }))}
-              />
-              ) : (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <FiUsers className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">No Students Assigned</h3>
-                    <p className="text-gray-500">Assign students from the Students tab to track their progress.</p>
-                  </div>
+                <div className="text-center p-8 max-w-md mx-auto">
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.1, 1],
+                      rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{ 
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                    className="mb-6"
+                  >
+                    <FiUsers className="w-20 h-20 text-gray-400 mx-auto" />
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">No Athletes Assigned</h3>
+                  <p className="text-gray-600 mb-6 leading-relaxed">
+                    Start tracking athlete progress by assigning athletes from the Athletes tab.
+                  </p>
+                  <motion.button
+                    onClick={() => setActiveTab('students')}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    Go to Athletes Tab
+                  </motion.button>
                 </div>
-              )}
-            </div>
+              </motion.div>
+            )}
           </motion.div>
         );
 
@@ -2723,38 +3404,67 @@ export default function Dashboard() {
             {/* Teams Header with Sub-Navigation */}
             <div className="card-modern glass bg-gradient-to-r from-purple-50/50 to-blue-50/50 border border-purple-100">
               <div className="p-4 md:p-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 md:mb-6">
-                  <div className="flex items-center">
-                    <motion.div 
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.6 }}
-                      className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 md:mr-4 shadow-lg"
-                    >
-                      <FiUsers className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                    </motion.div>
-                    <div>
-                      <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                        Teams & Roles
-                      </h2>
-                      <p className="text-xs md:text-sm text-gray-600 mt-1 hidden sm:block">
-                        Create and manage athlete teams for group feedback and actions
-                      </p>
+                {/* Header - Mobile Optimized Layout */}
+                <div className="flex flex-col gap-4 mb-4 md:mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <motion.div 
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.6 }}
+                        className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 md:mr-4 shadow-lg"
+                      >
+                        <FiUsers className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                      </motion.div>
+                      <div>
+                        <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                          Teams & Roles
+                        </h2>
+                        <p className="text-xs md:text-sm text-gray-600 mt-1 hidden md:block">
+                          Create and manage athlete teams for group feedback and actions
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Create Team Button - Only show in management view */}
-                  {assignedStudents?.length > 0 && (
+                  {/* Action Buttons - Mobile Optimized */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                    {/* Refresh Button - Mobile Optimized */}
                     <motion.button 
-                      onClick={() => setIsCreateTeamModalOpen(true)}
+                      onClick={() => fetchTeams(true, true)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex items-center justify-center gap-2 px-4 py-3 md:px-4 md:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg font-medium min-h-[44px] md:min-h-0"
+                      disabled={isLoadingTeams}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 sm:px-3 sm:py-2 rounded-xl sm:rounded-lg transition-all duration-200 shadow-lg font-medium text-sm sm:text-base min-h-[48px] sm:min-h-[40px] w-full sm:w-auto ${
+                        isLoadingTeams 
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                          : 'bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 hover:border-purple-300 active:bg-purple-100'
+                      }`}
+                      title="Refresh teams data (clears cache)"
                     >
-                      <FiPlus className="w-4 h-4" />
-                      <span className="text-sm md:text-base">Create Team</span>
+                      <motion.div
+                        animate={isLoadingTeams ? { rotate: 360 } : { rotate: 0 }}
+                        transition={isLoadingTeams ? { duration: 1, repeat: Infinity, ease: "linear" } : { duration: 0.2 }}
+                      >
+                        <FiRefreshCw className="w-5 h-5 sm:w-4 sm:h-4" />
+                      </motion.div>
+                                              <span className="text-sm sm:text-base font-medium">
+                        {isLoadingTeams ? 'Refreshing...' : 'Force Refresh'}
+                      </span>
                     </motion.button>
-                  )}
+
+                    {/* Create Team Button - Mobile Optimized */}
+                    {assignedStudents?.length > 0 && (
+                      <motion.button 
+                        onClick={() => setIsCreateTeamModalOpen(true)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex items-center justify-center gap-2 px-4 py-3 sm:px-4 sm:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl sm:rounded-lg hover:from-purple-700 hover:to-blue-700 active:from-purple-800 active:to-blue-800 transition-all duration-200 shadow-lg font-medium text-sm sm:text-base min-h-[48px] sm:min-h-[40px] w-full sm:w-auto"
+                      >
+                        <FiPlus className="w-5 h-5 sm:w-4 sm:h-4" />
+                        <span className="font-medium">Create Team</span>
+                      </motion.button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Stats */}
@@ -2846,7 +3556,7 @@ export default function Dashboard() {
                           </span>
                           <span className="flex items-center gap-1">
                             <FiMessageSquare className="w-3 h-3 md:w-4 md:h-4" />
-                            {(team as any)._count?.feedback || 0} feedback
+                            {(team as any)._count?.feedback || 0} messages
                           </span>
                           <span className="flex items-center gap-1">
                             <FiCheckSquare className="w-3 h-3 md:w-4 md:h-4" />
@@ -2857,10 +3567,16 @@ export default function Dashboard() {
                       
                       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                         <motion.button
-                          onClick={() => handleViewTeamDetails(team)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('🖱️ Details button clicked for team:', team?.name);
+                            handleViewTeamDetails(team);
+                          }}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex-1 sm:flex-none px-4 py-3 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base min-h-[44px] md:min-h-0 flex items-center justify-center"
+                          className="flex-1 sm:flex-none px-4 py-3 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base min-h-[44px] md:min-h-0 flex items-center justify-center cursor-pointer"
+                          title="View team details"
                         >
                           <FiEye className="w-4 h-4 sm:mr-0 mr-2" />
                           <span className="sm:hidden">Details</span>
@@ -2872,7 +3588,7 @@ export default function Dashboard() {
                           className="flex-1 sm:flex-none px-4 py-3 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm md:text-base min-h-[44px] md:min-h-0 flex items-center justify-center"
                         >
                           <FiMessageSquare className="w-4 h-4 sm:mr-0 mr-2" />
-                          <span className="sm:hidden">Feedback</span>
+                          <span className="sm:hidden">Message</span>
                         </motion.button>
                         <motion.button
                           onClick={() => handleTeamActions(team)}
@@ -2884,13 +3600,43 @@ export default function Dashboard() {
                           <span className="sm:hidden">Actions</span>
                         </motion.button>
                         <motion.button
-                          onClick={() => handleTeamRoles(team)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('🟣 Purple Roles button clicked for team:', team?.name, team?.id);
+                            handleTeamRoles(team);
+                          }}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           className="flex-1 sm:flex-none px-4 py-3 md:py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base min-h-[44px] md:min-h-0 flex items-center justify-center"
                         >
                           <FiUsers className="w-4 h-4 sm:mr-0 mr-2" />
                           <span className="sm:hidden">Roles</span>
+                        </motion.button>
+                        <motion.button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('🖱️ Manage Members button clicked for team:', team?.name);
+                            handleTeamMembers(team);
+                          }}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          className="flex-1 sm:flex-none px-2 py-2 md:py-1.5 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors text-xs md:text-sm min-h-[36px] md:min-h-0 flex items-center justify-center cursor-pointer"
+                          title="Add or remove team members"
+                        >
+                          <FiUserPlus className="w-3 h-3 sm:mr-0 mr-1" />
+                          <span className="sm:hidden text-xs">Members</span>
+                        </motion.button>
+                        <motion.button
+                          onClick={() => handleDeleteTeam(team)}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          className="flex-1 sm:flex-none px-2 py-2 md:py-1.5 bg-gray-500 text-white rounded-md hover:bg-red-600 transition-colors text-xs md:text-sm min-h-[36px] md:min-h-0 flex items-center justify-center opacity-75 hover:opacity-100"
+                          title="Delete team (only team creator can delete)"
+                        >
+                          <FiTrash className="w-3 h-3 sm:mr-0 mr-1" />
+                          <span className="sm:hidden text-xs">Delete</span>
                         </motion.button>
                       </div>
                     </div>
@@ -3103,6 +3849,9 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
+          {(session as unknown as Session)?.user?.role === 'ATHLETE' && (
+            <></>
+          )}
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -3115,6 +3864,9 @@ export default function Dashboard() {
             </motion.div>
           </AnimatePresence>
         </motion.div>
+      {showDirectChat && (
+        <DirectChatPanel onClose={() => setShowDirectChat(false)} threadId={directThreadId || undefined} />
+      )}
       </main>
 
       {/* Bottom Tab Navigation for Mobile */}
@@ -3234,61 +3986,41 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {activeModal === 'feedback' && (
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-                      <h4 className="text-lg font-semibold text-green-900 mb-2 flex items-center">
-                        <FiMessageSquare className="mr-2" />
-                        Provide Student Feedback
-                      </h4>
-                      <p className="text-green-700 text-sm mb-4">
-                        Share constructive feedback with {selectedStudentModal.studentName || selectedStudentModal.name} to help them improve.
-                      </p>
-                    </div>
-                    <CreateFeedbackActionModal
-          isOpen={feedbackModalOpen}
-                      onClose={closeModal}
-                      student={{
-                        id: selectedStudentModal.id,
-                        studentName: selectedStudentModal.studentName || selectedStudentModal.name || 'Student',
-                        username: selectedStudentModal.username || selectedStudentModal.email || 'student',
-                        age: selectedStudentModal.age || 18
-                      }}
-                      onCreated={handleFeedbackCreated}
-                      defaultMode="feedback"
-        />
-                  </div>
-                )}
-
-                {activeModal === 'actions' && (
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">
-                      <h4 className="text-lg font-semibold text-orange-900 mb-2 flex items-center">
-                        <FiCheckSquare className="mr-2" />
-                        Assign Student Action
-                      </h4>
-                      <p className="text-orange-700 text-sm mb-4">
-                        Create actionable tasks and goals for {selectedStudentModal.studentName || selectedStudentModal.name} to complete.
-                      </p>
-                    </div>
-                    <CreateFeedbackActionModal
-          isOpen={actionsModalOpen}
-                      onClose={closeModal}
-                      student={{
-                        id: selectedStudentModal.id,
-                        studentName: selectedStudentModal.studentName || selectedStudentModal.name || 'Student',
-                        username: selectedStudentModal.username || selectedStudentModal.email || 'student',
-                        age: selectedStudentModal.age || 18
-                      }}
-                      onCreated={handleFeedbackCreated}
-                      defaultMode="action"
-        />
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Independent Feedback and Action Modals - Outside main modal to prevent background artifacts */}
+      {/* Feedback Modal - Only render when specifically opened */}
+      {selectedStudentModal && feedbackModalOpen && activeModal === 'feedback' && (
+          <CreateFeedbackModal
+            isOpen={feedbackModalOpen}
+            onClose={closeModal}
+            student={{
+              id: selectedStudentModal.id,
+              studentName: selectedStudentModal.studentName || selectedStudentModal.name || 'Student',
+              username: selectedStudentModal.username || selectedStudentModal.email || 'student',
+              age: selectedStudentModal.age || 18
+            }}
+            onCreated={handleFeedbackCreated}
+          />
+      )}
+
+      {/* Action Modal - Only render when specifically opened */}
+      {selectedStudentModal && actionModalOpen && activeModal === 'actions' && (
+          <CreateActionModal
+            isOpen={actionModalOpen}
+            onClose={closeModal}
+            student={{
+              id: selectedStudentModal.id,
+              studentName: selectedStudentModal.studentName || selectedStudentModal.name || 'Student',
+              username: selectedStudentModal.username || selectedStudentModal.email || 'student',
+              age: selectedStudentModal.age || 18
+            }}
+            onCreated={handleFeedbackCreated}
+          />
       )}
 
       {/* Athlete SkillSnap Modal */}
@@ -3408,15 +4140,22 @@ export default function Dashboard() {
       )}
 
       {/* Create Team Modal */}
-      {isCreateTeamModalOpen && (
-        <CreateTeamModal
-          isOpen={isCreateTeamModalOpen}
-          onClose={() => setIsCreateTeamModalOpen(false)}
+              {isAttendanceModalOpen && (
+          <AttendanceModal
+            isOpen={isAttendanceModalOpen}
+            onClose={() => setIsAttendanceModalOpen(false)}
+          />
+        )}
+
+        {isCreateTeamModalOpen && (
+          <CreateTeamModal
+            isOpen={isCreateTeamModalOpen}
+            onClose={() => setIsCreateTeamModalOpen(false)}
           availableStudents={assignedStudents || []}
           onTeamCreated={() => {
-            // Refresh teams list
+            // Refresh teams list with member details
             if (studentsSubTab === 'assigned') {
-              fetchTeams();
+              fetchTeams(true); // Include team members for new team
             }
             setSuccessMessage('Team created successfully!');
             setTimeout(() => setSuccessMessage(null), 3000);
@@ -3504,7 +4243,7 @@ export default function Dashboard() {
                 <TeamManagement 
                   teams={[selectedTeamForRoles]} 
                   onTeamsUpdate={() => {
-                    fetchTeams();
+                    fetchTeams(true); // Include team members after role updates
                     if (studentsSubTab === 'assigned') {
                       fetchProfile();
                     }
@@ -3516,12 +4255,135 @@ export default function Dashboard() {
         </Portal>
       )}
 
-      {/* Student Feedback & Actions View Modal */}
-      {viewStudentModalOpen && selectedStudentModal && (
-        <StudentFeedbackActionsModal
-          student={selectedStudentModal}
-          isOpen={viewStudentModalOpen}
-          onClose={closeModal}
+      {/* Team Member Management Modal */}
+      {isTeamMemberModalOpen && selectedTeamForMembers && (
+        <Portal>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white rounded-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden shadow-2xl">
+              {/* Header */}
+              <div className="p-4 sm:p-6 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <FiUserPlus className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 truncate max-w-48 sm:max-w-none">
+                      {selectedTeamForMembers.name}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600">Manage Team Members</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsTeamMemberModalOpen(false);
+                    setSelectedTeamForMembers(null);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                >
+                  <FiX className="w-5 h-5" />
+                </button>
+              </div>
+              
+              {/* Content */}
+              <div className="p-4 sm:p-6 max-h-[calc(95vh-120px)] sm:max-h-[calc(90vh-140px)] overflow-auto">
+                <TeamMemberManagement 
+                  team={selectedTeamForMembers}
+                  assignedStudents={assignedStudents || []}
+                  onUpdate={() => {
+                    fetchTeams(true);
+                    fetchProfile();
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </Portal>
+      )}
+
+      {/* Team Deletion Confirmation Dialog */}
+      {isDeleteConfirmOpen && selectedTeamForDeletion && (
+        <Portal>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4"
+            >
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                    <FiTrash className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Delete Team</h3>
+                    <p className="text-sm text-gray-600">This action cannot be undone</p>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <p className="text-gray-700 mb-2">
+                    Are you sure you want to delete <strong>"{selectedTeamForDeletion.name}"</strong>?
+                  </p>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-red-800 text-sm font-medium">⚠️ Warning:</p>
+                    <ul className="text-red-700 text-sm mt-1 space-y-1">
+                      <li>• All team members will be removed from this team</li>
+                      <li>• All team messages and actions will be deleted</li>
+                      <li>• This change will be reflected in all members' dashboards</li>
+                      <li>• This action cannot be undone</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3">
+                  <motion.button
+                    onClick={cancelDeleteTeam}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={isDeletingTeam}
+                    className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-xl hover:bg-gray-300 transition-colors font-medium disabled:opacity-50"
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={confirmDeleteTeam}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={isDeletingTeam}
+                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center"
+                  >
+                    {isDeletingTeam ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                        />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <FiTrash className="w-4 h-4 mr-2" />
+                        Delete Team
+                      </>
+                    )}
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </Portal>
+      )}
+
+      {/* Chat Panel */}
+      {chatState?.open && (
+        <ChatPanel
+          type={chatState.type}
+          itemId={chatState.itemId}
+          title={chatState.title}
+          counterpartName="Chat"
+          onClose={() => setChatState(null)}
         />
       )}
 
