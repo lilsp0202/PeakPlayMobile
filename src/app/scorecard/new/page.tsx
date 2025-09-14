@@ -25,7 +25,7 @@ export default function NewScorecardPage() {
     try {
       // Create match data from the analysis result
       const matchData = {
-        studentId: session?.user?.id,
+        studentId: (session?.user as any)?.id,
         matchName: result.matchDetails.matchName || `Match vs ${result.matchDetails.opponent}`,
         opponent: result.matchDetails.opponent,
         venue: result.matchDetails.venue,
