@@ -425,7 +425,7 @@ export default function RecentMatchScores({ studentId, isCoachView = false }: an
       {/* Header with Add Match Button */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">Recent Match Scores</h2>
-        {session?.user?.role === "ATHLETE" && !isCoachView && (
+        {(session?.user as any)?.role === "ATHLETE" && !isCoachView && (
           <div className="relative">
             <button
               onClick={() => setShowAddDropdown(!showAddDropdown)}
