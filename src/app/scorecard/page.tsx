@@ -38,8 +38,8 @@ export default function ScorecardPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Scorecard Analysis</h1>
-              <p className="mt-2 text-gray-600">Upload and analyze your cricket scorecards with AI</p>
+              <h1 className="text-3xl font-bold text-gray-900">Live Cricket Scoring</h1>
+              <p className="mt-2 text-gray-600">Score your cricket matches ball-by-ball in real-time</p>
             </div>
             <div className="flex gap-3">
               <Link
@@ -54,7 +54,7 @@ export default function ScorecardPage() {
                 className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Upload New Scorecard
+                Start New Match
               </Link>
             </div>
           </div>
@@ -64,16 +64,16 @@ export default function ScorecardPage() {
         <div className="bg-white rounded-xl shadow-sm p-8">
           <div className="text-center py-12">
             <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Scorecards Yet</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Matches Scored Yet</h2>
             <p className="text-gray-600 mb-6">
-              Upload your first scorecard to get AI-powered analysis of your performance
+              Start scoring your first cricket match with our ball-by-ball scoring system
             </p>
             <Link
               href="/scorecard/new"
               className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Upload Your First Scorecard
+              Start Scoring Now
             </Link>
           </div>
         </div>
@@ -83,29 +83,29 @@ export default function ScorecardPage() {
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
               <FileText className="w-6 h-6 text-indigo-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Smart Analysis</h3>
-            <p className="text-gray-600">
-              Our AI automatically extracts batting, bowling, and fielding statistics from your scorecards
-            </p>
+                          </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Real-time Scoring</h3>
+              <p className="text-gray-600">
+                Score matches ball-by-ball with live statistics for batsmen, bowlers, and teams
+              </p>
           </div>
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
               <FileText className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Multiple Players</h3>
-            <p className="text-gray-600">
-              Supports scorecards with multiple players - just select yourself from the list
-            </p>
+                          </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Track Everything</h3>
+              <p className="text-gray-600">
+                Runs, wickets, extras, boundaries, strike rates, economy rates - all tracked automatically
+              </p>
           </div>
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
               <FileText className="w-6 h-6 text-purple-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Instant Results</h3>
-            <p className="text-gray-600">
-              Get your match statistics instantly and add them to your performance history
-            </p>
+                          </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Save Matches</h3>
+              <p className="text-gray-600">
+                Complete match data saved to your performance history for future analysis
+              </p>
           </div>
         </div>
       </div>
