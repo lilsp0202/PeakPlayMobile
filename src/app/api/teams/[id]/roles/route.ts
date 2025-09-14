@@ -121,7 +121,10 @@ export async function PATCH(
         where: {
           teamId: teamId,
           studentId: { not: studentId },
-          roles: { has: 'CAPTAIN' }
+          roles: {
+            path: '$',
+            array_contains: 'CAPTAIN'
+          } as any
         }
       });
 
@@ -136,7 +139,10 @@ export async function PATCH(
         where: {
           teamId: teamId,
           studentId: { not: studentId },
-          roles: { has: 'VICE_CAPTAIN' }
+          roles: {
+            path: '$',
+            array_contains: 'VICE_CAPTAIN'
+          } as any
         }
       });
 

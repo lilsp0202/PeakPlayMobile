@@ -11,7 +11,7 @@ import Portal from '../../components/Portal';
 import AttendanceModal from '@/components/AttendanceModal';
 import type { Session } from "next-auth";
 import { Team, TeamMember, TeamRole } from "@/types/team";
-import CricketMatchList from "@/components/cricket/CricketMatchList";
+// import CricketMatchList from "@/components/cricket/CricketMatchList";
 
 // Enhanced dynamic imports with better error handling and loading states
 const SkillSnap = dynamic(() => import("@/components/SkillSnap").catch(() => ({ default: () => <div className="p-4 text-center text-gray-500">Component temporarily unavailable</div> })), { 

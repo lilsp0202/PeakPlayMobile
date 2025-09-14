@@ -1,0 +1,1747 @@
+   ▲ Next.js 15.3.2
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.75:3000
+   - Environments: .env.local, .env.development
+   - Experiments (use with caution):
+     · clientTraceMetadata
+
+ ✓ Starting...
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /Users/lilsp/peakplay-prototype/node_modules/next-pwa/register.js
+> [PWA] Service worker: /Users/lilsp/peakplay-prototype/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+> [PWA] Build in develop mode, cache and precache are mostly disabled. This means offline support is disabled, but you can continue developing other functions in service worker.
+ ✓ Ready in 2.2s
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ○ Compiling / ...
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET / 200 in 5841ms
+ GET / 200 in 60ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+✅ Database connection successful, user count: 3 (9ms)
+ GET /api/test-db 200 in 1366ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+Error on home page: Error: NEXT_REDIRECT
+    at getRedirectError (../../../src/client/components/redirect.ts:21:16)
+    at redirect (../../../src/client/components/redirect.ts:47:8)
+    at HomePage (webpack-internal:/(rsc)/src/app/src/app/page.tsx:14:15)
+  19 |   statusCode: RedirectStatusCode = RedirectStatusCode.TemporaryRedirect
+  20 | ): RedirectError {
+> 21 |   const error = new Error(REDIRECT_ERROR_CODE) as RedirectError
+     |                ^
+  22 |   error.digest = `${REDIRECT_ERROR_CODE};${type};${url};${statusCode};`
+  23 |   return error
+  24 | } {
+  digest: 'NEXT_REDIRECT;replace;/dashboard;307;'
+}
+ GET / 200 in 279ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /api/auth/session 200 in 1432ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET / 200 in 175ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/students/by-academy?academy=Transform 401 in 964ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+🏈 Teams API - Starting request
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/teams?includeMembers=true&includeStats=true 401 in 759ms
+Error on home page: Error: NEXT_REDIRECT
+    at getRedirectError (../../../src/client/components/redirect.ts:21:16)
+    at redirect (../../../src/client/components/redirect.ts:47:8)
+    at HomePage (webpack-internal:/(rsc)/src/app/src/app/page.tsx:14:15)
+  19 |   statusCode: RedirectStatusCode = RedirectStatusCode.TemporaryRedirect
+  20 | ): RedirectError {
+> 21 |   const error = new Error(REDIRECT_ERROR_CODE) as RedirectError
+     |                ^
+  22 |   error.digest = `${REDIRECT_ERROR_CODE};${type};${url};${statusCode};`
+  23 |   return error
+  24 | } {
+  digest: 'NEXT_REDIRECT;replace;/dashboard;307;'
+}
+ GET / 200 in 199ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 821ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /auth/signin 200 in 2874ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/providers 200 in 95ms
+ GET /api/auth/csrf 200 in 6ms
+🔍 Authorize called with credentials: { email: 'coach@local.dev', password: '***' }
+👤 User found: {
+  id: 'cme7j3egn0000w282nceu0ie2',
+  email: 'coach@local.dev',
+  role: 'COACH'
+}
+[AUTH_EVENT] LOGIN_FAILED - coach@local.dev - Invalid password
+❌ Authorize error: Error: Invalid email or password
+    at Object.authorize (src/lib/auth.ts:71:18)
+  69 |           if (!isPasswordValid) {
+  70 |             await logAuthEvent('LOGIN_FAILED', credentials.email, 'Invalid password');
+> 71 |             throw new Error("Invalid email or password");
+     |                  ^
+  72 |           }
+  73 |
+  74 |           // Log successful login
+ POST /api/auth/callback/credentials 401 in 152ms
+ GET /api/auth/session 200 in 25ms
+Error on home page: Error: NEXT_REDIRECT
+    at getRedirectError (../../../src/client/components/redirect.ts:21:16)
+    at redirect (../../../src/client/components/redirect.ts:47:8)
+    at HomePage (webpack-internal:/(rsc)/src/app/src/app/page.tsx:14:15)
+  19 |   statusCode: RedirectStatusCode = RedirectStatusCode.TemporaryRedirect
+  20 | ): RedirectError {
+> 21 |   const error = new Error(REDIRECT_ERROR_CODE) as RedirectError
+     |                ^
+  22 |   error.digest = `${REDIRECT_ERROR_CODE};${type};${url};${statusCode};`
+  23 |   return error
+  24 | } {
+  digest: 'NEXT_REDIRECT;replace;/dashboard;307;'
+}
+ GET / 200 in 153ms
+ GET /api/auth/session 200 in 9ms
+ GET /api/auth/session 200 in 9ms
+ GET /api/auth/session 200 in 11ms
+ GET /api/auth/session 200 in 24ms
+ GET /api/auth/providers 200 in 15ms
+ GET /api/auth/csrf 200 in 7ms
+🔍 Authorize called with credentials: { email: 'coach@local.dev', password: '***' }
+👤 User found: {
+  id: 'cme7j3egn0000w282nceu0ie2',
+  email: 'coach@local.dev',
+  role: 'COACH'
+}
+[AUTH_EVENT] LOGIN_SUCCESS - coach@local.dev - Role: COACH
+ POST /api/auth/callback/credentials 200 in 108ms
+ GET /api/auth/session 200 in 10ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /dashboard 200 in 6237ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/coach/profile 200 in 3695ms
+ GET /api/coach/profile 200 in 10ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+(node:23583) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 error listeners added to [EventEmitter]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+prisma:error 
+Invalid `prisma.agentRun.findFirst()` invocation:
+
+
+The table `main.AgentRun` does not exist in the current database.
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.326Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.326Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.326Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.326Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.326Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.326Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.326Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.326Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.326Z
+}
+[Agent] Failed to fetch insights: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.agentRun.findFirst()` invocation:
+
+
+The table `main.AgentRun` does not exist in the current database.
+    at async GET$1 (webpack-internal:/(rsc)/src/app/api/agent/insights/src/app/api/agent/insights/route.ts:41:22)
+  39 |
+  40 |     // Fetch latest run
+> 41 |     const latestRun = await prisma.agentRun.findFirst({
+     |                      ^
+  42 |       where: {
+  43 |         subjectType: 'ATHLETE',
+  44 |         subjectId: athleteId, {
+  code: 'P2021',
+  meta: [Object],
+  clientVersion: '6.10.1'
+}
+ GET /api/agent/insights?athleteId=cme7j3egn0000w282nceu0ie2 500 in 3534ms
+⚡ Optimized badges management API completed in 44ms
+ GET /api/badges?manage=true 200 in 3584ms
+prisma:error 
+Invalid `prisma.agentSuggestion.findMany()` invocation:
+
+
+The table `main.AgentSuggestion` does not exist in the current database.
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:54.368Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:54.368Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:54.368Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:54.368Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:54.368Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:54.368Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:54.368Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:54.368Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:54.368Z
+}
+[Agent] Failed to fetch suggestions: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.agentSuggestion.findMany()` invocation:
+
+
+The table `main.AgentSuggestion` does not exist in the current database.
+    at async GET$1 (webpack-internal:/(rsc)/src/app/api/agent/suggestions/src/app/api/agent/suggestions/route.ts:41:24)
+  39 |
+  40 |     // Fetch suggestions
+> 41 |     const suggestions = await prisma.agentSuggestion.findMany({
+     |                        ^
+  42 |       where: {
+  43 |         subjectType: 'ATHLETE',
+  44 |         subjectId: athleteId, {
+  code: 'P2021',
+  meta: [Object],
+  clientVersion: '6.10.1'
+}
+ GET /api/agent/suggestions?athleteId=cme7j3egn0000w282nceu0ie2&status=PENDING 500 in 3569ms
+ GET /api/students/by-academy?academy=Transform 200 in 3621ms
+ GET /api/coach/profile 200 in 3622ms
+ GET /api/skills 200 in 3630ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+prisma:error 
+Invalid `prisma.agentRun.findFirst()` invocation:
+
+
+The table `main.AgentRun` does not exist in the current database.
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.436Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.436Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.436Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.436Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.436Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.436Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.436Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.436Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:54.436Z
+}
+[Agent] Failed to fetch insights: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.agentRun.findFirst()` invocation:
+
+
+The table `main.AgentRun` does not exist in the current database.
+    at async GET$1 (webpack-internal:/(rsc)/src/app/api/agent/insights/src/app/api/agent/insights/route.ts:41:22)
+  39 |
+  40 |     // Fetch latest run
+> 41 |     const latestRun = await prisma.agentRun.findFirst({
+     |                      ^
+  42 |       where: {
+  43 |         subjectType: 'ATHLETE',
+  44 |         subjectId: athleteId, {
+  code: 'P2021',
+  meta: [Object],
+  clientVersion: '6.10.1'
+}
+ GET /api/agent/insights?athleteId=cme7j3egn0000w282nceu0ie2 500 in 56ms
+⚡ Optimized badges management API completed in 31ms
+ GET /api/badges?manage=true 200 in 57ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+prisma:error 
+Invalid `prisma.agentSuggestion.findMany()` invocation:
+
+
+The table `main.AgentSuggestion` does not exist in the current database.
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:55.993Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:55.993Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:55.993Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:55.993Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:55.993Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:55.993Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:55.993Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:55.993Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:55.993Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:55.993Z
+}
+[Agent] Failed to fetch suggestions: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.agentSuggestion.findMany()` invocation:
+
+
+The table `main.AgentSuggestion` does not exist in the current database.
+    at async GET$1 (webpack-internal:/(rsc)/src/app/api/agent/suggestions/src/app/api/agent/suggestions/route.ts:41:24)
+  39 |
+  40 |     // Fetch suggestions
+> 41 |     const suggestions = await prisma.agentSuggestion.findMany({
+     |                        ^
+  42 |       where: {
+  43 |         subjectType: 'ATHLETE',
+  44 |         subjectId: athleteId, {
+  code: 'P2021',
+  meta: [Object],
+  clientVersion: '6.10.1'
+}
+ GET /api/agent/suggestions?athleteId=cme7j3egn0000w282nceu0ie2&status=PENDING 500 in 1625ms
+ GET /api/students/by-academy?academy=Transform 200 in 1627ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /api/coach/profile 200 in 1793ms
+ GET /_next/static/webpack/8418154f3c2878d7.webpack.hot-update.json 404 in 1800ms
+ GET /api/skills 200 in 1750ms
+ GET /dashboard 200 in 202ms
+ GET /api/auth/session 200 in 21ms
+ GET /api/coach/profile 200 in 25ms
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+ GET /api/skills 200 in 54ms
+⚡ Optimized badges management API completed in 7ms
+ GET /api/badges?manage=true 200 in 59ms
+ GET /api/coach/profile 200 in 61ms
+ GET /api/students/by-academy?academy=Transform 200 in 62ms
+prisma:error 
+Invalid `prisma.agentRun.findFirst()` invocation:
+
+
+The table `main.AgentRun` does not exist in the current database.
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.148Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.148Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.148Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.148Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.148Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.148Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.148Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.148Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.148Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.148Z
+}
+[Agent] Failed to fetch insights: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.agentRun.findFirst()` invocation:
+
+
+The table `main.AgentRun` does not exist in the current database.
+    at async GET$1 (webpack-internal:/(rsc)/src/app/api/agent/insights/src/app/api/agent/insights/route.ts:41:22)
+  39 |
+  40 |     // Fetch latest run
+> 41 |     const latestRun = await prisma.agentRun.findFirst({
+     |                      ^
+  42 |       where: {
+  43 |         subjectType: 'ATHLETE',
+  44 |         subjectId: athleteId, {
+  code: 'P2021',
+  meta: [Object],
+  clientVersion: '6.10.1'
+}
+ GET /api/agent/insights?athleteId=cme7j3egn0000w282nceu0ie2 500 in 90ms
+prisma:error 
+Invalid `prisma.agentSuggestion.findMany()` invocation:
+
+
+The table `main.AgentSuggestion` does not exist in the current database.
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.217Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.217Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.217Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.217Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.217Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.217Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.217Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.217Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.217Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.217Z
+}
+[Agent] Failed to fetch suggestions: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.agentSuggestion.findMany()` invocation:
+
+
+The table `main.AgentSuggestion` does not exist in the current database.
+    at async GET$1 (webpack-internal:/(rsc)/src/app/api/agent/suggestions/src/app/api/agent/suggestions/route.ts:41:24)
+  39 |
+  40 |     // Fetch suggestions
+> 41 |     const suggestions = await prisma.agentSuggestion.findMany({
+     |                        ^
+  42 |       where: {
+  43 |         subjectType: 'ATHLETE',
+  44 |         subjectId: athleteId, {
+  code: 'P2021',
+  meta: [Object],
+  clientVersion: '6.10.1'
+}
+ GET /api/agent/suggestions?athleteId=cme7j3egn0000w282nceu0ie2&status=PENDING 500 in 131ms
+prisma:error 
+Invalid `prisma.agentRun.findFirst()` invocation:
+
+
+The table `main.AgentRun` does not exist in the current database.
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.267Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.267Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.267Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.267Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.267Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.267Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.267Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.267Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.267Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentRun.findFirst()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentRun` does not exist in the current database.',
+  target: 'agentRun.findFirst',
+  timestamp: 2025-08-27T18:40:57.267Z
+}
+[Agent] Failed to fetch insights: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.agentRun.findFirst()` invocation:
+
+
+The table `main.AgentRun` does not exist in the current database.
+    at async GET$1 (webpack-internal:/(rsc)/src/app/api/agent/insights/src/app/api/agent/insights/route.ts:41:22)
+  39 |
+  40 |     // Fetch latest run
+> 41 |     const latestRun = await prisma.agentRun.findFirst({
+     |                      ^
+  42 |       where: {
+  43 |         subjectType: 'ATHLETE',
+  44 |         subjectId: athleteId, {
+  code: 'P2021',
+  meta: [Object],
+  clientVersion: '6.10.1'
+}
+ GET /api/agent/insights?athleteId=cme7j3egn0000w282nceu0ie2 500 in 85ms
+prisma:error 
+Invalid `prisma.agentSuggestion.findMany()` invocation:
+
+
+The table `main.AgentSuggestion` does not exist in the current database.
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.302Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.302Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.302Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.302Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.302Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.302Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.302Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.302Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.302Z
+}
+Prisma error: {
+  message: '\n' +
+    'Invalid `prisma.agentSuggestion.findMany()` invocation:\n' +
+    '\n' +
+    '\n' +
+    'The table `main.AgentSuggestion` does not exist in the current database.',
+  target: 'agentSuggestion.findMany',
+  timestamp: 2025-08-27T18:40:57.302Z
+}
+[Agent] Failed to fetch suggestions: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.agentSuggestion.findMany()` invocation:
+
+
+The table `main.AgentSuggestion` does not exist in the current database.
+    at async GET$1 (webpack-internal:/(rsc)/src/app/api/agent/suggestions/src/app/api/agent/suggestions/route.ts:41:24)
+  39 |
+  40 |     // Fetch suggestions
+> 41 |     const suggestions = await prisma.agentSuggestion.findMany({
+     |                        ^
+  42 |       where: {
+  43 |         subjectType: 'ATHLETE',
+  44 |         subjectId: athleteId, {
+  code: 'P2021',
+  meta: [Object],
+  clientVersion: '6.10.1'
+}
+ GET /api/agent/suggestions?athleteId=cme7j3egn0000w282nceu0ie2&status=PENDING 500 in 79ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 2468ms
+ GET /api/attendance/roster?date=2025-08-27 500 in 2474ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 46ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+ GET /api/attendance/roster?date=2025-08-27 500 in 83ms
+ GET /api/auth/session 200 in 19ms
+ GET /api/coach/profile 200 in 70ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+ GET /api/coach/profile 200 in 116ms
+ GET /api/attendance/roster?date=2025-08-27 500 in 124ms
+⚡ Optimized badges management API completed in 4ms
+ GET /api/badges?manage=true 200 in 122ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/students/by-academy?academy=Transform 200 in 160ms
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 170ms
+ GET /api/skills 200 in 171ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/roster?date=2025-08-27 500 in 97ms
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 96ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET /api/attendance/roster?date=2025-08-27 401 in 7ms
+ GET /api/attendance/roster?date=2025-08-27 401 in 7ms
+ GET / 200 in 166ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+✅ Database connection successful, user count: 21 (5ms)
+ GET /api/test-db 200 in 871ms
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+Error on home page: Error: NEXT_REDIRECT
+    at getRedirectError (../../../src/client/components/redirect.ts:21:16)
+    at redirect (../../../src/client/components/redirect.ts:47:8)
+    at HomePage (webpack-internal:/(rsc)/src/app/src/app/page.tsx:14:15)
+  19 |   statusCode: RedirectStatusCode = RedirectStatusCode.TemporaryRedirect
+  20 | ): RedirectError {
+> 21 |   const error = new Error(REDIRECT_ERROR_CODE) as RedirectError
+     |                ^
+  22 |   error.digest = `${REDIRECT_ERROR_CODE};${type};${url};${statusCode};`
+  23 |   return error
+  24 | } {
+  digest: 'NEXT_REDIRECT;replace;/dashboard;307;'
+}
+ GET / 200 in 484ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/session 200 in 731ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ GET / 200 in 302ms
+ GET / 200 in 84ms
+✅ Database connection successful, user count: 21 (2ms)
+ GET /api/test-db 200 in 22ms
+✅ Database connection successful, user count: 21 (0ms)
+ GET /api/test-db 200 in 9ms
+ GET / 200 in 43ms
+Error on home page: Error: NEXT_REDIRECT
+    at getRedirectError (../../../src/client/components/redirect.ts:21:16)
+    at redirect (../../../src/client/components/redirect.ts:47:8)
+    at HomePage (webpack-internal:/(rsc)/src/app/src/app/page.tsx:14:15)
+  19 |   statusCode: RedirectStatusCode = RedirectStatusCode.TemporaryRedirect
+  20 | ): RedirectError {
+> 21 |   const error = new Error(REDIRECT_ERROR_CODE) as RedirectError
+     |                ^
+  22 |   error.digest = `${REDIRECT_ERROR_CODE};${type};${url};${statusCode};`
+  23 |   return error
+  24 | } {
+  digest: 'NEXT_REDIRECT;replace;/dashboard;307;'
+}
+ GET / 200 in 265ms
+ GET /api/auth/session 200 in 19ms
+ GET /api/auth/session 200 in 22ms
+ GET /auth/signin 200 in 29ms
+ GET /api/auth/providers 200 in 10ms
+ GET /api/auth/csrf 200 in 9ms
+🔍 Authorize called with credentials: { email: 'coach@local.dev', password: '***' }
+👤 User found: {
+  id: 'cme7j3egn0000w282nceu0ie2',
+  email: 'coach@local.dev',
+  role: 'COACH'
+}
+[AUTH_EVENT] LOGIN_SUCCESS - coach@local.dev - Role: COACH
+ POST /api/auth/callback/credentials 200 in 101ms
+ GET /api/auth/session 200 in 9ms
+ GET /dashboard 200 in 48ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/coach/profile 200 in 1636ms
+ GET /api/coach/profile 200 in 7ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+ GET /api/coach/profile 200 in 1902ms
+⚡ Optimized badges management API completed in 11ms
+ GET /api/badges?manage=true 200 in 1909ms
+ GET /api/agent/suggestions?athleteId=cme7j3egn0000w282nceu0ie2&status=PENDING 200 in 1866ms
+ GET /api/students/by-academy?academy=Transform 200 in 1911ms
+ GET /api/agent/insights?athleteId=cme7j3egn0000w282nceu0ie2 200 in 1868ms
+ GET /api/skills 200 in 1920ms
+ GET /api/coach/profile 200 in 27ms
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+⚡ Optimized badges management API completed in 2ms
+ GET /api/badges?manage=true 200 in 22ms
+ GET /api/agent/suggestions?athleteId=cme7j3egn0000w282nceu0ie2&status=PENDING 200 in 30ms
+ GET /api/students/by-academy?academy=Transform 200 in 31ms
+ GET /api/agent/insights?athleteId=cme7j3egn0000w282nceu0ie2 200 in 33ms
+ GET /api/skills 200 in 32ms
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+ ⚠ GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode. The precache manifest generated after the first call may be inaccurate! Please see https://github.com/GoogleChrome/workbox/issues/1790 for more information.
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 1383ms
+ GET /api/attendance/roster?date=2025-08-27 500 in 1388ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 73ms
+ GET /api/attendance/roster?date=2025-08-27 500 in 72ms
+ GET /api/auth/session 200 in 77ms
+ GET /api/coach/profile 200 in 61ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+ GET /api/attendance/roster?date=2025-08-27 500 in 113ms
+⚡ Optimized badges management API completed in 3ms
+ GET /api/badges?manage=true 200 in 112ms
+ GET /api/students/by-academy?academy=Transform 200 in 115ms
+ GET /api/coach/profile 200 in 116ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 152ms
+ GET /api/skills 200 in 152ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/roster?date=2025-08-27 500 in 128ms
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 92ms
+ GET /api/auth/session 200 in 17ms
+ GET /api/coach/profile 200 in 31ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+ GET /api/coach/profile 200 in 91ms
+ GET /api/attendance/roster?date=2025-08-27 500 in 100ms
+ GET /api/students/by-academy?academy=Transform 200 in 98ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+⚡ Optimized badges management API completed in 47ms
+ GET /api/badges?manage=true 200 in 141ms
+ GET /api/skills 200 in 143ms
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 146ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+ GET /api/attendance/roster?date=2025-08-27 500 in 103ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 110ms
+ GET /api/auth/session 200 in 22ms
+ GET /api/coach/profile 200 in 21ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+⚡ Optimized badges management API completed in 2ms
+ GET /api/badges?manage=true 200 in 141ms
+ GET /api/attendance/roster?date=2025-08-27 500 in 151ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/coach/profile 200 in 187ms
+ GET /api/students/by-academy?academy=Transform 200 in 188ms
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 196ms
+ GET /api/skills 200 in 199ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/roster?date=2025-08-27 500 in 84ms
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 85ms
+ GET /api/auth/session 200 in 16ms
+ GET /api/coach/profile 200 in 55ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+ GET /api/attendance/roster?date=2025-08-27 500 in 115ms
+⚡ Optimized badges management API completed in 2ms
+ GET /api/badges?manage=true 200 in 114ms
+ GET /api/coach/profile 200 in 118ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/students/by-academy?academy=Transform 200 in 156ms
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 161ms
+ GET /api/skills 200 in 166ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+ GET /api/attendance/roster?date=2025-08-27 500 in 93ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 89ms
+ GET /api/auth/session 200 in 13ms
+ GET /api/coach/profile 200 in 17ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+⚡ Optimized badges management API completed in 2ms
+ GET /api/badges?manage=true 200 in 64ms
+ GET /api/attendance/roster?date=2025-08-27 500 in 69ms
+ GET /api/coach/profile 200 in 71ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 108ms
+ GET /api/skills 200 in 110ms
+ GET /api/students/by-academy?academy=Transform 200 in 109ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+ GET /api/attendance/roster?date=2025-08-27 500 in 87ms
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 81ms
+ GET /api/coach/profile 200 in 15ms
+ GET /api/coach/profile 200 in 8ms
+ GET /api/agent/insights?athleteId=cme7j3egn0000w282nceu0ie2 200 in 26ms
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+ GET /api/coach/profile 200 in 26ms
+ GET /api/agent/suggestions?athleteId=cme7j3egn0000w282nceu0ie2&status=PENDING 200 in 29ms
+⚡ Optimized badges management API completed in 6ms
+ GET /api/badges?manage=true 200 in 31ms
+ GET /api/students/by-academy?academy=Transform 200 in 32ms
+ GET /api/skills 200 in 41ms
+ GET /api/agent/insights?athleteId=cme7j3egn0000w282nceu0ie2 200 in 23ms
+ GET /api/agent/suggestions?athleteId=cme7j3egn0000w282nceu0ie2&status=PENDING 200 in 22ms
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+⚡ Optimized badges management API completed in 0ms
+ GET /api/badges?manage=true 200 in 19ms
+ GET /api/coach/profile 200 in 20ms
+ GET /api/students/by-academy?academy=Transform 200 in 21ms
+ GET /api/skills 200 in 27ms
+ GET /api/auth/session 200 in 62ms
+ GET /api/coach/profile 200 in 16ms
+ GET /api/agent/insights?athleteId=cme7j3egn0000w282nceu0ie2 200 in 56ms
+🏅 Badges API - Request details: {
+  type: 'all',
+  manage: true,
+  requestedStudentId: null,
+  targetStudentId: null,
+  userRole: 'COACH',
+  userId: 'cme7j3egn0000w282nceu0ie2'
+}
+ GET /api/coach/profile 200 in 64ms
+⚡ Optimized badges management API completed in 7ms
+ GET /api/badges?manage=true 200 in 66ms
+ GET /api/agent/suggestions?athleteId=cme7j3egn0000w282nceu0ie2&status=PENDING 200 in 69ms
+ GET /api/skills 200 in 74ms
+ GET /api/students/by-academy?academy=Transform 200 in 79ms
+ GET /api/agent/insights?athleteId=cme7j3egn0000w282nceu0ie2 200 in 31ms
+ GET /api/agent/suggestions?athleteId=cme7j3egn0000w282nceu0ie2&status=PENDING 200 in 18ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/roster?date=2025-08-27 500 in 122ms
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 130ms
+❌ Attendance Roster API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/roster/src/app/api/attendance/roster/route.ts:68:60)
+  66 |     
+  67 |     // Get existing attendance records for this date
+> 68 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  69 |       where: {
+  70 |         coachId: coach.id,
+  71 |         date: normalizedDate,
+❌ Coach Summary API Error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at GET$1 (webpack-internal:/(rsc)/src/app/api/attendance/coach/summary/src/app/api/attendance/coach/summary/route.ts:57:60)
+  55 |     
+  56 |     // Get attendance records for this date
+> 57 |     const attendanceRecords = await prisma.attendanceRecord.findMany({
+     |                                                            ^
+  58 |       where: {
+  59 |         coachId: coach.id,
+  60 |         date: normalizedDate
+ GET /api/attendance/roster?date=2025-08-27 500 in 81ms
+ GET /api/attendance/coach/summary?date=2025-08-27 500 in 77ms
+[next-auth][error][JWT_SESSION_ERROR] 
+https://next-auth.js.org/errors#jwt_session_error Invalid Compact JWE {
+  message: 'Invalid Compact JWE',
+  stack: 'JWEInvalid: Invalid Compact JWE\n' +
+    '    at compactDecrypt (webpack-internal:///(rsc)/./node_modules/next-auth/node_modules/jose/dist/node/cjs/jwe/compact/decrypt.js:16:15)\n' +
+    '    at jwtDecrypt (webpack-internal:///(rsc)/./node_modules/next-auth/node_modules/jose/dist/node/cjs/jwt/decrypt.js:8:61)\n' +
+    '    at Object.decode (webpack-internal:///(rsc)/./node_modules/next-auth/jwt/index.js:56:34)\n' +
+    '    at async Object.session (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/session.js:39:28)\n' +
+    '    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:136:27)\n' +
+    '    at async getServerSession (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:129:19)\n' +
+    '    at async GET$1 (webpack-internal:///(rsc)/./src/app/api/attendance/roster/route.ts:35:25)\n' +
+    '    at async eval (webpack-internal:///(rsc)/./node_modules/@sentry/nextjs/build/cjs/common/wrapRouteHandlerWithSentry.js:39:30)\n' +
+    '    at async AppRouteRouteModule.do (/Users/lilsp/peakplay-prototype/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:34112)\n' +
+    '    at async AppRouteRouteModule.handle (/Users/lilsp/peakplay-prototype/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41338)\n' +
+    '    at async doRender (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/base-server.js:1513:42)\n' +
+    '    at async DevServer.renderToResponseWithComponentsImpl (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/base-server.js:1915:28)\n' +
+    '    at async DevServer.renderPageComponent (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/base-server.js:2403:24)\n' +
+    '    at async DevServer.renderToResponseImpl (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/base-server.js:2440:32)\n' +
+    '    at async DevServer.pipeImpl (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/base-server.js:1007:25)\n' +
+    '    at async NextNodeServer.handleCatchallRenderRequest (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/next-server.js:305:17)\n' +
+    '    at async DevServer.handleRequestImpl (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/base-server.js:899:17)\n' +
+    '    at async /Users/lilsp/peakplay-prototype/node_modules/next/dist/server/dev/next-dev-server.js:371:20\n' +
+    '    at async Span.traceAsyncFn (/Users/lilsp/peakplay-prototype/node_modules/next/dist/trace/trace.js:157:20)\n' +
+    '    at async DevServer.handleRequest (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/dev/next-dev-server.js:368:24)\n' +
+    '    at async invokeRender (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/lib/router-server.js:237:21)\n' +
+    '    at async handleRequest (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/lib/router-server.js:428:24)\n' +
+    '    at async requestHandlerImpl (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/lib/router-server.js:452:13)\n' +
+    '    at async Server.requestListener (/Users/lilsp/peakplay-prototype/node_modules/next/dist/server/lib/start-server.js:158:13)',
+  name: 'JWEInvalid'
+}
+ GET /api/attendance/roster?date=2025-08-27 401 in 20ms
+ GET /api/attendance/roster?date=2025-08-27 401 in 6ms
+[?25h
