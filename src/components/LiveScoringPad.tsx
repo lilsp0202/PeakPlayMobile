@@ -231,10 +231,10 @@ export default function LiveScoringPad() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 px-4">
+    <div className="min-h-screen bg-gray-900 text-gray-100 py-4 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
+        <div className="bg-gray-800 rounded-xl shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Live Cricket Scoring</h1>
             <Link
@@ -248,7 +248,7 @@ export default function LiveScoringPad() {
         </div>
 
         {/* Match Info */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-4">
+        <div className="bg-gray-800 rounded-xl shadow-sm p-6 mb-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">
@@ -280,7 +280,7 @@ export default function LiveScoringPad() {
 
         {/* Batsmen Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className={`bg-white rounded-xl shadow-sm p-4 ${striker.isOnStrike ? 'ring-2 ring-indigo-500' : ''}`}>
+          <div className={`bg-gray-800 rounded-xl shadow-sm p-4 ${striker.isOnStrike ? 'ring-2 ring-indigo-500' : ''}`}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-gray-900">{striker.name} *</h3>
               <Target className="w-4 h-4 text-indigo-500" />
@@ -305,7 +305,7 @@ export default function LiveScoringPad() {
             </div>
           </div>
 
-          <div className={`bg-white rounded-xl shadow-sm p-4 ${nonStriker.isOnStrike ? 'ring-2 ring-indigo-500' : ''}`}>
+          <div className={`bg-gray-800 rounded-xl shadow-sm p-4 ${nonStriker.isOnStrike ? 'ring-2 ring-indigo-500' : ''}`}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-gray-900">{nonStriker.name}</h3>
             </div>
@@ -331,7 +331,7 @@ export default function LiveScoringPad() {
         </div>
 
         {/* Bowler Stats */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
+        <div className="bg-gray-800 rounded-xl shadow-sm p-4 mb-4">
           <h3 className="font-semibold text-gray-900 mb-2">{matchState.currentBowler.name}</h3>
           <div className="grid grid-cols-5 gap-2 text-center">
             <div>
@@ -360,7 +360,7 @@ export default function LiveScoringPad() {
         </div>
 
         {/* Scoring Controls */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-4">
+        <div className="bg-gray-800 rounded-xl shadow-sm p-6 mb-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Score This Ball</h3>
           
           {/* Runs Selection */}
@@ -372,10 +372,10 @@ export default function LiveScoringPad() {
                   key={run}
                   onClick={() => setSelectedRuns(run)}
                   className={`py-3 px-4 rounded-lg font-semibold transition-colors ${
-                    selectedRuns === run
+                                         selectedRuns === run
                       ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                      : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
+                  }`
                 >
                   {run}
                 </button>
@@ -391,8 +391,8 @@ export default function LiveScoringPad() {
                 onClick={() => setSelectedExtras(prev => ({ ...prev, wide: prev.wide ? 0 : 1 }))}
                 className={`py-2 px-4 rounded-lg transition-colors ${
                   selectedExtras.wide > 0
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
                 }`}
               >
                 Wide
@@ -401,8 +401,8 @@ export default function LiveScoringPad() {
                 onClick={() => setSelectedExtras(prev => ({ ...prev, noBall: prev.noBall ? 0 : 1 }))}
                 className={`py-2 px-4 rounded-lg transition-colors ${
                   selectedExtras.noBall > 0
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
                 }`}
               >
                 No Ball
@@ -411,8 +411,8 @@ export default function LiveScoringPad() {
                 onClick={() => setSelectedExtras(prev => ({ ...prev, bye: prev.bye ? 0 : selectedRuns }))}
                 className={`py-2 px-4 rounded-lg transition-colors ${
                   selectedExtras.bye > 0
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
                 }`}
               >
                 Bye
@@ -421,8 +421,8 @@ export default function LiveScoringPad() {
                 onClick={() => setSelectedExtras(prev => ({ ...prev, legBye: prev.legBye ? 0 : selectedRuns }))}
                 className={`py-2 px-4 rounded-lg transition-colors ${
                   selectedExtras.legBye > 0
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
                 }`}
               >
                 Leg Bye
@@ -462,16 +462,16 @@ export default function LiveScoringPad() {
           </div>
 
           {/* Submit Ball */}
-          <button
+                     <button
             onClick={handleBallDelivery}
-            className="w-full py-3 px-6 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+            className="w-full py-3 px-6 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-lg"
           >
             Record Ball
           </button>
         </div>
 
         {/* Recent Balls */}
-        <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="bg-gray-800 rounded-xl shadow-sm p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">This Over</h3>
           <div className="flex gap-2 flex-wrap">
             {matchState.recentBalls
