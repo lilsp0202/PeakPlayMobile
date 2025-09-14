@@ -4004,7 +4004,7 @@ export default function Dashboard() {
               username: selectedStudentModal.username || selectedStudentModal.email || 'student',
               age: selectedStudentModal.age || 18
             }}
-            onCreated={handleFeedbackCreated}
+            onFeedbackCreated={handleFeedbackCreated}
           />
       )}
 
@@ -4019,7 +4019,7 @@ export default function Dashboard() {
               username: selectedStudentModal.username || selectedStudentModal.email || 'student',
               age: selectedStudentModal.age || 18
             }}
-            onCreated={handleFeedbackCreated}
+            onActionCreated={handleFeedbackCreated}
           />
       )}
 
