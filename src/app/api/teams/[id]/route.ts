@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     });
 
-    if (!team || team.coachId !== coach.id || !team.isActive) {
+    if (!team || team.coachId !== coach.id) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
@@ -171,46 +171,75 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
-    // Update team and members
-    const team = await prisma.team.update({
-      where: { id: teamId },
-      data: {
-        name,
-        description,
-        members: {
-          deleteMany: {}, // Remove all existing members
-          create: memberIds?.map((studentId: string) => ({
+    // Use transaction to ensure data consistency
+    const team = await prisma.$transaction(async (tx) => {
+      // First update team details
+      const updatedTeam = await tx.team.update({
+        where: { id: teamId },
+        data: {
+          name,
+          description
+        }
+      });
+
+      // Delete all existing members
+      await tx.teamMember.deleteMany({
+        where: { teamId }
+      });
+
+      // Add new members if any
+      if (memberIds && memberIds.length > 0) {
+        await tx.teamMember.createMany({
+          data: memberIds.map((studentId: string) => ({
+            teamId,
             studentId,
             roles: [] // Start with no roles - coaches must assign manually
-          })) || []
-        }
-      },
-      include: {
-        members: {
-          include: {
-            student: {
-              select: {
-                id: true,
-                studentName: true,
-                email: true,
-                academy: true,
-                sport: true,
-                role: true
+          })),
+          skipDuplicates: true
+        });
+      }
+
+      // Return the fully hydrated team with counts
+      return await tx.team.findUnique({
+        where: { id: teamId },
+        include: {
+          members: {
+            include: {
+              student: {
+                select: {
+                  id: true,
+                  studentName: true,
+                  email: true,
+                  academy: true,
+                  sport: true,
+                  role: true
+                }
               }
             }
-          }
-        },
-        _count: {
-          select: {
-            members: true,
-            feedback: true,
-            actions: true
+          },
+          _count: {
+            select: {
+              members: true,
+              feedback: true,
+              actions: true
+            }
           }
         }
-      }
+      });
     });
 
-    return NextResponse.json({ team });
+    console.log(`✅ Team updated: ${team.name} with ${team._count.members} members`);
+
+    // Return with no-cache headers to ensure fresh data
+    return NextResponse.json(
+      { team }, 
+      { 
+        headers: { 
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Pragma': 'no-cache'
+        } 
+      }
+    );
   } catch (error) {
     console.error('Error updating team:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

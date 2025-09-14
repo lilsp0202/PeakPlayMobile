@@ -1011,13 +1011,16 @@ export default function Dashboard() {
       
       console.log('✅ Team created successfully:', result);
       
+      // The response contains { team: {...} } not the team directly
+      const createdTeam = result.team;
+      
       // Show success message (you can add a toast notification here)
-      alert(`Team "${result.name}" created successfully with ${result._count?.members || 0} members!`);
+      alert(`Team "${createdTeam.name}" created successfully with ${createdTeam._count?.members || 0} members!`);
       
-      // Refresh teams list - no need to include heavy member data in list view
-      await fetchTeams(false);
+      // Refresh teams list with cache bypass to show updated data immediately
+      await fetchTeams(false, true);
       
-      return result;
+      return createdTeam;
     } catch (error) {
       console.error('❌ Error creating team:', error);
       throw error;
@@ -4290,7 +4293,8 @@ export default function Dashboard() {
                   team={selectedTeamForMembers}
                   assignedStudents={assignedStudents || []}
                   onUpdate={() => {
-                    fetchTeams(true);
+                    // Force refresh teams with cache bypass
+                    fetchTeams(true, true);
                     fetchProfile();
                   }}
                 />

@@ -55,42 +55,36 @@ const withTeamsCacheAndDeduplication = async <T>(
   return promise;
 };
 
+// Clear all caches - useful for when data is updated
+const clearTeamsCache = () => {
+  console.log('🧹 Clearing all teams cache');
+  teamsCache.clear();
+  pendingTeamsRequests.clear();
+};
+
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
-  
   try {
-    console.log('🏈 Teams API - Starting request');
-    
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
-      console.log('❌ No session found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const coachId = searchParams.get('coachId');
-    // PERFORMANCE: Default to lightweight data, let frontend request details separately
-    const includeMembers = searchParams.get('includeMembers') === 'true';
+    const searchParams = request.nextUrl.searchParams;
     const includeStats = searchParams.get('includeStats') === 'true';
+    const includeMembers = searchParams.get('includeMembers') === 'true';
+    const teamId = searchParams.get('teamId');
+    const coachId = searchParams.get('coachId');
     const skipCache = searchParams.get('skipCache') === 'true';
 
-    // Create cache key based on user and parameters - always include stats now
-    const cacheKey = `teams:${session.user.id}:${coachId}:${includeMembers}:true`;
-    
-    // PRODUCTION FIX: Clear cache if skipCache is requested or clear old cache entries that might not have _count data
+    // Skip cache if requested
     if (skipCache) {
-      console.log('🧹 Clearing all teams cache due to skipCache=true');
-      teamsCache.clear();
-    } else {
-      for (const key of Array.from(teamsCache.keys())) {
-        if (key.includes(`teams:${session.user.id}`) && !key.endsWith(':true')) {
-          teamsCache.delete(key);
-          console.log('🧹 Cleared old cache entry:', key);
-        }
-      }
+      console.log('🔄 Force refreshing teams data (skipCache=true)');
+      clearTeamsCache();
     }
-    
+
+    const cacheKey = `teams:${session.user.id}:${includeStats}:${includeMembers}:${teamId || 'all'}:${coachId || 'self'}`;
+
     const result = await withTeamsCacheAndDeduplication(cacheKey, async () => {
       console.log(`🔍 Fetching teams data for user: ${session.user.email} (ID: ${session.user.id}) (always including stats)`);
 
@@ -197,6 +191,9 @@ export async function GET(request: NextRequest) {
             // PERFORMANCE: Only include heavy data if specifically requested
             ...(includeMembers && {
               members: {
+                where: {
+                  studentId: student.id
+                },
                 select: {
                   id: true,
                   studentId: true,
@@ -214,7 +211,7 @@ export async function GET(request: NextRequest) {
                 }
               }
             }),
-            // Always include counts - they're lightweight and needed for UI
+            // PRODUCTION FIX: Always include counts with explicit calculation
             _count: {
               select: {
                 members: true,
@@ -228,54 +225,34 @@ export async function GET(request: NextRequest) {
           },
           take: 20 // PERFORMANCE: Limit initial results
         });
+
+        // PRODUCTION FIX: Validate that _count data is present and log any issues
+        for (const team of teams) {
+          if (team._count === undefined || team._count === null) {
+            console.error(`❌ Missing _count data for team ${team.name} (${team.id})`);
+          } else {
+            console.log(`✅ Team ${team.name}: ${team._count.members} members, ${team._count.feedback} feedback, ${team._count.actions} actions`);
+          }
+        }
       } else {
-        console.error('❌ User not found as coach or student');
-        throw new Error('User not found as coach or student');
+        console.log('❌ User is neither coach nor student');
+        teams = [];
       }
 
-      console.log(`✅ Teams data fetched successfully: ${teams.length} teams with counts:`, teams.map(t => ({ 
-        id: t.id, 
-        name: t.name, 
-        memberCount: t._count?.members,
-        feedbackCount: t._count?.feedback,
-        actionsCount: t._count?.actions
-      })));
-      
-      // PRODUCTION FIX: Additional validation to ensure no team has undefined _count
-      const teamsWithValidCounts = teams.map(team => {
-        if (!team._count) {
-          console.error(`❌ Team ${team.name} missing _count, setting defaults`);
-          return {
-            ...team,
-            _count: {
-              members: 0,
-              feedback: 0,
-              actions: 0
-            }
-          };
-        }
-        return team;
-      });
-      
-      return { teams: teamsWithValidCounts };
-    }, skipCache ? 0 : 30000); // PERFORMANCE: Reduced cache time for faster updates, or no cache if skipCache=true
+      console.log(`📊 Returning ${teams.length} teams`);
+      return teams;
+    }, skipCache ? 1 : 30000); // Use short TTL if cache is skipped
 
-    const totalTime = Date.now() - startTime;
-    console.log(`🏈 Teams API completed in ${totalTime}ms`);
-    
-    // PERFORMANCE: Aggressive caching headers for faster subsequent loads
-    const response = NextResponse.json(result);
-    response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
-    return response;
+    // Add Cache-Control header to prevent browser caching when skipCache is true
+    const headers = skipCache 
+      ? { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+      : {};
+
+    return NextResponse.json({ teams: result }, { headers });
   } catch (error) {
-    const totalTime = Date.now() - startTime;
-    console.error(`❌ Teams API error after ${totalTime}ms:`, error);
-    
-    if (error instanceof Error && error.message.includes('User not found')) {
-      return NextResponse.json({ error: 'User not found as coach or student' }, { status: 404 });
-    }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error fetching teams:', error);
+    clearTeamsCache(); // Clear cache on error
+    return NextResponse.json({ error: 'Failed to fetch teams' }, { status: 500 });
   }
 }
 
@@ -287,7 +264,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, description, memberIds } = await request.json();
+    const { name, description, memberIds = [] } = await request.json();
 
     if (!name || !Array.isArray(memberIds)) {
       return NextResponse.json({ error: 'Name and member IDs are required' }, { status: 400 });
@@ -302,45 +279,73 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Coach not found' }, { status: 404 });
     }
 
-    // Create team with members
-    const team = await prisma.team.create({
-      data: {
-        name,
-        description,
-        coachId: coach.id,
-        members: {
-          create: memberIds.map((studentId: string) => ({
+    // Use transaction to ensure data consistency
+    const team = await prisma.$transaction(async (tx) => {
+      // Create team first
+      const newTeam = await tx.team.create({
+        data: {
+          name,
+          description,
+          coachId: coach.id
+        }
+      });
+
+      // Add members if any
+      if (memberIds.length > 0) {
+        await tx.teamMember.createMany({
+          data: memberIds.map((studentId: string) => ({
+            teamId: newTeam.id,
             studentId,
             roles: [] // Start with no roles - coaches must assign manually
-          }))
-        }
-      },
-      include: {
-        members: {
-          include: {
-            student: {
-              select: {
-                id: true,
-                studentName: true,
-                email: true,
-                academy: true,
-                sport: true,
-                role: true
+          })),
+          skipDuplicates: true
+        });
+      }
+
+      // Return the fully hydrated team with counts
+      return await tx.team.findUnique({
+        where: { id: newTeam.id },
+        include: {
+          members: {
+            include: {
+              student: {
+                select: {
+                  id: true,
+                  studentName: true,
+                  email: true,
+                  academy: true,
+                  sport: true,
+                  role: true
+                }
               }
             }
-          }
-        },
-        _count: {
-          select: {
-            members: true,
-            feedback: true,
-            actions: true
+          },
+          _count: {
+            select: {
+              members: true,
+              feedback: true,
+              actions: true
+            }
           }
         }
-      }
+      });
     });
 
-    return NextResponse.json({ team });
+    // Clear cache after creating team
+    clearTeamsCache();
+
+    console.log(`✅ Team created: ${team.name} with ${team._count.members} members`);
+
+    // Return with no-cache headers to ensure fresh data
+    return NextResponse.json(
+      { team }, 
+      { 
+        headers: { 
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Pragma': 'no-cache'
+        } 
+      }
+    );
   } catch (error) {
     console.error('Error creating team:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
