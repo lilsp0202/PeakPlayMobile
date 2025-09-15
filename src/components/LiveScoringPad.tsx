@@ -372,10 +372,10 @@ export default function LiveScoringPad() {
                   key={run}
                   onClick={() => setSelectedRuns(run)}
                   className={`py-3 px-4 rounded-lg font-semibold transition-colors ${
-                                         selectedRuns === run
+                                             selectedRuns === run
                       ? 'bg-indigo-600 text-white'
                       : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
-                  }`
+                  }`}
                 >
                   {run}
                 </button>
